@@ -19,7 +19,7 @@ def read_data(path, marker, na_val=-10, subsample=None, random_state=None):
 
 def create_stan_data(y_C, y_T, K, p, a_gamma=1, b_gamma=1, a_eta=None,
                      na_val=-10, xi_bar=None, d_xi=0.31, d_phi=0.31,
-                     a_sigma=3, b_sigma=2, nu=None, nu_k=1):
+                     a_sigma=3, b_sigma=2, nu=None, nu_k=30):
     if a_eta is None:
         a_eta = np.ones(K) / K
 
