@@ -27,10 +27,10 @@ transformed data {
   int<lower=0, upper=1> is_zero_C[N_C];
 
   for (n in 1:N_T) {
-    is_zero_T[n] = 1 * (y_T[n] == 0);
+    is_zero_T[n] = (y_T[n] == 0);
   }
   for (n in 1:N_C) {
-    is_zero_C[n] = 1 * (y_C[n] == 0);
+    is_zero_C[n] = (y_C[n] == 0);
   }
 }
 
