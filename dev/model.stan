@@ -1,13 +1,26 @@
 // Skew Normal distribution in STAN:
 //   https://mc-stan.org/docs/2_24/functions-reference/skew-normal-distribution.html
 
+functions {
+  real skew_t_lpdf(real x, real nu, real loc, real scale, real skew) {
+    real z;
+    real c;
+    real f;
+
+    z = (x - loc) / scale;
+    c =  2 / (skew + 1/skew);
+    f = (z > 0) ? student_t_lpdf(z / skew | nu, 0, 1) : student_t_lpdf(z * skew | nu, 0, 1);
+
+    return c * f;
+  }
+}
+
 data {
   int<lower=0> N_T;
   int<lower=0> N_C;
   real y_T[N_T];
   real y_C[N_C];
   int<lower=0> K;  // number of mixture components.
-  real<lower=0, upper=1> p;  // NOTE: Make this random?
   real na_val;
 
   // hyper parameters
@@ -21,6 +34,7 @@ data {
   real<lower=0> d_phi;
   real<lower=0> a_sigma;
   real<lower=0> b_sigma;
+  vector<lower=0>[K] nu;
 }
 
 transformed data {
@@ -45,12 +59,14 @@ parameters {
   vector[K] xi;
   vector[K] phi;
   vector<lower=0>[K] sigma;
+
+  real<lower=0, upper=1> p;  // NOTE: Fixed in paper.
 }
 
 transformed parameters {
   real<lower=0, upper=1> gamma_T;
   // simplex[K] eta_T;  // can't be simplex because we are adding.
-  vector[K] eta_T;  // tecnically a simplex.
+  vector[K] eta_T;  // technically a simplex.
 
   vector[N_T] lpdf_mix_T;
   vector[N_C] lpdf_mix_C;
@@ -62,14 +78,18 @@ transformed parameters {
     vector[K] lpdf_mix;
     for (n in 1:N_T) {
       for (k in 1:K) {
-        lpdf_mix[k] = log(eta_T[k]) + skew_normal_lpdf(y_T[n] | xi[k], sigma[k], phi[k]);
+        lpdf_mix[k] = log(eta_T[k]) + skew_t_lpdf(y_T[n] | nu[k], xi[k], sigma[k], phi[k]);
+        // lpdf_mix[k] = log(eta_T[k]) + skew_normal_lpdf(y_T[n] | xi[k], sigma[k], phi[k]);
+        // lpdf_mix[k] = log(eta_T[k]) + normal_lpdf(y_T[n] | xi[k], sigma[k]);
       }
       lpdf_mix_T[n] = log_sum_exp(lpdf_mix);
     }
 
     for (n in 1:N_C) {
       for (k in 1:K) {
-        lpdf_mix[k] = log(eta_C[k]) + skew_normal_lpdf(y_C[n] | xi[k], sigma[k], phi[k]);
+        lpdf_mix[k] = log(eta_C[k]) + skew_t_lpdf(y_C[n] | nu[k], xi[k], sigma[k], phi[k]);
+        // lpdf_mix[k] = log(eta_C[k]) + skew_normal_lpdf(y_C[n] | xi[k], sigma[k], phi[k]);
+        // lpdf_mix[k] = log(eta_C[k]) + normal_lpdf(y_C[n] | xi[k], sigma[k]);
       }
       lpdf_mix_C[n] = log_sum_exp(lpdf_mix);
     }
@@ -77,6 +97,8 @@ transformed parameters {
 }
 
 model {
+  p ~ beta(1, 1);
+
   gamma_tilde_T ~ beta(a_gamma, b_gamma);
   gamma_C ~ beta(a_gamma, b_gamma);
 
@@ -88,10 +110,12 @@ model {
   phi ~ normal(0, d_phi * sigma);  // g-prior
   
   for (n in 1:N_C) {
-    target += log_mix(gamma_C, log(is_zero_C[n]), lpdf_mix_C[n]);
+    // target += log_mix(gamma_C, log(is_zero_C[n]), lpdf_mix_C[n]);
+    target += log_mix(gamma_C, normal_lpdf(y_C[n] | na_val, .0001), lpdf_mix_C[n]);
   }
 
   for (n in 1:N_T) {
-    target += log_mix(gamma_T, log(is_zero_T[n]), lpdf_mix_T[n]);
+    // target += log_mix(gamma_T, log(is_zero_T[n]), lpdf_mix_T[n]);
+    target += log_mix(gamma_T, normal_lpdf(y_T[n] | na_val, .0001), lpdf_mix_T[n]);
   }
 }
