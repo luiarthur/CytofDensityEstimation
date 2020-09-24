@@ -73,5 +73,5 @@ plt.hist(list(filter(lambda x: np.isnan(x) == False, stan_data['y_T'])),
 plt.hist(list(filter(lambda x: np.isnan(x) == False, stan_data['y_C'])), 
          bins=30, alpha=0.6, density=True, label='C')
 plt.legend()
-plt.savefig('bla.pdf', bbox_inches='tight')
+plt.savefig('img/bla.pdf', bbox_inches='tight')
 plt.close()
