@@ -17,6 +17,7 @@ functions {
   // nu:positive, loc:real, scale:positive, alpha:real
   real skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
     real z;
+    real u;
     real kernel;
 
     z = (x - loc) / scale;
