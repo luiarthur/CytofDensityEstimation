@@ -2,16 +2,27 @@
 //   https://mc-stan.org/docs/2_24/functions-reference/skew-normal-distribution.html
 
 functions {
-  real skew_t_lpdf(real x, real nu, real loc, real scale, real skew) {
+  // real skew_t_lpdf(real x, real nu, real loc, real scale, real skew) {
+  //   real z;
+  //   real c;
+  //   real f;
+
+  //   z = (x - loc) / scale;
+  //   c =  2 / (skew + 1/skew);
+  //   f = (z > 0) ? student_t_lpdf(z / skew | nu, 0, 1) : student_t_lpdf(z * skew | nu, 0, 1);
+
+  //   return c * f;
+  // }
+
+  // nu:positive, loc:real, scale:positive, alpha:real
+  real skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
     real z;
-    real c;
-    real f;
+    real kernel;
 
     z = (x - loc) / scale;
-    c =  2 / (skew + 1/skew);
-    f = (z > 0) ? student_t_lpdf(z / skew | nu, 0, 1) : student_t_lpdf(z * skew | nu, 0, 1);
-
-    return c * f;
+    u = alpha * z * sqrt((nu + 1) / (nu + z*z));
+    kernel = student_t_lpdf(z | nu, 0, 1) + student_t_lcdf(u | nu + 1, 0, 1);
+    return (kernel + log(2) - log(scale));
   }
 }
 
