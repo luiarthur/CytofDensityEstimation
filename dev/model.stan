@@ -1,3 +1,6 @@
+// Skew Normal distribution in STAN:
+//   https://mc-stan.org/docs/2_24/functions-reference/skew-normal-distribution.html
+
 data {
   int<lower=0> N_T;
   int<lower=0> N_C;
