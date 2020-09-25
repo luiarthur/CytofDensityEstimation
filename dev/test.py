@@ -7,6 +7,7 @@ import matplotlib as mpl
 mpl.use("Agg")
 
 from pystan_util import pystan_vb_extract
+from posterior_inference import post_pred
 
 def rm_inf(x):
     return list(filter(lambda x: not np.isinf(x), x))
@@ -17,7 +18,7 @@ def replace_inf(x, z):
     return x
 
 def print_stat(param, fit):
-    m, s = fit[param].mean(), fit[param].std()
+    m, s = fit[param].mean(0), fit[param].std(0)
     print(f'{param}: mean={np.round(m, 3)}, sd={np.round(s, 3)}')
 
 
@@ -40,8 +41,9 @@ def read_data(path, marker, subsample=None, random_state=None):
                 y_T=np.log(y_T).to_numpy())
 
 def create_stan_data(y_C, y_T, K, p, a_gamma=1, b_gamma=1, a_eta=None,
-                     xi_bar=None, d_xi=0.31, d_phi=0.31,
-                     a_sigma=3, b_sigma=2, m_nu=3, s_nu=0.2):
+                     a_sigma=3, b_sigma=2,
+                     m_phi=0, xi_bar=None, d_xi=0.31, d_phi=0.31,
+                     m_nu=3, s_nu=0.5):
     if a_eta is None:
         a_eta = np.ones(K) / K
 
@@ -54,14 +56,14 @@ def create_stan_data(y_C, y_T, K, p, a_gamma=1, b_gamma=1, a_eta=None,
                 y_T=y_T,
                 y_C=y_C,
                 K=K, p=p,
-                a_gamma=a_gamma, b_gamma=b_gamma,
+                a_gamma=a_gamma, b_gamma=b_gamma, m_phi=m_phi,
                 a_eta=a_eta, xi_bar=xi_bar, d_xi=d_xi, d_phi=d_phi,
                 a_sigma=a_sigma, b_sigma=b_sigma,
                 m_nu=m_nu, s_nu=s_nu)
 
 
 # Compile STAN model.
-sm = pystan.StanModel('model.stan')
+# sm = pystan.StanModel('model.stan')
 
 # Path to data.
 data_dir = '../data/TGFBR2/cytof-data'
@@ -69,13 +71,14 @@ path_to_donor1 = f'{data_dir}/donor1.csv'
 
 # Read data.
 # FIXME: Remove subsample after testing!
-# marker = 'NKG2D' # looks efficacious
-marker = 'CD16'  # looks not efficacious
+marker = 'NKG2D' # looks efficacious
+# marker = 'CD16'  # looks not efficacious
 
-# donor1_data = read_data(path_to_donor1, marker, subsample=1000, random_state=2)
-donor1_data = read_data(path_to_donor1, marker)
+donor1_data = read_data(path_to_donor1, marker, subsample=2000, random_state=2)
+# donor1_data = read_data(path_to_donor1, marker)
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
-                             K=5, p=0.5, d_xi=0.1, d_phi=0.1,
+                             K=5, p=0.5, 
+                             # m_phi=-10,  # testing.
                              a_sigma=13, b_sigma=12)
 stan_data['y_T'], stan_data['y_C']
 
@@ -102,6 +105,11 @@ def doit():
     print(f"T0: {np.isinf(stan_data['y_T']).mean()}")
     print(f"C0: {np.isinf(stan_data['y_C']).mean()}")
     print_stat('sigma', vb_fit)
+    print_stat('phi', vb_fit)
+    print_stat('xi', vb_fit)
+    print_stat('nu', vb_fit)
+    print_stat('eta_T', vb_fit)
+    print_stat('eta_C', vb_fit)
 
 doit()
 
@@ -138,4 +146,13 @@ plt.scatter(2, np.isinf(stan_data['y_C']).mean(),
             s=100, color='b', alpha=0.6, label='C: prob. zeros')
 plt.legend()
 plt.savefig('img/p.pdf', bbox_inches='tight')
+plt.close()
+
+
+# Post pred
+z = post_pred(vb_fit)
+plt.hist(rm_inf(z[:, 0]), bins=40, label="C", alpha=0.6, density=True)
+plt.hist(rm_inf(z[:, 1]), bins=40, label="T", alpha=0.6, density=True)
+plt.legend()
+plt.savefig('img/postpred.pdf', bbox_inches='tight')
 plt.close()

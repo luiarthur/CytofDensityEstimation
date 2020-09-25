@@ -26,6 +26,7 @@ data {
   vector<lower=0>[K] a_eta;
 
   real xi_bar;
+  real m_phi;
   real<lower=0> d_xi;
   real<lower=0> d_phi;
   real<lower=0> a_sigma;
@@ -75,7 +76,7 @@ model {
 
   sigma_sq ~ inv_gamma(a_sigma, b_sigma);
   xi ~ normal(xi_bar, d_xi * sigma);  // g-prior
-  phi ~ normal(0, d_phi * sigma);  // g-prior
+  phi ~ normal(m_phi, d_phi * sigma);  // g-prior
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
   
   {
