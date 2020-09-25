@@ -99,11 +99,11 @@ model {
     }
 
     for (n in 1:N_C) {
-      target += log_mix(gamma_C, log(is_inf(-y_C[n])), lpdf_mix_C[n]);
+      target += log_mix(gamma_C, log(is_inf(y_C[n])), lpdf_mix_C[n]);
     }
 
     for (n in 1:N_T) {
-      target += log_mix(gamma_T, log(is_inf(-y_T[n])), lpdf_mix_T[n]);
+      target += log_mix(gamma_T, log(is_inf(y_T[n])), lpdf_mix_T[n]);
     }
   }
 }
