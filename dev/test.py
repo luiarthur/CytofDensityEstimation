@@ -71,7 +71,7 @@ path_to_donor1 = f'{data_dir}/donor1.csv'
 
 # Read data.
 # FIXME: Remove subsample after testing!
-donor1_data = read_data(path_to_donor1, 'CD16', subsample=10000, random_state=2)
+donor1_data = read_data(path_to_donor1, 'CD16', subsample=1000, random_state=2)
 # donor1_data = read_data(path_to_donor1, 'NKG2D', subsample=1000, random_state=1)
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
                              K=5, p=0.5, d_xi=0.1, d_phi=0.1,
@@ -95,7 +95,7 @@ vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
 
 vb_fit = pystan_vb_extract(vb_fit)
 def doit():
-    print_stat('p', vb_fit)  # prob. treatment not effective
+    print_stat('p_efficacious', vb_fit)
     print_stat('gamma_T', vb_fit)
     print_stat('gamma_C', vb_fit)
     print(f"T0: {np.isinf(stan_data['y_T']).mean()}")

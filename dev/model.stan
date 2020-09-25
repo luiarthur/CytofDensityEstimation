@@ -37,31 +37,7 @@ data {
 }
 
 transformed data {
-  real x_T[N_T];
-  real x_C[N_C];
-  real spike_loc;
-  real spike_sd;
-
-  spike_loc = -10;
-  spike_sd = 0.001;
-
-  for (n in 1:N_T) {
-    x_T[n] = is_inf(-y_T[n]) ? spike_loc : y_T[n];
-  }
-
-  for (n in 1:N_C) {
-    x_C[n] = is_inf(-y_C[n]) ? spike_loc : y_C[n];
-  }
-
-  // int<lower=0, upper=1> not_expressed_T[N_T];
-  // int<lower=0, upper=1> not_expressed_C[N_C];
-
-  // for (n in 1:N_T) {
-  //   not_expressed_T[n] = is_inf(y_T[n]);
-  // }
-  // for (n in 1:N_C) {
-  //   not_expressed_T[n] = is_inf(y_C[n]);
-  // }
+  real neg_inf = -10000;
 }
 
 parameters {
@@ -106,30 +82,36 @@ model {
     vector[N_T] lpdf_mix_T;
     vector[N_C] lpdf_mix_C;
     vector[K] lpdf_mix;
+
     for (n in 1:N_T) {
       for (k in 1:K) {
-        lpdf_mix[k] = log(eta_T[k]) + skew_t_lpdf(x_T[n] | nu[k], xi[k], sigma[k], phi[k]);
-        // lpdf_mix[k] = log(eta_T[k]) + normal_lpdf(x_T[n] | xi[k], sigma[k]);
+        lpdf_mix[k] = log(eta_T[k]);
+        lpdf_mix[k] += is_inf(y_T[n]) ? neg_inf : 
+                       skew_t_lpdf(y_T[n] | nu[k], xi[k], sigma[k], phi[k]);
       }
       lpdf_mix_T[n] = log_sum_exp(lpdf_mix);
     }
 
     for (n in 1:N_C) {
       for (k in 1:K) {
-        lpdf_mix[k] = log(eta_C[k]) + skew_t_lpdf(x_C[n] | nu[k], xi[k], sigma[k], phi[k]);
-        // lpdf_mix[k] = log(eta_C[k]) + normal_lpdf(x_C[n] | xi[k], sigma[k]);
+        lpdf_mix[k] = log(eta_C[k]);
+        lpdf_mix[k] += is_inf(y_C[n]) ? neg_inf : 
+                       skew_t_lpdf(y_C[n] | nu[k], xi[k], sigma[k], phi[k]);
       }
       lpdf_mix_C[n] = log_sum_exp(lpdf_mix);
     }
 
     for (n in 1:N_C) {
-      target += log_mix(gamma_C, log(is_zero_C[n]), lpdf_mix_C[n]);
-      // target += log_mix(gamma_C, normal_lpdf(x_C[n] | spike_loc, spike_sd), lpdf_mix_C[n]);
+      target += log_mix(gamma_C, log(is_inf(-y_C[n])), lpdf_mix_C[n]);
     }
 
     for (n in 1:N_T) {
-      target += log_mix(gamma_T, log(is_zero_T[n]), lpdf_mix_T[n]);
-      // target += log_mix(gamma_T, normal_lpdf(x_T[n] | spike_loc, spike_sd), lpdf_mix_T[n]);
+      target += log_mix(gamma_T, log(is_inf(-y_T[n])), lpdf_mix_T[n]);
     }
   }
+}
+
+generated quantities {
+  real<lower=0, upper=1> p_efficacious;
+  p_efficacious = 1 - p;
 }
