@@ -6,6 +6,16 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.use("Agg")
 
+from pystan_util import pystan_vb_extract
+
+def rm_inf(x):
+    return list(filter(lambda x: not np.isinf(x), x))
+
+def replace_inf(x, z):
+    x = x + 0
+    x[np.isinf(x)] = z
+    return x
+
 def print_stat(param, fit):
     m, s = fit[param].mean(), fit[param].std()
     print(f'{param}: mean={np.round(m, 3)}, sd={np.round(s, 3)}')
@@ -61,38 +71,54 @@ path_to_donor1 = f'{data_dir}/donor1.csv'
 
 # Read data.
 # FIXME: Remove subsample after testing!
-donor1_data = read_data(path_to_donor1, 'CD16', subsample=1000, random_state=1)
+donor1_data = read_data(path_to_donor1, 'CD16', subsample=10000, random_state=2)
+# donor1_data = read_data(path_to_donor1, 'NKG2D', subsample=1000, random_state=1)
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
                              K=5, p=0.5, d_xi=0.1, d_phi=0.1,
-                             a_sigma=3, b_sigma=2)
+                             a_sigma=13, b_sigma=12)
 stan_data['y_T'], stan_data['y_C']
 
-# ADVI. FIXME?!
-# vb_fit = sm.vb(data=stan_data, iter=100, seed=2)
+# ADVI.
+vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
+               grad_samples=1, elbo_samples=1)
 
-# HMC. FIXME?!
+# HMC.
 # hmc_fit = sm.sampling(data=stan_data, 
 #                       iter=500, warmup=400, thin=1, seed=1,
 #                       algorithm='HMC', chains=1,
 #                       control=dict(stepsize=0.01, int_time=1, adapt_engaged=False))
 
 # NUTS.
-nuts_fit = sm.sampling(data=stan_data, 
-                       iter=500, warmup=400, thin=1, seed=1, chains=1)
+# nuts_fit = sm.sampling(data=stan_data, 
+#                        iter=500, warmup=400, thin=1, seed=1, chains=1)
+# 
 
-print_stat('p', nuts_fit)  # prob. treatment not effective
-print_stat('gamma_T', nuts_fit)
-print_stat('gamma_C', nuts_fit)
-print_stat('sigma', nuts_fit)
+vb_fit = pystan_vb_extract(vb_fit)
+def doit():
+    print_stat('p', vb_fit)  # prob. treatment not effective
+    print_stat('gamma_T', vb_fit)
+    print_stat('gamma_C', vb_fit)
+    print(f"T0: {np.isinf(stan_data['y_T']).mean()}")
+    print(f"C0: {np.isinf(stan_data['y_C']).mean()}")
+    print_stat('sigma', vb_fit)
 
-plt.plot(nuts_fit['lp__'])
+doit()
+
+plt.plot(vb_fit['lp__'])
 plt.savefig('img/log_prob.pdf', bbox_inches='tight')
 plt.close()
 
-plt.hist(list(filter(lambda x: not np.isinf(x), stan_data['y_T'])), 
-         bins=30, alpha=0.6, density=True, label='T')
-plt.hist(list(filter(lambda x: not np.isinf(x), stan_data['y_C'])), 
-         bins=30, alpha=0.6, density=True, label='C')
+plt.hist(rm_inf(stan_data['y_T']), color='red', 
+         histtype='stepfilled',
+         bins=50, alpha=0.6, density=True, label='T')
+plt.hist(rm_inf(stan_data['y_C']), color='blue',
+         histtype='stepfilled',
+         bins=50, alpha=0.6, density=True, label='C')
+plt.scatter(-8, np.isinf(stan_data['y_T']).mean(),
+            s=100, color='r', alpha=0.6, label='T: prop. zeros')
+plt.scatter(-8, np.isinf(stan_data['y_C']).mean(),
+            s=100, color='b', alpha=0.6, label='C: prob. zeros')
 plt.legend()
 plt.savefig('img/bla.pdf', bbox_inches='tight')
 plt.close()
+

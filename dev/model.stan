@@ -73,16 +73,18 @@ parameters {
 
   vector[K] xi;
   vector[K] phi;
-  vector<lower=0>[K] sigma;
+  vector<lower=0>[K] sigma_sq;
 
   real<lower=0, upper=1> p;  // NOTE: Fixed in paper.
 }
 
 transformed parameters {
+  vector<lower=0>[K] sigma;
   real<lower=0, upper=1> gamma_T;
   // simplex[K] eta_T;  // simplex can't be guaranteed at compile time.
   vector[K] eta_T;  // technically a simplex.
 
+  sigma = sqrt(sigma_sq);
   eta_T = p * eta_C + (1 - p) * eta_tilde_T;
   gamma_T = p * gamma_C + (1 - p) * gamma_tilde_T;
 }
@@ -96,7 +98,7 @@ model {
   eta_tilde_T ~ dirichlet(a_eta);
   eta_C ~ dirichlet(a_eta);
 
-  sigma ~ inv_gamma(a_sigma, b_sigma);
+  sigma_sq ~ inv_gamma(a_sigma, b_sigma);
   xi ~ normal(xi_bar, d_xi * sigma);  // g-prior
   phi ~ normal(0, d_phi * sigma);  // g-prior
   
@@ -121,13 +123,13 @@ model {
     }
 
     for (n in 1:N_C) {
-      // target += log_mix(gamma_C, log(is_zero_C[n]), lpdf_mix_C[n]);
-      target += log_mix(gamma_C, normal_lpdf(x_C[n] | spike_loc, spike_sd), lpdf_mix_C[n]);
+      target += log_mix(gamma_C, log(is_zero_C[n]), lpdf_mix_C[n]);
+      // target += log_mix(gamma_C, normal_lpdf(x_C[n] | spike_loc, spike_sd), lpdf_mix_C[n]);
     }
 
     for (n in 1:N_T) {
-      // target += log_mix(gamma_T, log(is_zero_T[n]), lpdf_mix_T[n]);
-      target += log_mix(gamma_T, normal_lpdf(x_T[n] | spike_loc, spike_sd), lpdf_mix_T[n]);
+      target += log_mix(gamma_T, log(is_zero_T[n]), lpdf_mix_T[n]);
+      // target += log_mix(gamma_T, normal_lpdf(x_T[n] | spike_loc, spike_sd), lpdf_mix_T[n]);
     }
   }
 }
