@@ -58,8 +58,8 @@ transformed parameters {
   vector[K] eta_T;  // technically a simplex.
 
   sigma = sqrt(sigma_sq);
-  eta_T = p * eta_C + (1 - p) * eta_tilde_T;
-  gamma_T = p * gamma_C + (1 - p) * gamma_tilde_T;
+  eta_T = (1 - p) * eta_C + p * eta_tilde_T;
+  gamma_T = (1 - p) * gamma_C + p * gamma_tilde_T;
 }
 
 model {
@@ -106,9 +106,4 @@ model {
       target += log_mix(gamma_T, log(is_inf(y_T[n])), lpdf_mix_T[n]);
     }
   }
-}
-
-generated quantities {
-  real<lower=0, upper=1> p_efficacious;
-  p_efficacious = 1 - p;
 }

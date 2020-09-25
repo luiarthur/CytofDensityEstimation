@@ -96,7 +96,7 @@ vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
 
 vb_fit = pystan_vb_extract(vb_fit)
 def doit():
-    print_stat('p_efficacious', vb_fit)
+    print_stat('p', vb_fit)
     print_stat('gamma_T', vb_fit)
     print_stat('gamma_C', vb_fit)
     print(f"T0: {np.isinf(stan_data['y_T']).mean()}")
@@ -125,7 +125,7 @@ plt.close()
 
 plt.figure()
 plt.subplot(1, 2, 1)
-plt.boxplot(vb_fit['p_efficacious'])
+plt.boxplot(vb_fit['p'])
 plt.subplot(1, 2, 2)
 plt.boxplot(np.vstack([vb_fit['gamma_T'], vb_fit['gamma_C']]).T)
 plt.xticks(np.arange(2) + 1, [r'$\gamma_T$', r'$\gamma_C$'])
