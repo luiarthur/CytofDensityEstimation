@@ -1,6 +1,3 @@
-// Skew Normal distribution in STAN:
-//   https://mc-stan.org/docs/2_24/functions-reference/skew-normal-distribution.html
-
 functions {
   // nu:positive, loc:real, scale:positive, alpha:real
   real skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
