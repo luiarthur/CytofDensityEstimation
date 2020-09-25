@@ -71,8 +71,8 @@ path_to_donor1 = f'{data_dir}/donor1.csv'
 
 # Read data.
 # FIXME: Remove subsample after testing!
-marker = 'NKG2D' # looks efficacious
-# marker = 'CD16'  # looks not efficacious
+# marker = 'NKG2D' # looks efficacious
+marker = 'CD16'  # looks not efficacious
 donor1_data = read_data(path_to_donor1, marker, subsample=1000, random_state=2)
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
                              K=5, p=0.5, d_xi=0.1, d_phi=0.1,
@@ -125,7 +125,10 @@ plt.close()
 
 plt.figure()
 plt.subplot(1, 2, 1)
-plt.boxplot(vb_fit['p'])
+plt.hist(vb_fit['p'], density=True, bins=50)
+plt.title(f"mean: {np.round(np.mean(vb_fit['p']), 3)}")
+plt.xlabel(f'prob. of treatment effect \n for marker {marker}')
+plt.ylabel('density')
 plt.subplot(1, 2, 2)
 plt.boxplot(np.vstack([vb_fit['gamma_T'], vb_fit['gamma_C']]).T)
 plt.xticks(np.arange(2) + 1, [r'$\gamma_T$', r'$\gamma_C$'])
