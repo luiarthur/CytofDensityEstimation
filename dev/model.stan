@@ -63,7 +63,7 @@ transformed parameters {
 }
 
 model {
-  p ~ beta(1, 1);  // prob. treatment has no effect.
+  p ~ beta(1, 1);  // prob. treatment has effect.
 
   gamma_tilde_T ~ beta(a_gamma, b_gamma);
   gamma_C ~ beta(a_gamma, b_gamma);
