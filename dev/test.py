@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import pystan
+
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.use("Agg")
 
 def print_stat(param, fit):
     m, s = fit[param].mean(), fit[param].std()
@@ -77,7 +80,7 @@ stan_data['y_T'], stan_data['y_C']
 nuts_fit = sm.sampling(data=stan_data, 
                        iter=500, warmup=400, thin=1, seed=1, chains=1)
 
-print_stat('p', nuts_fit)
+print_stat('p', nuts_fit)  # prob. treatment not effective
 print_stat('gamma_T', nuts_fit)
 print_stat('gamma_C', nuts_fit)
 print_stat('sigma', nuts_fit)
@@ -93,5 +96,3 @@ plt.hist(list(filter(lambda x: not np.isinf(x), stan_data['y_C'])),
 plt.legend()
 plt.savefig('img/bla.pdf', bbox_inches='tight')
 plt.close()
-
-
