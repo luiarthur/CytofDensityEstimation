@@ -40,7 +40,7 @@ def read_data(path, marker, subsample=None, random_state=None):
     return dict(y_C=np.log(y_C).to_numpy(),
                 y_T=np.log(y_T).to_numpy())
 
-def create_stan_data(y_C, y_T, K, p, a_gamma=1, b_gamma=1, a_eta=None,
+def create_stan_data(y_C, y_T, K, p=0.5, a_gamma=1, b_gamma=1, a_eta=None,
                      a_sigma=3, b_sigma=2,
                      m_phi=0, xi_bar=None, d_xi=0.31, d_phi=0.31,
                      m_nu=3, s_nu=0.5):
@@ -77,8 +77,8 @@ marker = 'NKG2D' # looks efficacious
 donor1_data = read_data(path_to_donor1, marker, subsample=2000, random_state=2)
 # donor1_data = read_data(path_to_donor1, marker)
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
-                             K=5, p=0.5, 
-                             # m_phi=-10,  # testing.
+                             # K=5,  # old, works.
+                             K=5, m_phi=-1, d_xi=100,  m_nu=4, s_nu=2, # testing
                              a_sigma=13, b_sigma=12)
 stan_data['y_T'], stan_data['y_C']
 
