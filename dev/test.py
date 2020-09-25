@@ -41,16 +41,13 @@ def read_data(path, marker, subsample=None, random_state=None):
 
 def create_stan_data(y_C, y_T, K, p, a_gamma=1, b_gamma=1, a_eta=None,
                      xi_bar=None, d_xi=0.31, d_phi=0.31,
-                     a_sigma=3, b_sigma=2, nu=None, nu_k=30):
+                     a_sigma=3, b_sigma=2, m_nu=3, s_nu=0.2):
     if a_eta is None:
         a_eta = np.ones(K) / K
 
     if xi_bar is None:
         _y = np.concatenate([y_C, y_T])
         xi_bar = np.mean(_y[_y > -np.inf])
-
-    if nu is None:
-        nu = np.full(K, nu_k)
 
     return dict(N_T=y_T.shape[0],
                 N_C=y_C.shape[0],
@@ -59,7 +56,8 @@ def create_stan_data(y_C, y_T, K, p, a_gamma=1, b_gamma=1, a_eta=None,
                 K=K, p=p,
                 a_gamma=a_gamma, b_gamma=b_gamma,
                 a_eta=a_eta, xi_bar=xi_bar, d_xi=d_xi, d_phi=d_phi,
-                a_sigma=a_sigma, b_sigma=b_sigma, nu=nu)
+                a_sigma=a_sigma, b_sigma=b_sigma,
+                m_nu=m_nu, s_nu=s_nu)
 
 
 # Compile STAN model.
@@ -73,7 +71,9 @@ path_to_donor1 = f'{data_dir}/donor1.csv'
 # FIXME: Remove subsample after testing!
 # marker = 'NKG2D' # looks efficacious
 marker = 'CD16'  # looks not efficacious
-donor1_data = read_data(path_to_donor1, marker, subsample=1000, random_state=2)
+
+# donor1_data = read_data(path_to_donor1, marker, subsample=1000, random_state=2)
+donor1_data = read_data(path_to_donor1, marker)
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
                              K=5, p=0.5, d_xi=0.1, d_phi=0.1,
                              a_sigma=13, b_sigma=12)

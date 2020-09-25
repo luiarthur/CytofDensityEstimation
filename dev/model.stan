@@ -30,7 +30,8 @@ data {
   real<lower=0> d_phi;
   real<lower=0> a_sigma;
   real<lower=0> b_sigma;
-  vector<lower=0>[K] nu;
+  real m_nu;
+  real<lower=0> s_nu;
 }
 
 transformed data {
@@ -47,6 +48,7 @@ parameters {
   vector[K] xi;
   vector[K] phi;
   vector<lower=0>[K] sigma_sq;
+  vector<lower=0>[K] nu;
 
   real<lower=0, upper=1> p;  // NOTE: Fixed in paper.
 }
@@ -74,6 +76,7 @@ model {
   sigma_sq ~ inv_gamma(a_sigma, b_sigma);
   xi ~ normal(xi_bar, d_xi * sigma);  // g-prior
   phi ~ normal(0, d_phi * sigma);  // g-prior
+  nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
   
   {
     vector[N_T] lpdf_mix_T;
