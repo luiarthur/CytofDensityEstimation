@@ -123,3 +123,16 @@ plt.legend()
 plt.savefig('img/bla.pdf', bbox_inches='tight')
 plt.close()
 
+plt.figure()
+plt.subplot(1, 2, 1)
+plt.boxplot(vb_fit['p_efficacious'])
+plt.subplot(1, 2, 2)
+plt.boxplot(np.vstack([vb_fit['gamma_T'], vb_fit['gamma_C']]).T)
+plt.xticks(np.arange(2) + 1, [r'$\gamma_T$', r'$\gamma_C$'])
+plt.scatter(1, np.isinf(stan_data['y_T']).mean(),
+            s=100, color='r', alpha=0.6, label='T: prop. zeros')
+plt.scatter(2, np.isinf(stan_data['y_C']).mean(),
+            s=100, color='b', alpha=0.6, label='C: prob. zeros')
+plt.legend()
+plt.savefig('img/p.pdf', bbox_inches='tight')
+plt.close()
