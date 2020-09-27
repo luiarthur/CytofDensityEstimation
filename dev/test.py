@@ -5,6 +5,7 @@ import pystan
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.use("Agg")
+import seaborn as sns
 
 from pystan_util import pystan_vb_extract
 from posterior_inference import post_pred
@@ -63,7 +64,7 @@ def create_stan_data(y_C, y_T, K, p=0.5, a_gamma=1, b_gamma=1, a_eta=None,
 
 
 # Compile STAN model.
-sm = pystan.StanModel('model.stan')
+# sm = pystan.StanModel('model.stan')
 
 # Path to data.
 data_dir = '../data/TGFBR2/cytof-data'
@@ -84,7 +85,7 @@ stan_data['y_T'], stan_data['y_C']
 
 # ADVI.
 vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
-               grad_samples=1, elbo_samples=1)
+               grad_samples=1, elbo_samples=1, output_samples=2000)
 
 # HMC.
 # hmc_fit = sm.sampling(data=stan_data, 
@@ -113,24 +114,29 @@ def doit():
 
 doit()
 
+# plot log prob for HMC/NUTS
 plt.plot(vb_fit['lp__'])
 plt.savefig('img/log_prob.pdf', bbox_inches='tight')
 plt.close()
 
+# plot posterior predictive
 plt.hist(rm_inf(stan_data['y_T']), color='red', 
          histtype='stepfilled',
-         bins=50, alpha=0.6, density=True, label='T')
+         bins=50, alpha=0.6, density=True, label='T: Data')
 plt.hist(rm_inf(stan_data['y_C']), color='blue',
          histtype='stepfilled',
-         bins=50, alpha=0.6, density=True, label='C')
-plt.scatter(-8, np.isinf(stan_data['y_T']).mean(),
+         bins=50, alpha=0.6, density=True, label='C: Data')
+sns.kdeplot(rm_inf(z[:, 1]), label="T: postpred", color='red')
+sns.kdeplot(rm_inf(z[:, 0]), label="C: postpred", color='blue')
+plt.scatter(-10, np.isinf(stan_data['y_T']).mean(),
             s=100, color='r', alpha=0.6, label='T: prop. zeros')
-plt.scatter(-8, np.isinf(stan_data['y_C']).mean(),
+plt.scatter(-10, np.isinf(stan_data['y_C']).mean(),
             s=100, color='b', alpha=0.6, label='C: prob. zeros')
 plt.legend()
-plt.savefig('img/bla.pdf', bbox_inches='tight')
+plt.savefig('img/postpred.pdf', bbox_inches='tight')
 plt.close()
 
+# Plot posterior p, gamma
 plt.figure()
 plt.subplot(1, 2, 1)
 plt.hist(vb_fit['p'], density=True, bins=50)
@@ -148,11 +154,3 @@ plt.legend()
 plt.savefig('img/p.pdf', bbox_inches='tight')
 plt.close()
 
-
-# Post pred
-z = post_pred(vb_fit)
-plt.hist(rm_inf(z[:, 0]), bins=40, label="C", alpha=0.6, density=True)
-plt.hist(rm_inf(z[:, 1]), bins=40, label="T", alpha=0.6, density=True)
-plt.legend()
-plt.savefig('img/postpred.pdf', bbox_inches='tight')
-plt.close()

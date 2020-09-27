@@ -7,7 +7,10 @@ def rand_skew_t(nu, loc, scale, alpha):
     delta = alpha / np.sqrt(1 + alpha**2)
     return loc + scale * z * delta + scale * np.sqrt(1 - delta**2) * np.random.randn()
 
-def post_pred(fit):
+def post_pred(fit, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+
     B = fit['p'].shape[0]
     return np.vstack([one_post_pred(fit, b) for b in range(B)])
 
