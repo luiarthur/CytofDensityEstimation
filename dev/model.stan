@@ -62,12 +62,14 @@ parameters {
 
 transformed parameters {
   vector<lower=0>[K] sigma;
-  real p_star;
+  real gamma_T_star;
   vector[K] eta_T_star;
+  vector[K] eta_C_star;
 
   sigma = sqrt(sigma_sq);
-  p_star = p * gamma_T + (1 - p) * gamma_C;
+  gamma_T_star = p * gamma_T + (1 - p) * gamma_C;
   eta_T_star = eta_T * p * (1 - gamma_T) + eta_C * (1 - p) * (1 - gamma_C);
+  eta_C_star = eta_C * (1 - gamma_C);
 }
 
 model {
@@ -85,24 +87,24 @@ model {
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
   
   {
-    vector[K] lpdf_mix_C;
-    vector[K + 1] lpdf_mix_T;
+    vector[K + 1] lpdf_mix;
 
     for (n in 1:N_C) {
-      lpdf_mix_C = log(eta_C);
+      lpdf_mix[1:K] = log(eta_C_star);
       for (k in 1:K) {
-        lpdf_mix_C[k] += safe_skew_t_lpdf(y_C[n] | nu[k], xi[k], sigma[k], phi[k]);
+        lpdf_mix[k] += safe_skew_t_lpdf(y_C[n] | nu[k], xi[k], sigma[k], phi[k]);
       }
-      target += log_mix(gamma_C, log_is_inf(y_C[n]), log_sum_exp(lpdf_mix_C));
+      lpdf_mix[K + 1] = log(gamma_C) + log_is_inf(y_C[n]);
+      target += log_sum_exp(lpdf_mix);
     }
 
     for (n in 1:N_T) {
+      lpdf_mix[1:K] = log(eta_T_star);
       for (k in 1:K) {
-        lpdf_mix_T[k] = log(eta_T_star[k]);
-        lpdf_mix_T[k] += safe_skew_t_lpdf(y_T[n] | nu[k], xi[k], sigma[k], phi[k]);
+        lpdf_mix[k] += safe_skew_t_lpdf(y_T[n] | nu[k], xi[k], sigma[k], phi[k]);
       }
-      lpdf_mix_T[K + 1] = log(p_star) + log_is_inf(y_T[n]);
-      target += log_sum_exp(lpdf_mix_T);
+      lpdf_mix[K + 1] = log(gamma_T_star) + log_is_inf(y_T[n]);
+      target += log_sum_exp(lpdf_mix);
     }
   }
 }

@@ -64,7 +64,7 @@ def create_stan_data(y_C, y_T, K, p=0.5, a_gamma=1, b_gamma=1, a_eta=None,
 
 
 # Compile STAN model.
-# sm = pystan.StanModel('model.stan')
+sm = pystan.StanModel('model.stan')
 
 # Path to data.
 data_dir = '../data/TGFBR2/cytof-data'
