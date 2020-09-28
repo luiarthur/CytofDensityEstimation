@@ -64,19 +64,20 @@ def create_stan_data(y_C, y_T, K, p=0.5, a_gamma=1, b_gamma=1, a_eta=None,
 
 
 # Compile STAN model.
-sm = pystan.StanModel('model.stan')
+# sm = pystan.StanModel('model.stan')
 
 # Path to data.
 data_dir = '../data/TGFBR2/cytof-data'
 path_to_donor1 = f'{data_dir}/donor1.csv'
 
 # Read data.
-# FIXME: Remove subsample after testing!
-marker = 'NKG2D' # looks efficacious
-# marker = 'CD16'  # looks not efficacious
+# marker = 'NKG2D' # looks efficacious
+marker = 'CD16'  # looks not efficacious
 
+# TODO: Remove subsample after testing!
 donor1_data = read_data(path_to_donor1, marker, subsample=2000, random_state=2)
 # donor1_data = read_data(path_to_donor1, marker)
+
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
                              # K=5,  # old, works.
                              K=5, m_phi=-1, d_xi=100,  m_nu=4, s_nu=2, # testing
@@ -126,6 +127,7 @@ plt.hist(rm_inf(stan_data['y_T']), color='red',
 plt.hist(rm_inf(stan_data['y_C']), color='blue',
          histtype='stepfilled',
          bins=50, alpha=0.6, density=True, label='C: Data')
+z = post_pred(vb_fit, seed=0)
 sns.kdeplot(rm_inf(z[:, 1]), label="T: postpred", color='red')
 sns.kdeplot(rm_inf(z[:, 0]), label="C: postpred", color='blue')
 plt.scatter(-10, np.isinf(stan_data['y_T']).mean(),

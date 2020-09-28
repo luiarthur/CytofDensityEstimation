@@ -20,6 +20,27 @@ functions {
   real log_is_inf(real x) {
     return is_inf(x) ? 0 : negative_infinity();
   }
+
+  real loglike(int K, int N, real[] y, real p0, vector pnot0,
+               vector nu, vector loc, vector scale, vector alpha) {
+    real out;
+    vector[K + 1] lpdf_mix;
+    vector[K] log_pnot0;
+
+    log_pnot0 = log(pnot0);
+    out = 0.0;
+
+    for (n in 1:N) {
+      lpdf_mix[1:K] = log_pnot0;
+      for (k in 1:K) {
+        lpdf_mix[k] += safe_skew_t_lpdf(y[n] | nu[k], loc[k], scale[k], alpha[k]);
+      }
+      lpdf_mix[K + 1] = log(p0) + log_is_inf(y[n]);
+      out += log_sum_exp(lpdf_mix);
+    }
+
+    return out;
+  }
 }
 
 data {
@@ -62,14 +83,14 @@ parameters {
 
 transformed parameters {
   vector<lower=0>[K] sigma;
-  real gamma_T_star;
-  vector[K] eta_T_star;
-  vector[K] eta_C_star;
+  real p0_T;
+  vector[K] pnot0_T;
+  vector[K] pnot0_C;
 
   sigma = sqrt(sigma_sq);
-  gamma_T_star = p * gamma_T + (1 - p) * gamma_C;
-  eta_T_star = eta_T * p * (1 - gamma_T) + eta_C * (1 - p) * (1 - gamma_C);
-  eta_C_star = eta_C * (1 - gamma_C);
+  p0_T = p * gamma_T + (1 - p) * gamma_C;
+  pnot0_T = eta_T * p * (1 - gamma_T) + eta_C * (1 - p) * (1 - gamma_C);
+  pnot0_C = eta_C * (1 - gamma_C);
 }
 
 model {
@@ -86,25 +107,6 @@ model {
   phi ~ normal(m_phi, d_phi * sigma);  // g-prior
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
   
-  {
-    vector[K + 1] lpdf_mix;
-
-    for (n in 1:N_C) {
-      lpdf_mix[1:K] = log(eta_C_star);
-      for (k in 1:K) {
-        lpdf_mix[k] += safe_skew_t_lpdf(y_C[n] | nu[k], xi[k], sigma[k], phi[k]);
-      }
-      lpdf_mix[K + 1] = log(gamma_C) + log_is_inf(y_C[n]);
-      target += log_sum_exp(lpdf_mix);
-    }
-
-    for (n in 1:N_T) {
-      lpdf_mix[1:K] = log(eta_T_star);
-      for (k in 1:K) {
-        lpdf_mix[k] += safe_skew_t_lpdf(y_T[n] | nu[k], xi[k], sigma[k], phi[k]);
-      }
-      lpdf_mix[K + 1] = log(gamma_T_star) + log_is_inf(y_T[n]);
-      target += log_sum_exp(lpdf_mix);
-    }
-  }
+  target += loglike(K, N_C, y_C, gamma_C, pnot0_C, nu, xi, sigma, phi);
+  target += loglike(K, N_T, y_T, p0_T, pnot0_T, nu, xi, sigma, phi);
 }
