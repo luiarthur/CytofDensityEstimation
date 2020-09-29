@@ -19,15 +19,15 @@ def compute_eta_T_star(gamma_C, gamma_T, eta_C, eta_T, p, gamma_T_star):
 #     comps = [tfd.Deterministic(neg_inf)] + [tfd.Normal(loc[k], scale[k]) for k in range(K)]
 #     return tfd.Mixture(cat=tfd.Categorical(probs=probs), components=comps)
 
-def mix_T(gamma_C, gamma_T, eta_C, eta_T, p, loc, scale, neg_inf):
+def mix_T(gamma_C, gamma_T, eta_C, eta_T, p, loc, scale, neg_inf, n):
     gamma_T_star = compute_gamma_T_star(gamma_C, gamma_T, p)
     eta_T_star = compute_eta_T_star(gamma_C, gamma_T, eta_C, eta_T, p, gamma_T_star)
-    return mix(gamma_T_star, eta_T_star, loc, scale, neg_inf)
+    return mix(gamma_T_star, eta_T_star, loc, scale, neg_inf, n)
 
 
-def mix(gamma, eta, loc, scale, neg_inf):
+def mix(gamma, eta, loc, scale, neg_inf, n):
     return tfd.Mixture(
-        cat=tfd.Categorical(probs=[gamma, 1 - gamma]),
+        cat=tfd.Categorical(probs=tf.concat([p, 1 - p])),
         components=[
             tfd.Normal(np.float64(neg_inf), 1e-5),
             tfd.MixtureSameFamily(
@@ -36,38 +36,58 @@ def mix(gamma, eta, loc, scale, neg_inf):
             )
         ])
 
+def to_duplex(p):
+    batch_ndims = len(p.shape) - 1
+    p_zero = tf.pad(p, [[0, 0]] * batch_ndims + [[0, 1]], "CONSTANT", constant_values=0)
+    zero_1_minus_p = tf.pad(1 - p, [[0, 0]] * batch_ndims + [[1, 0]], "CONSTANT", constant_values=0)
+    return p_zero + zero_1_minus_p
+
+p = np.random.rand(3, 1)
+to_duplex(p)
+
+m = tfd.JointDistributionNamed(dict(
+    p = tfd.Beta(1, 1),
+    obs = lambda p: tfd.Independent(tfd.Mixture(
+        cat=tfd.Categorical(probs=[p, 1-p]),
+        components=[
+            tfd.Normal(0, 1),
+            tfd.Normal(5, 1)
+        ]))
+))
+m.sample()
+m.sample(10)
+
+np.array([tfd.Poisson(3), tfd.Normal(0, 1)])
 
 # NOTE:
 # - `Sample` and `Independent` resemble, respectively, `filldist` and `arraydist` in Turing.
 def create_model(n_C, n_T, K, neg_inf=-10, dtype=np.float64):
     return tfd.JointDistributionNamed(dict(
-        p = tfd.Beta(dtype(1), dtype(1)),
-        gamma_C = tfd.Gamma(dtype(3), dtype(3)),
-        gamma_T = tfd.Gamma(dtype(3), dtype(3)),
+        p = tfd.Sample(tfd.Beta(dtype(1), dtype(1)), sample_shape=1),
+        gamma_C = tfd.Sample(tfd.Gamma(dtype(3), dtype(3)), sample_shape=1),
+        gamma_T = tfd.Sample(tfd.Gamma(dtype(3), dtype(3)), sample_shape=1),
         eta_C = tfd.Dirichlet(tf.ones(K, dtype=dtype) / K),
         eta_T = tfd.Dirichlet(tf.ones(K, dtype=dtype) / K),
         loc = tfd.Sample(tfd.Normal(dtype(0), dtype(1)), sample_shape=K),
         sigma_sq = tfd.Sample(tfd.InverseGamma(dtype(3), dtype(2)), sample_shape=K),
-        y_C = lambda gamma_C, eta_C, loc, sigma_sq: tfd.Sample(
-            mix(gamma_C, eta_C, loc, tf.sqrt(sigma_sq), dtype(neg_inf)),
-            sample_shape=n_C),
-        y_T = lambda gamma_C, gamma_T, eta_C, eta_T, p, loc, sigma_sq: tfd.Sample(
-            mix_T(gamma_C, gamma_T, eta_C, eta_T, p, loc, tf.sqrt(sigma_sq), dtype(neg_inf)),
-            sample_shape=n_T)
+        y_C = lambda gamma_C, eta_C, loc, sigma_sq: 
+            mix(gamma_C, eta_C, loc, tf.sqrt(sigma_sq), dtype(neg_inf), n_C),
+        y_T = lambda gamma_C, gamma_T, eta_C, eta_T, p, loc, sigma_sq: 
+            mix_T(gamma_C, gamma_T, eta_C, eta_T, p, loc, tf.sqrt(sigma_sq), dtype(neg_inf), n_T)
     ))
 
 model = create_model(4, 6, 3)
 s = model.sample(); s
 model.log_prob(s)
-model.sample(6)
+model.sample(2)
 
 
 K = 5
-n = 100
+n = 9
 gamma = tfd.Beta(dtype(1), 1.).sample()
 eta = tfd.Dirichlet(tf.ones(K, dtype=dtype) / K).sample()
-m = mix(gamma, eta, tf.zeros(K, dtype=dtype), tf.ones(K, dtype=dtype), dtype(-10))
-s = m.sample(n)
+m = mix(gamma, eta, tf.zeros(K, dtype=dtype), tf.ones(K, dtype=dtype), dtype(-10), n)
+s = m.sample(2)
 m.log_prob(s)
 
 
