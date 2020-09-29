@@ -1,6 +1,6 @@
 functions {
   // nu:positive, loc:real, scale:positive, alpha:real
-  real skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
+  real unsafe_skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
     real z;
     real u;
     real kernel;
@@ -12,9 +12,12 @@ functions {
     return (kernel + log(2) - log(scale));
   }
 
-  real safe_skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
-    real neg_inf_approx = -10000;
-    return is_inf(x) ? neg_inf_approx : skew_t_lpdf(x | nu, loc, scale, alpha);
+  // This function augments skew_t_lpdf so that when x is -inf, the lpdf
+  // returns -10000 instead of -inf. This is required for numerical stability.
+  // The effect on the numerical results are negligible.
+  real skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
+    real neg_inf_approx = -10000;  // NOTE: Required for numerical stability.
+    return is_inf(x) ? neg_inf_approx : unsafe_skew_t_lpdf(x | nu, loc, scale, alpha);
   }
 
   real log_is_inf(real x) {
@@ -23,17 +26,14 @@ functions {
 
   real loglike(int K, int N, real[] y, real p0, vector pnot0,
                vector nu, vector loc, vector scale, vector alpha) {
-    real out;
+    real out = 0.0;
+    vector[K] log_pnot0 = log(pnot0);
     vector[K + 1] lpdf_mix;
-    vector[K] log_pnot0;
-
-    log_pnot0 = log(pnot0);
-    out = 0.0;
 
     for (n in 1:N) {
       lpdf_mix[1:K] = log_pnot0;
       for (k in 1:K) {
-        lpdf_mix[k] += safe_skew_t_lpdf(y[n] | nu[k], loc[k], scale[k], alpha[k]);
+        lpdf_mix[k] += skew_t_lpdf(y[n] | nu[k], loc[k], scale[k], alpha[k]);
       }
       lpdf_mix[K + 1] = log(p0) + log_is_inf(y[n]);
       out += log_sum_exp(lpdf_mix);
@@ -76,9 +76,9 @@ parameters {
   vector[K] xi;
   vector[K] phi;
   vector<lower=0>[K] sigma_sq;
-  vector<lower=0>[K] nu;
+  vector<lower=0>[K] nu;  // NOTE: Fixed in paper.
 
-  real<lower=0, upper=1> p;  // NOTE: Fixed in paper.
+  real<lower=0, upper=1> p;
 }
 
 transformed parameters {

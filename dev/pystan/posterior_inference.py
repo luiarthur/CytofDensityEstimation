@@ -1,11 +1,11 @@
 import numpy as np
 from scipy.stats import truncnorm
 
-def rand_skew_t(nu, loc, scale, alpha):
-    w = np.random.gamma(nu/2, 2/nu)
-    z = truncnorm.rvs(0, np.inf, scale=np.sqrt(1/w))
+def rand_skew_t(nu, loc, scale, alpha, size=None):
+    w = np.random.gamma(nu/2, 2/nu, size=size)
+    z = truncnorm.rvs(0, np.inf, scale=np.sqrt(1/w), size=size)
     delta = alpha / np.sqrt(1 + alpha**2)
-    return loc + scale * z * delta + scale * np.sqrt(1 - delta**2) * np.random.randn()
+    return loc + scale * z * delta + scale * np.sqrt(1 - delta**2) * np.random.normal(size=size)
 
 def post_pred(fit, seed=None):
     if seed is not None:

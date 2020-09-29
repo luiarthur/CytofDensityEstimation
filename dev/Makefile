@@ -1,5 +1,5 @@
-compile: model.stan
-	python3 -c 'import pystan; pystan.StanModel("model.stan")'
+compile: pystan/model.stan
+	python3 -c 'import pystan; pystan.StanModel("pystan/model.stan")'
 
 freeze:
 	rm -f requirements.txt
