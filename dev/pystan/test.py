@@ -8,38 +8,23 @@ mpl.use("Agg")
 import seaborn as sns
 
 from pystan_util import pystan_vb_extract
-from posterior_inference import post_pred
 
-def rm_inf(x):
-    return list(filter(lambda x: not np.isinf(x), x))
+import simulate_data
+import posterior_inference
 
-def replace_inf(x, z):
-    x = x + 0
-    x[np.isinf(x)] = z
-    return x
+import sys
+sys.path.append('../util')
+import util
 
 def print_stat(param, fit):
     m, s = fit[param].mean(0), fit[param].std(0)
     print(f'{param}: mean={np.round(m, 3)}, sd={np.round(s, 3)}')
-
 
 def inv_gamma_moment(m, s):
     v = s*s
     a = (m / s) ** 2 + 2
     b = m * (a - 1)
     return a, b
-
-def read_data(path, marker, subsample=None, random_state=None):
-    donor = pd.read_csv(path)
-    if subsample is not None:
-      donor = donor.sample(n=subsample, random_state=random_state)
-
-    y_C = donor[marker][donor.treatment.isna()]
-    y_T = donor[marker][donor.treatment.isna() == False]
-    assert y_C.shape[0] + y_T.shape[0] == donor.shape[0]
-
-    return dict(y_C=np.log(y_C).to_numpy(),
-                y_T=np.log(y_T).to_numpy())
 
 def create_stan_data(y_C, y_T, K, p=0.5, a_gamma=1, b_gamma=1, a_eta=None,
                      a_sigma=3, b_sigma=2,
@@ -64,18 +49,20 @@ def create_stan_data(y_C, y_T, K, p=0.5, a_gamma=1, b_gamma=1, a_eta=None,
 
 
 # Compile STAN model.
-# sm = pystan.StanModel('model.stan')
+sm = pystan.StanModel('model.stan')
 
 # Path to data.
-data_dir = '../data/TGFBR2/cytof-data'
+data_dir = '../../data/TGFBR2/cytof-data'
 path_to_donor1 = f'{data_dir}/donor1.csv'
 
 # Read data.
-# marker = 'NKG2D' # looks efficacious
-marker = 'CD16'  # looks not efficacious
+marker = 'NKG2D' # looks efficacious
+# marker = 'CD16'  # looks not efficacious
+# marker = 'EOMES'  # ?? looks efficacious
+# marker = 'CD56'  # looks not efficacious (data truncated above 0?)
 
 # TODO: Remove subsample after testing!
-donor1_data = read_data(path_to_donor1, marker, subsample=2000, random_state=2)
+donor1_data = util.read_data(path_to_donor1, marker, subsample=2000, random_state=2)
 # donor1_data = read_data(path_to_donor1, marker)
 
 stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
@@ -87,6 +74,7 @@ stan_data['y_T'], stan_data['y_C']
 # ADVI.
 vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
                grad_samples=1, elbo_samples=1, output_samples=2000)
+
 
 # HMC.
 # hmc_fit = sm.sampling(data=stan_data, 
@@ -121,19 +109,10 @@ plt.savefig('img/log_prob.pdf', bbox_inches='tight')
 plt.close()
 
 # plot posterior predictive
-plt.hist(rm_inf(stan_data['y_T']), color='red', 
-         histtype='stepfilled',
-         bins=50, alpha=0.6, density=True, label='T: Data')
-plt.hist(rm_inf(stan_data['y_C']), color='blue',
-         histtype='stepfilled',
-         bins=50, alpha=0.6, density=True, label='C: Data')
-z = post_pred(vb_fit, seed=0)
-sns.kdeplot(rm_inf(z[:, 1]), label="T: postpred", color='red')
-sns.kdeplot(rm_inf(z[:, 0]), label="C: postpred", color='blue')
-plt.scatter(-10, np.isinf(stan_data['y_T']).mean(),
-            s=100, color='r', alpha=0.6, label='T: prop. zeros')
-plt.scatter(-10, np.isinf(stan_data['y_C']).mean(),
-            s=100, color='b', alpha=0.6, label='C: prob. zeros')
+import importlib; importlib.reload(posterior_inference); importlib.reload(simulate_data)
+simulate_data.plot_data(stan_data['y_T'], stan_data['y_C'])
+y_grid = np.linspace(-8, 8, 200)
+posterior_inference.plot_post_predictive_density(vb_fit, y_grid, fill_alpha=0)
 plt.legend()
 plt.savefig('img/postpred.pdf', bbox_inches='tight')
 plt.close()
