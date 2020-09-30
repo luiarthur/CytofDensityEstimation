@@ -68,9 +68,11 @@ posterior_inference.print_summary(vb_fit, truth=data)
 # Plot posterior predictive
 simulate_data.plot_data(stan_data['y_T'], stan_data['y_C'])
 y_grid = np.linspace(-8, 8, 200)
-posterior_inference.plot_post_predictive_density(vb_fit, y_grid, fill_alpha=0)
+posterior_inference.plot_post_predictive_density(vb_fit, y_grid,
+                                                 fill_alpha=0.6, mean_alpha=0)
+posterior_inference.plot_ci(vb_fit['gamma_T'], loc=-10, color='red', lw=2)
+posterior_inference.plot_ci(vb_fit['gamma_C'], loc=-10, color='blue', lw=2)
 plt.legend()
 plt.savefig('img/postpred-simdata.pdf', bbox_inches='tight')
 plt.close()
-
 

@@ -60,6 +60,12 @@ def post_density(fit, y_grid):
     return dict(pdf_T=np.exp(lpdf_T), pdf_C=np.exp(lpdf_C))
 
 
+def plot_ci(x, loc, a=0.05, **kwargs):
+    x_lower = np.quantile(x, a / 2)
+    x_upper = np.quantile(x, 1 - a / 2)
+    plt.plot([loc, loc], [x_lower, x_upper], **kwargs)
+
+
 def plot_post_predictive_density(fit, y_grid, tlabel='T: post. pred.',
                                  clabel='C: post. pred.', return_grid=False,
                                  tcolor='red', ccolor='blue', fill_alpha=0.3,

@@ -1,3 +1,4 @@
+import seaborn as sns
 from scipy.stats import truncnorm, t
 import numpy as np
 import matplotlib.pyplot as plt
@@ -47,12 +48,17 @@ def compute_stat_T_star(gamma_C, gamma_T, eta_C, eta_T, p):
 
 
 def plot_data(yT, yC, tcolor='red', ccolor='blue', bins=50, alpha=0.6,
-              tlabel='T: Data', clabel='C: Data', zero_pos=-10,
-              t0label='T: prop. zeros', c0label='C: prop. zeros'):
-    plt.hist(rm_inf(yT), color=tcolor, histtype='stepfilled', bins=bins,
-             alpha=alpha, density=True, label=tlabel)
-    plt.hist(rm_inf(yC), color=ccolor, histtype='stepfilled', bins=bins,
-             alpha=alpha, density=True, label=clabel)
+              tlabel='T: Data', clabel='C: Data', zero_pos=-10, 
+              t0label='T prop. zeros', c0label='C: prop. zeros', 
+              use_hist=False, lw=2, ls=":"):
+    if use_hist:
+        plt.hist(rm_inf(yT), color=tcolor, histtype='stepfilled', bins=bins,
+                 alpha=alpha, density=True, label=tlabel)
+        plt.hist(rm_inf(yC), color=ccolor, histtype='stepfilled', bins=bins,
+                 alpha=alpha, density=True, label=clabel)
+    else:
+        sns.kdeplot(rm_inf(yT), color=tcolor, label=tlabel, ls=ls, lw=lw)
+        sns.kdeplot(rm_inf(yC), color=ccolor, label=clabel, ls=ls, lw=lw)
 
     plt.scatter(zero_pos, np.isinf(yT).mean(),
                 s=100, color=tcolor, alpha=alpha, label=t0label)
