@@ -1,10 +1,17 @@
+import time
+import functools
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 from tensorflow_probability import distributions as tfd
 from tensorflow_probability import bijectors as tfb
+from tqdm import trange
 dtype = np.float64
 Root = tfd.JointDistributionCoroutine.Root
+
+import sys
+sys.path.append('../util')
+import util
 
 def compute_gamma_T_star(gamma_C, gamma_T, p):
     return p * gamma_T + (1 - p) * gamma_C
@@ -21,23 +28,18 @@ def mix_T(gamma_C, gamma_T, eta_C, eta_T, p, loc, scale, neg_inf):
 
 
 def mix(gamma, eta, loc, scale, neg_inf):
+    _gamma = gamma[..., tf.newaxis]
+    # FIXME: Possible to use tfd.Blockwise?
     return tfd.Mixture(
-        cat=tfd.Categorical(probs=[gamma, 1 - gamma]),
+        cat=tfd.Categorical(probs=tf.concat([_gamma, 1 - _gamma], axis=-1)),
         components=[tfd.Deterministic(np.float64(neg_inf)),
                     tfd.MixtureSameFamily(
                         mixture_distribution=tfd.Categorical(probs=eta),
                         components_distribution=tfd.Normal(loc=loc, scale=scale)),
         ])
-    # return tfd.Mixture(
-    #     tfd.Categorical(probs=tf.concat([[gamma], 1 - [gamma]], axis=-1)),
-    #     tfd.Blockwise([
-    #             tfd.Normal(np.float64(neg_inf), 1e-5),
-    #             tfd.MixtureSameFamily(
-    #             mixture_distribution=tfd.Categorical(probs=eta),
-    #             components_distribution=tfd.Normal(loc=loc, scale=scale)),
-    #     ]))
 
 # TEST:
+K = 5
 gamma = tfd.Beta(dtype(1), 1.).sample()
 eta = tfd.Dirichlet(tf.ones(K, dtype=dtype) / K).sample()
 m = mix(gamma, eta, tf.zeros(K, dtype=dtype), tf.ones(K, dtype=dtype), dtype(-10))
@@ -73,4 +75,96 @@ model = create_model(n_C=n_C, n_T=n_T, K=K)
 s = model.sample(); s
 model.log_prob(s)
 # model.sample(2)  # FIXME
+
+bijectors = [
+    tfb.Sigmoid(),  # p
+    tfb.Sigmoid(),  # gamma_C
+    tfb.Sigmoid(),  # gamma_T
+    tfb.SoftmaxCentered(),  # eta_C
+    tfb.SoftmaxCentered(),  # eta_T
+    tfb.Identity(),  # loc
+    tfb.Exp()  # sigma_sq
+]
+
+
+d1 = util.read_data('../../data/TGFBR2/cytof-data/donor1.csv', 'CD16', 2000, 2)
+model = create_model(n_C=d1['y_C'].shape[0], n_T=d1['y_T'].shape[0], K=5)
+_ = model.sample()
+def target_log_prob_fn(p, gamma_C, gamma_T, eta_C, eta_T, loc, sigma_sq):
+    return model.log_prob(p=p, gamma_C=gamma_C, gamma_T=gamma_T, eta_C=eta_C, 
+                          eta_T=eta_T, loc=loc, sigma_sq=sigma_sq, 
+                          y_T=util.replace_inf(d1['y_T'], dtype(-10)),
+                          y_C=util.replace_inf(d1['y_C'], dtype(-10)))
+
+def generate_initial_state(K):
+    return [
+        tf.ones([], dtype, name='p') * 0.5,
+        tf.ones([], dtype, name='gamma_C') * 0.5,
+        tf.ones([], dtype, name='gamma_T') * 0.5,
+        tf.ones(K, dtype, name='eta_C') / K,
+        tf.ones(K, dtype, name='eta_T') / K,
+        tf.zeros(K, dtype, name='loc'),
+        tf.ones(K, dtype, name='sigma_sq'),
+    ]
+
+@tf.function(autograph=False, experimental_compile=True)
+def nuts_sample(num_results, num_burnin_steps, current_state, pkr=None,
+                max_tree_depth=10):
+    return tfp.mcmc.sample_chain(
+        num_results=num_results,
+        num_burnin_steps=num_burnin_steps,
+        current_state=current_state,
+        previous_kernel_results=pkr,
+        return_final_kernel_results=True,
+        kernel = tfp.mcmc.SimpleStepSizeAdaptation(
+            tfp.mcmc.TransformedTransitionKernel(
+                inner_kernel=tfp.mcmc.NoUTurnSampler(
+                     target_log_prob_fn=target_log_prob_fn,
+                     max_tree_depth=max_tree_depth, step_size=0.01, seed=1),
+                bijector=bijectors),
+            num_adaptation_steps=num_burnin_steps,  # should be smaller than burn-in.
+            target_accept_prob=0.8),
+        trace_fn = lambda _, pkr: pkr.inner_results.inner_results.is_accepted)
+        # trace_fn = lambda _, pkr: pkr)
+        # trace_fn = lambda _, pkr: pkr.inner_results.inner_results.is_accepted, pkr)
+
+
+
+# Initial run
+tf.random.set_seed(7)
+current_state = generate_initial_state(K=5)  # generate initial values.
+current_state, _, pkr = nuts_sample(5, 5, current_state=current_state)
+chain_blocks = []
+
+print_freq = 100
+nburn = 400
+nsamps = 100
+chunks = (nburn + nsamps) // print_freq
+tic = time.time()
+print("Burn in ...")
+for n in trange(chunks):
+    current_state = tf.nest.map_structure(lambda x: x[-1], current_state)
+    if n < (nburn) // print_freq:
+        current_state, _, pke = nuts_sample(1, print_freq - 1,
+                                            current_state=current_state, pkr=pkr)
+    else:
+        current_state, _, pkr = nuts_sample(print_freq, 0,
+                                            current_state=current_state, pkr=pkr)
+        chain_blocks.append(current_state)
+
+print("Creating full chain ...")
+full_chain = tf.nest.map_structure(lambda *parts: tf.concat(parts, axis=0),
+                                   *chain_blocks)
+toc = time.time()
+print(f'Time for blocks: {toc - tic}')
+# 130 s
+
+
+tic = time.time()
+tf.random.set_seed(7)
+current_state = generate_initial_state(K=5)  # generate initial values.
+_ = nuts_sample(100, 400, current_state=current_state)
+toc = time.time()
+print(f'Time for single chain: {toc - tic}')
+# 75 s
 
