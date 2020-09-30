@@ -7,7 +7,7 @@ import matplotlib as mpl
 mpl.use("Agg")
 import seaborn as sns
 
-from pystan_util import pystan_vb_extract
+from pystan_util import pystan_vb_extract, create_stan_data
 
 import simulate_data
 import posterior_inference
@@ -25,27 +25,6 @@ def inv_gamma_moment(m, s):
     a = (m / s) ** 2 + 2
     b = m * (a - 1)
     return a, b
-
-def create_stan_data(y_C, y_T, K, p=0.5, a_gamma=1, b_gamma=1, a_eta=None,
-                     a_sigma=3, b_sigma=2,
-                     m_phi=0, xi_bar=None, d_xi=0.31, d_phi=0.31,
-                     m_nu=3, s_nu=0.5):
-    if a_eta is None:
-        a_eta = np.ones(K) / K
-
-    if xi_bar is None:
-        _y = np.concatenate([y_C, y_T])
-        xi_bar = np.mean(_y[_y > -np.inf])
-
-    return dict(N_T=y_T.shape[0],
-                N_C=y_C.shape[0],
-                y_T=y_T,
-                y_C=y_C,
-                K=K, p=p,
-                a_gamma=a_gamma, b_gamma=b_gamma, m_phi=m_phi,
-                a_eta=a_eta, xi_bar=xi_bar, d_xi=d_xi, d_phi=d_phi,
-                a_sigma=a_sigma, b_sigma=b_sigma,
-                m_nu=m_nu, s_nu=s_nu)
 
 
 # Compile STAN model.
@@ -72,8 +51,8 @@ stan_data = create_stan_data(y_T=donor1_data['y_T'], y_C=donor1_data['y_C'],
 stan_data['y_T'], stan_data['y_C']
 
 # ADVI.
-vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
-               grad_samples=1, elbo_samples=1, output_samples=2000)
+_vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
+                grad_samples=1, elbo_samples=1, output_samples=2000)
 
 
 # HMC.
@@ -87,7 +66,7 @@ vb_fit = sm.vb(data=stan_data, iter=1000, seed=2,
 #                        iter=500, warmup=400, thin=1, seed=1, chains=1)
 # 
 
-vb_fit = pystan_vb_extract(vb_fit)
+vb_fit = vb_extract(_vb_fit)
 def doit():
     print_stat('p', vb_fit)
     print_stat('gamma_T', vb_fit)

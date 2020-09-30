@@ -54,6 +54,9 @@ data {
   real<lower=0> a_gamma;
   real<lower=0> b_gamma;
 
+  real<lower=0> a_p;
+  real<lower=0> b_p;
+
   vector<lower=0>[K] a_eta;
 
   real xi_bar;
@@ -94,7 +97,7 @@ transformed parameters {
 }
 
 model {
-  p ~ beta(1, 1);  // prob. treatment has effect.
+  p ~ beta(a_p, b_p);  // prob. treatment has effect.
 
   gamma_T ~ beta(a_gamma, b_gamma);
   gamma_C ~ beta(a_gamma, b_gamma);

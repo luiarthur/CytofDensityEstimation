@@ -86,3 +86,29 @@ def plot_post_predictive_density(fit, y_grid, tlabel='T: post. pred.',
         plt.plot(y_grid, mean_C, alpha=mean_alpha, color=ccolor, label=clabel)
         plt.plot(y_grid, mean_T, alpha=mean_alpha, color=tcolor, label=tlabel)
 
+
+def print_stat(param, fit, truth=None, digits=2):
+    m = np.round(fit[param].mean(0), digits)
+    s = np.round(fit[param].std(0), digits)
+
+    msg = f'{param}: mean={m}' 
+
+    if truth is not None:
+        t = np.round(truth[param], digits)
+        msg += f', truth={t}'
+
+    msg += f', sd={s}'
+
+    print(msg)
+
+def print_summary(fit, truth=None, digits=2):
+    print_stat('p', fit, truth=truth, digits=digits)
+    print_stat('gamma_T', fit, truth=truth, digits=digits)
+    print_stat('gamma_C', fit, truth=truth, digits=digits)
+    print_stat('sigma', fit, truth=truth, digits=digits)
+    print_stat('phi', fit, truth=truth, digits=digits)
+    print_stat('xi', fit, truth=truth, digits=digits)
+    print_stat('nu', fit, truth=truth, digits=digits)
+    print_stat('eta_T', fit, truth=truth, digits=digits)
+    print_stat('eta_C', fit, truth=truth, digits=digits)
+
