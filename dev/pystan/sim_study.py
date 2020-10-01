@@ -44,7 +44,7 @@ def simulation(p, method, results_dir):
         _fit = sm.vb(data=stan_data, iter=1000, seed=1,
                         grad_samples=2, elbo_samples=2, output_samples=1000)
     else:
-        fit = sm.sampling(data=stan_data, iter=500, warmup=500,
+        fit = sm.sampling(data=stan_data, iter=1000, warmup=500,
                           thin=1, chains=1, seed=1)
 
     toc = time.time()
