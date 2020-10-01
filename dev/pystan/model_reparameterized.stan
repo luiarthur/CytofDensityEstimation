@@ -43,19 +43,27 @@ functions {
     return (kernel + log(2) - log(scale));
   }
 
-  real loglike(real[] y_finite, vector eta,
-               vector nu, vector loc, vector scale, vector phi) {
+  real loglike(real[] y_finite, real gamma, vector eta,
+               vector nu, vector loc, vector scale, vector phi,
+               matrix omega, matrix z) {
     
     int N_finite = size(y_finite);
     int K = rows(eta);
     vector[N_finite] res;
     vector[K] log_eta = log(eta);
     vector[K] lpdf_mix;
+    vector[K] delta = phi ./ sqrt(1 + phi .* phi);
+    vector[K] locs;
+    vector[K] scales = scale .* sqrt(1 - delta .* delta);
 
     for (n in 1:N_finite) {
       lpdf_mix[1:K] = log_eta;
+      locs = loc + scale .* z[n, :]' .* delta;
       for (k in 1:K) {
-        lpdf_mix[k] += skew_t_lpdf(y_finite[n] | nu[k], loc[k], scale[k], phi[k]);
+        // lpdf_mix[k] += skew_t_lpdf(y_finite[n] | nu[k], loc[k], scale[k], phi[k]);
+        
+        // Reparameterize for efficiency (same as above).
+        lpdf_mix[k] += normal_lpdf(y_finite[n] | locs[k], scales[k]);
       }
       res[n] = log_sum_exp(lpdf_mix);
     }
@@ -114,6 +122,12 @@ parameters {
   vector<lower=0>[K] sigma_sq;  // mixture scales.
   vector<lower=0>[K] nu;  // mixture degrees of freedoms.
 
+  // Reparameterization of skew-t
+  matrix<lower=0>[N_finite_C, K] omega_C;
+  matrix<lower=0>[N_finite_T, K] omega_T;
+  matrix<lower=0>[N_finite_C, K] z_C;
+  matrix<lower=0>[N_finite_T, K] z_T;
+
   real<lower=0, upper=1> p;
 }
 
@@ -137,10 +151,21 @@ model {
   xi ~ normal(xi_bar, d_xi * sigma);  // g-prior
   phi ~ normal(m_phi, d_phi * sigma);  // g-prior
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
+
+  for (k in 1:K) {
+    omega_C[:, k] ~ gamma(nu[k]/2, nu[k]/2);
+    for (nc in 1:N_finite_C) {
+      z_C[nc, k] ~ normal(0, 1 / sqrt(omega_C[nc, k])) T[0, ];
+    }
+    omega_T[:, k] ~ gamma(nu[k]/2, nu[k]/2);
+    for (nt in 1:N_finite_T) {
+      z_T[nt, k] ~ normal(0, 1 / sqrt(omega_T[nt, k])) T[0, ];
+    }
+  }
   
   N_neginf_C ~ binomial(N_C, gamma_C);
   N_neginf_T ~ binomial(N_T, gamma_T_star);
 
-  target += loglike(y_finite_C, eta_C, nu, xi, sigma, phi);
-  target += loglike(y_finite_T, eta_T_star, nu, xi, sigma, phi);
+  target += loglike(y_finite_C, gamma_C, eta_C, nu, xi, sigma, phi, omega_C, z_C);
+  target += loglike(y_finite_T, gamma_T_star, eta_T_star, nu, xi, sigma, phi, omega_T, z_T);
 }

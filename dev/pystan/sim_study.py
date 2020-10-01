@@ -32,19 +32,24 @@ def generate_scenarios(p):
         loc=np.array([1, -1]), phi=np.array([-2, -5]),
         eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]), seed=1)
 
-def simulation(p, method, results_dir):
+def simulation(data, p, method, results_dir):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'], K=5,
                                              m_phi=-1, d_xi=0.31, d_phi=10,
                                              a_p=.1, b_p=.9, m_nu=3, s_nu=1)
 
+    # Parameters to store
+    pars = ['gamma_T', 'gamma_C', 'eta_T', 'eta_C',
+            'gamma_T_star', 'eta_T_star',
+            'xi', 'phi', 'sigma', 'nu', 'p']
+    
     # simulate.
     tic = time.time()
     if method == 'advi':
-        _fit = sm.vb(data=stan_data, iter=1000, seed=1,
-                        grad_samples=2, elbo_samples=2, output_samples=1000)
+        _fit = sm.vb(data=stan_data, iter=2000, seed=1, pars=pars,
+                     grad_samples=2, elbo_samples=2, output_samples=1000)
     else:
-        fit = sm.sampling(data=stan_data, iter=1000, warmup=500,
+        fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, pars=pars,
                           thin=1, chains=1, seed=1)
 
     toc = time.time()
@@ -52,6 +57,7 @@ def simulation(p, method, results_dir):
 
     if method == 'advi':
         fit = pystan_util.vb_extract(_fit)
+        print(fit.keys())
 
     posterior_inference.print_summary(fit, truth=data, digits=3, show_sd=False)
 
@@ -69,6 +75,8 @@ def simulation(p, method, results_dir):
                 bbox_inches='tight')
     plt.close()
 
+    return dict(data=data, fit=fit)
+
 def parse_p(results_dir):
     return float(re.findall(r'(?<=p_)\d+\.\d+', results_dir)[0])
     
@@ -79,6 +87,7 @@ def parse_method(results_dir):
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
         results_dir = 'results/test/p_0.95-method_advi'
+        # results_dir = 'results/test/p_0.95-method_nuts'
     else:
         results_dir = sys.argv[1]
 
@@ -104,5 +113,5 @@ if __name__ == '__main__':
     plt.close()
 
     # Run analysis.
-    simulation(p, method, results_dir)
+    result = simulation(data, p, method, results_dir)
 
