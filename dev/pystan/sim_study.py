@@ -77,11 +77,11 @@ def parse_method(results_dir):
  
 
 if __name__ == '__main__':
-    if len(sys.argv) == 0:
+    if len(sys.argv) <= 1:
         results_dir = 'results/test/p_0.95-method_advi'
     else:
-        results_dir = sys.argv[0]
-    
+        results_dir = sys.argv[1]
+
     p = parse_p(results_dir)
     method = parse_method(results_dir)
 
