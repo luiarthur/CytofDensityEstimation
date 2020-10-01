@@ -33,7 +33,7 @@ if effecacious:
     print('Simulating data that looks different')
     # Data looks different
     data = simulate_data.gen_data(
-        1000, 1000, p=.99, gamma_C=.3, gamma_T=.2, K=2, scale=np.array([0.7, 1.3]),
+        1000, 1000, p=.95, gamma_C=.3, gamma_T=.2, K=2, scale=np.array([0.7, 1.3]),
         nu=np.array([15, 30]), loc=np.array([1, -1]), phi=np.array([-2, -5]),
         eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]), seed=1)
 else:
@@ -53,7 +53,7 @@ plt.close()
 # Stan data
 # from importlib import reload; reload(pystan_util)
 stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'], K=5,
-                                         m_phi=-1, d_xi=0.31, d_phi=0.31,
+                                         m_phi=-1, d_xi=0.31, d_phi=10,
                                          a_p=.1, b_p=.9, m_nu=3, s_nu=1)
 
 
