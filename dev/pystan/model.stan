@@ -1,3 +1,10 @@
+// Performance:
+// - Map-reduce:
+//       https://mc-stan.org/docs/2_22/stan-users-guide/using-map-reduce.html
+// - Hierarchical Normal instead of direct t likelihood:
+//       https://mc-stan.org/docs/2_22/stan-users-guide/reparameterization-section.html
+// - Hurdle model:
+//       https://mc-stan.org/docs/2_22/stan-users-guide/zero-inflated-section.html
 functions {
   // nu:positive, loc:real, scale:positive, alpha:real
   real unsafe_skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
@@ -26,9 +33,9 @@ functions {
 
   real loglike(int K, int N, real[] y, real p0, vector pnot0,
                vector nu, vector loc, vector scale, vector alpha) {
-    real out = 0.0;
     vector[K] log_pnot0 = log(pnot0);
     vector[K + 1] lpdf_mix;
+    vector[N] res;
 
     for (n in 1:N) {
       lpdf_mix[1:K] = log_pnot0;
@@ -36,10 +43,12 @@ functions {
         lpdf_mix[k] += skew_t_lpdf(y[n] | nu[k], loc[k], scale[k], alpha[k]);
       }
       lpdf_mix[K + 1] = log(p0) + log_is_inf(y[n]);
-      out += log_sum_exp(lpdf_mix);
+      res[n] = log_sum_exp(lpdf_mix);
     }
 
-    return out;
+    // Vectorize for efficiency:
+    // https://mc-stan.org/docs/2_22/stan-users-guide/vectorization.html
+    return sum(res);
   }
 }
 
@@ -76,10 +85,10 @@ parameters {
   simplex[K] eta_T;
   simplex[K] eta_C;
 
-  vector[K] xi;
-  vector[K] phi;
-  vector<lower=0>[K] sigma_sq;
-  vector<lower=0>[K] nu;  // NOTE: Fixed in paper.
+  vector[K] xi;  // mixture locations. (Don't care about order.)
+  vector[K] phi;  // mixture skewnesses.
+  vector<lower=0>[K] sigma_sq;  // mixture scales.
+  vector<lower=0>[K] nu;  // mixture degrees of freedoms.
 
   real<lower=0, upper=1> p;
 }

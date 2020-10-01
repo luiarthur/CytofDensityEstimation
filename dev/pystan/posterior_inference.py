@@ -69,7 +69,7 @@ def plot_ci(x, loc, a=0.05, **kwargs):
 def plot_post_predictive_density(fit, y_grid, tlabel='T: post. pred.',
                                  clabel='C: post. pred.', return_grid=False,
                                  tcolor='red', ccolor='blue', fill_alpha=0.3,
-                                 mean_alpha=1):
+                                 mean_alpha=1, digits=3, a=0.05):
     post_dens = post_density(fit, y_grid)
 
     upper_T = np.percentile(post_dens['pdf_T'], 97.5, axis=-1)
@@ -91,6 +91,12 @@ def plot_post_predictive_density(fit, y_grid, tlabel='T: post. pred.',
     if mean_alpha > 0:
         plt.plot(y_grid, mean_C, alpha=mean_alpha, color=ccolor, label=clabel)
         plt.plot(y_grid, mean_T, alpha=mean_alpha, color=tcolor, label=tlabel)
+
+    p_lower = np.round(np.quantile(fit['p'], a / 2), digits)
+    p_upper = np.round(np.quantile(fit['p'], 1 - a / 2), digits)
+    p_mean = np.round(np.mean(fit['p']), digits)
+    title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+    plt.title(title)
 
 
 def print_stat(param, fit, truth=None, digits=2):
