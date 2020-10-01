@@ -6,6 +6,8 @@
 // - Hurdle model:
 //       https://mc-stan.org/docs/2_22/stan-users-guide/zero-inflated-section.html
 
+// I am broken!
+
 functions {
   // Counts the number of infinities in array x.
   int count_inf(real[] x) {
