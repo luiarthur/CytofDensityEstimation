@@ -54,7 +54,7 @@ def post_density(fit, y_grid):
                          fit["xi"][None, ...],
                          fit["sigma"][None, ...],
                          fit["phi"][None, ...])
-    eta_T_star = fit["pnot0_T"] / (1 - fit['p0_T'][:, None])
+    eta_T_star = fit["eta_T_star"]
     lpdf_T = logsumexp(np.log(eta_T_star[None, ...]) + kernel, axis=-1)
     lpdf_C = logsumexp(np.log(fit["eta_C"][None, ...]) + kernel, axis=-1)
     return dict(pdf_T=np.exp(lpdf_T), pdf_C=np.exp(lpdf_C))
@@ -99,7 +99,7 @@ def plot_post_predictive_density(fit, y_grid, tlabel='T: post. pred.',
     plt.title(title)
 
 
-def print_stat(param, fit, truth=None, digits=2):
+def print_stat(param, fit, truth=None, digits=3, show_sd=True):
     m = np.round(fit[param].mean(0), digits)
     s = np.round(fit[param].std(0), digits)
 
@@ -109,18 +109,19 @@ def print_stat(param, fit, truth=None, digits=2):
         t = np.round(truth[param], digits)
         msg += f', truth={t}'
 
-    msg += f', sd={s}'
+    if show_sd:
+        msg += f', sd={s}'
 
     print(msg)
 
-def print_summary(fit, truth=None, digits=2):
-    print_stat('p', fit, truth=truth, digits=digits)
-    print_stat('gamma_T', fit, truth=truth, digits=digits)
-    print_stat('gamma_C', fit, truth=truth, digits=digits)
-    print_stat('sigma', fit, truth=truth, digits=digits)
-    print_stat('phi', fit, truth=truth, digits=digits)
-    print_stat('xi', fit, truth=truth, digits=digits)
-    print_stat('nu', fit, truth=truth, digits=digits)
-    print_stat('eta_T', fit, truth=truth, digits=digits)
-    print_stat('eta_C', fit, truth=truth, digits=digits)
+def print_summary(fit, truth=None, digits=3, show_sd=True):
+    print_stat('p', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('gamma_T', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('gamma_C', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('sigma', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('phi', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('xi', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('nu', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('eta_T', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('eta_C', fit, truth=truth, digits=digits, show_sd=show_sd)
 
