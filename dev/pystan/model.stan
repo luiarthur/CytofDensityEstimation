@@ -5,48 +5,62 @@
 //       https://mc-stan.org/docs/2_22/stan-users-guide/reparameterization-section.html
 // - Hurdle model:
 //       https://mc-stan.org/docs/2_22/stan-users-guide/zero-inflated-section.html
+
 functions {
-  // nu:positive, loc:real, scale:positive, alpha:real
-  real unsafe_skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
+  // Counts the number of infinities in array x.
+  int count_inf(real[] x) {
+    int num_inf = 0;
+    for (n in 1:size(x)) {
+      if (is_inf(x[n])) num_inf += 1;
+    }
+    return num_inf;
+  }
+
+  // Collect only the finite values in x.
+  real[] collect_finite(real[] x) {
+    int pos = 0;
+    int num_inf = count_inf(x);
+    real x_finite[size(x) - num_inf];
+    for (n in 1:size(x)) {
+      if (!is_inf(x[n])) {  // i.e., if x[n] is finite
+         pos += 1;
+         x_finite[pos] = x[n];
+      }
+    }
+    return x_finite;
+  }
+
+  // nu:positive, loc:real, scale:positive, phi:real
+  real skew_t_lpdf(real x, real nu, real loc, real scale, real phi) {
     real z;
     real u;
     real kernel;
 
     z = (x - loc) / scale;
-    u = alpha * z * sqrt((nu + 1) / (nu + z*z));
+    u = phi * z * sqrt((nu + 1) / (nu + z*z));
     kernel = student_t_lpdf(z | nu, 0, 1) + student_t_lcdf(u | nu + 1, 0, 1);
 
     return (kernel + log(2) - log(scale));
   }
 
-  // This function augments skew_t_lpdf so that when x is -inf, the lpdf
-  // returns -10000 instead of -inf. This is required for numerical stability.
-  // The effect on the numerical results are negligible.
-  real skew_t_lpdf(real x, real nu, real loc, real scale, real alpha) {
-    real neg_inf_approx = -10000;  // NOTE: Required for numerical stability.
-    return is_inf(x) ? neg_inf_approx : unsafe_skew_t_lpdf(x | nu, loc, scale, alpha);
-  }
+  real loglike(real[] y_finite, real gamma, vector eta,
+               vector nu, vector loc, vector scale, vector phi) {
+    
+    int N_finite = size(y_finite);
+    int K = rows(eta);
+    vector[N_finite] res;
+    vector[K] log_eta = log(eta);
+    vector[K] lpdf_mix;
 
-  real log_is_inf(real x) {
-    return is_inf(x) ? 0 : negative_infinity();
-  }
-
-  real loglike(int K, int N, real[] y, real p0, vector pnot0,
-               vector nu, vector loc, vector scale, vector alpha) {
-    vector[K] log_pnot0 = log(pnot0);
-    vector[K + 1] lpdf_mix;
-    vector[N] res;
-
-    for (n in 1:N) {
-      lpdf_mix[1:K] = log_pnot0;
+    for (n in 1:N_finite) {
+      lpdf_mix[1:K] = log_eta;
       for (k in 1:K) {
-        lpdf_mix[k] += skew_t_lpdf(y[n] | nu[k], loc[k], scale[k], alpha[k]);
+        lpdf_mix[k] += skew_t_lpdf(y_finite[n] | nu[k], loc[k], scale[k], phi[k]);
       }
-      lpdf_mix[K + 1] = log(p0) + log_is_inf(y[n]);
       res[n] = log_sum_exp(lpdf_mix);
     }
 
-    // Vectorize for efficiency:
+    // Vectorized for efficiency:
     // https://mc-stan.org/docs/2_22/stan-users-guide/vectorization.html
     return sum(res);
   }
@@ -78,6 +92,16 @@ data {
   real<lower=0> s_nu;
 }
 
+transformed data {
+  int<lower=0, upper=N_C> N_neginf_C = count_inf(y_C);
+  int<lower=0, upper=N_C> N_finite_C = N_C - N_neginf_C;
+  real y_finite_C[N_finite_C] = collect_finite(y_C);
+
+  int<lower=0, upper=N_T> N_neginf_T = count_inf(y_T);
+  int<lower=0, upper=N_T> N_finite_T = N_T - N_neginf_T;
+  real y_finite_T[N_finite_T] = collect_finite(y_T);
+}
+
 parameters {
   real<lower=0, upper=1> gamma_T;
   real<lower=0, upper=1> gamma_C;
@@ -94,15 +118,10 @@ parameters {
 }
 
 transformed parameters {
-  vector<lower=0>[K] sigma;
-  real p0_T;
-  vector[K] pnot0_T;
-  vector[K] pnot0_C;
-
-  sigma = sqrt(sigma_sq);
-  p0_T = p * gamma_T + (1 - p) * gamma_C;
-  pnot0_T = eta_T * p * (1 - gamma_T) + eta_C * (1 - p) * (1 - gamma_C);
-  pnot0_C = eta_C * (1 - gamma_C);
+  vector<lower=0>[K] sigma = sqrt(sigma_sq);
+  real gamma_T_star = p * gamma_T + (1 - p) * gamma_C;
+  vector[K] eta_T_star = ((eta_T * p * (1 - gamma_T) + 
+                           eta_C * (1 - p) * (1 - gamma_C)) / (1 - gamma_T_star));
 }
 
 model {
@@ -119,6 +138,9 @@ model {
   phi ~ normal(m_phi, d_phi * sigma);  // g-prior
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
   
-  target += loglike(K, N_C, y_C, gamma_C, pnot0_C, nu, xi, sigma, phi);
-  target += loglike(K, N_T, y_T, p0_T, pnot0_T, nu, xi, sigma, phi);
+  N_neginf_C ~ binomial(N_C, gamma_C);
+  N_neginf_T ~ binomial(N_T, gamma_T_star);
+
+  target += loglike(y_finite_C, gamma_C, eta_C, nu, xi, sigma, phi);
+  target += loglike(y_finite_T, gamma_T_star, eta_T_star, nu, xi, sigma, phi);
 }
