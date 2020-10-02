@@ -29,7 +29,7 @@ def mix(n, eta, loc, scale, name):
 # - `Sample` and `Independent` resemble, respectively, `filldist` and `arraydist` in Turing.
 # - JointDistributionCoroutine is good in this case,
 #   otherwise, I usually use JointDistributionNamed.
-def create_model(nC, nT, n0C, n0T, K, dtype=np.float64):
+def create_model(nC, nT, n0C, n0T, K, m_phi=-1, s_phi=3, dtype=np.float64):
     nposC = nC - n0C
     nposT = nT - n0T
 
@@ -43,6 +43,10 @@ def create_model(nC, nT, n0C, n0T, K, dtype=np.float64):
                                          name="eta_T"))
         loc = yield Root(tfd.Sample(tfd.Normal(dtype(0), dtype(1)),
                                     sample_shape=K, name="loc"))
+        nu = yield Root(tfd.Sample(tfd.Uniform(dtype(10), dtype(50)),
+                                   sample_shape=K, name="nu"))
+        phi = yield Root(tfd.Sample(tfd.Normal(dtype(m_phi), dtype(s_phi)),
+                                    sample_shape=K, name="phi"))
         sigma_sq = yield Root(tfd.Sample(tfd.InverseGamma(dtype(3), dtype(2)),
                                          sample_shape=K,
                               name="sigma_sq"))
@@ -95,8 +99,6 @@ data = simulate_data.gen_data(
 # - Try to do HMC/NUTS/ADVI.
 # - Need to implement skew-t.
 
-# nC = data['y_C']
-# nT = data['y_T']
-# ypos_C = data['y_C']
-# model = create_model(nC, nT, n0C, n0T, K, dtype=np.float64):
+K = 5
+model = create_model(10, 11, 13, 15, K, dtype=np.float64)
 

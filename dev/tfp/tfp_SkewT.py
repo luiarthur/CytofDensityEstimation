@@ -34,4 +34,50 @@ scale = tf.random.uniform(n)
 skew = tf.random.normal(n)
 skew_t_lpdf(x, nu, loc, scale, skew)
 
-random_skew_t([], 1., 1., 1., 1., tf.float32)
+# random_skew_t([], 1., 1., 1., 1., tf.float32)
+
+
+from tensorflow_probability.python import math as tfp_math
+from tensorflow_probability.python.bijectors import identity as identity_bijector
+from tensorflow_probability.python.distributions import distribution
+from tensorflow_probability.python.internal import assert_util
+from tensorflow_probability.python.internal import distribution_util
+from tensorflow_probability.python.internal import dtype_util
+from tensorflow_probability.python.internal import prefer_static
+from tensorflow_probability.python.internal import reparameterization
+from tensorflow_probability.python.internal import samplers
+from tensorflow_probability.python.internal import tensor_util
+from tensorflow_probability.python.math.numeric import log1psquare
+
+class MyUnif(tfd.Distribution):
+    def __init__(self, a, b,
+                 validate_args=False,
+                 allow_nan_stats=True,
+                 name='MyUnif'):
+        parameters = dict(locals())
+        with tf.name_scope(name) as name:
+          dtype = dtype_util.common_dtype([a, b], tf.float32)
+          self._a = tensor_util.convert_nonref_to_tensor(
+              a, name='a', dtype=dtype)
+          self._b = tensor_util.convert_nonref_to_tensor(
+              b, name='b', dtype=dtype)
+          dtype_util.assert_same_float_dtype((self._a, self._b))
+          super(MyUnif, self).__init__(
+              dtype=dtype,
+              reparameterization_type=reparameterization.FULLY_REPARAMETERIZED,
+              validate_args=validate_args,
+              allow_nan_stats=allow_nan_stats,
+              parameters=parameters,
+              name=name)
+
+    def _log_prob(self, x):
+        a = tf.convert_to_tensor(self._a)
+        b = tf.convert_to_tensor(self._b)
+        return tf.where((a < x) | (x > b),
+                        tf.math.log(tf.zeros_like(x)),
+                        tf.zeros_like(x))
+
+
+u = MyUnif(1, 3)
+x = tf.random.normal([10])
+u.log_prob(x)
