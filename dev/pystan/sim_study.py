@@ -26,7 +26,7 @@ import util
 def generate_scenarios(p):
     return simulate_data.gen_data(
         n_C=1000, n_T=1000, p=p, gamma_C=.3, gamma_T=.2, K=2,
-        scale=np.array([0.7, 1.3]), nu=np.array([5, 30]),
+        scale=np.array([0.7, 1.3]), nu=np.array([15, 30]),
         loc=np.array([1, -1]), phi=np.array([-2, -5]),
         eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]), seed=1)
 
