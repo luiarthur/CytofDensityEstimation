@@ -2,6 +2,7 @@ import seaborn as sns
 from scipy.stats import truncnorm, t
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.special import logsumexp
 
 def rm_inf(x):
     return list(filter(lambda x: not np.isinf(x), x))
@@ -46,6 +47,33 @@ def compute_stat_T_star(gamma_C, gamma_T, eta_C, eta_T, p):
                                     gamma_T_star)
     return dict(gamma=gamma_T_star, eta=eta_T_star)
 
+
+def get_true_density(data, y_grid=None, grid_length=1000, tcolor='red',
+                     ccolor='blue', tlabel='T: Data', clabel='C: Data', lw=2,
+                     ls=":"):
+    if y_grid is None:
+        yC_finite = data['y_C'][data['y_C'] > -np.inf]
+        yT_finite = data['y_T'][data['y_T'] > -np.inf]
+        y_finite = np.concatenate([yC_finite, yT_finite])
+        y_min, y_max = y_finite.min(), y_finite.max()
+        y_grid = np.linspace(y_min, y_max, grid_length)
+
+
+    stat_T_star = compute_stat_T_star(data['gamma_C'], data['gamma_T'],
+                                      data['eta_C'], data['eta_T'], data['p'])
+    eta_T_star = stat_T_star['eta']
+    eta_C = data['eta_C']
+
+    kernel = skew_t_lpdf(y_grid[:, None],
+                         data['nu'][None, ...],
+                         data['xi'][None, ...],
+                         data['sigma'][None, ...],
+                         data['phi'][None, ...])
+
+    lpdf_T = logsumexp(np.log(eta_T_star[None, ...]) + kernel, axis=-1)
+    lpdf_C = logsumexp(np.log(eta_C[None, ...]) + kernel, axis=-1)
+
+    return dict(pdf_T=np.exp(lpdf_T), pdf_C=np.exp(lpdf_C), y_grid=y_grid)
 
 def plot_data(yT, yC, tcolor='red', ccolor='blue', bins=50, alpha=0.6,
               tlabel='T: Data', clabel='C: Data', zero_pos=-10, 

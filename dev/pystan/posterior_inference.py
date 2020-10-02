@@ -3,47 +3,33 @@ from scipy.special import logsumexp
 from simulate_data import rand_skew_t, skew_t_lpdf
 import matplotlib.pyplot as plt
 
-# TODO: Vectorize!
-def post_predictive(fit, seed=None):
-    """
-    Get posterior predictive samples.
-    """
+
+def post_predictive_observed_samples(fit, seed=None):
     if seed is not None:
         np.random.seed(seed)
 
-    B = fit['p'].shape[0]
-    return np.vstack([one_post_pred(fit, b) for b in range(B)])
+    B, K = fit['nu'].shape
 
-# FIXME: This is wrong!
-def one_post_pred(fit, b):
-    print('This is wrong! Do not use this!')
-    K = fit['eta_T'].shape[1]
-    yT_is_zero = np.random.binomial(1, fit['gamma_T'][b])
-    yT = None
+    comp_C = np.stack([
+        np.random.choice(K, size=1, replace=True, p=eta_C)
+        for eta_C in fit['eta_C']])[:, 0]
 
-    if yT_is_zero:
-        yT = -np.inf
-    else:
-        k = np.random.choice(np.arange(K), size=1, p=fit['eta_T'][b])[0]
-        # This should actually be a mixture because 
-        # sample T is a mixture of C as well.
-        yT = rand_skew_t(fit['nu'][b, k],
-                         fit['xi'][b, k],
-                         fit['sigma'][b, k],
-                         fit['phi'][b, k])
+    comp_T = np.stack([
+        np.random.choice(K, size=1, replace=True, p=eta_T)
+        for eta_T in fit['eta_T_star']])[:, 0]
 
-    yC_is_zero = np.random.binomial(1, fit['gamma_C'][b])
-    yC = None
+    y_C = rand_skew_t(np.choose(comp_C, fit['nu'].T),
+                      np.choose(comp_C, fit['xi'].T),
+                      np.choose(comp_C, fit['sigma'].T),
+                      np.choose(comp_C, fit['phi'].T))
 
-    if yC_is_zero:
-        yC = -np.inf
-    else:
-        k = np.random.choice(np.arange(K), size=1, p=fit['eta_C'][b])[0]
-        yC = rand_skew_t(fit['nu'][b, k],
-                         fit['xi'][b, k],
-                         fit['sigma'][b, k],
-                         fit['phi'][b, k])
-    return [yC, yT]
+    y_T = rand_skew_t(np.choose(comp_T, fit['nu'].T),
+                      np.choose(comp_T, fit['xi'].T),
+                      np.choose(comp_T, fit['sigma'].T),
+                      np.choose(comp_T, fit['phi'].T))
+
+    return dict(y_C=y_C, y_T=y_T)
+
 
 def post_density(fit, y_grid):
     """
@@ -66,10 +52,10 @@ def plot_ci(x, loc, a=0.05, **kwargs):
     plt.plot([loc, loc], [x_lower, x_upper], **kwargs)
 
 
-def plot_post_predictive_density(fit, y_grid, tlabel='T: post. pred.',
-                                 clabel='C: post. pred.', return_grid=False,
-                                 tcolor='red', ccolor='blue', fill_alpha=0.3,
-                                 mean_alpha=1, digits=3, a=0.05):
+def plot_post_density(fit, y_grid, tlabel='T: post. pred.',
+                      clabel='C: post. pred.', return_grid=False,
+                      tcolor='red', ccolor='blue', fill_alpha=0.3,
+                      mean_alpha=1, digits=3, a=0.05):
     post_dens = post_density(fit, y_grid)
 
     upper_T = np.percentile(post_dens['pdf_T'], 97.5, axis=-1)
@@ -116,12 +102,14 @@ def print_stat(param, fit, truth=None, digits=3, show_sd=True):
 
 def print_summary(fit, truth=None, digits=3, show_sd=True):
     print_stat('p', fit, truth=truth, digits=digits, show_sd=show_sd)
-    print_stat('gamma_T', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('gamma_C', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('gamma_T_star', fit, digits=digits, show_sd=show_sd)
+    print_stat('gamma_T', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('sigma', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('phi', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('xi', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('nu', fit, truth=truth, digits=digits, show_sd=show_sd)
-    print_stat('eta_T', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('eta_C', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('eta_T_star', fit, digits=digits, show_sd=show_sd)
+    print_stat('eta_T', fit, truth=truth, digits=digits, show_sd=show_sd)
 

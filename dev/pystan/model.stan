@@ -84,12 +84,14 @@ data {
 
   real xi_bar;
   real m_phi;
-  real<lower=0> d_xi;
-  real<lower=0> d_phi;
+  // real<lower=0> d_xi;
+  // real<lower=0> d_phi;
+  real<lower=0> s_xi;
+  real<lower=0> s_phi;
   real<lower=0> a_sigma;
   real<lower=0> b_sigma;
-  real m_nu;
-  real<lower=0> s_nu;
+  real<lower=0> a_nu;
+  real<lower=0> b_nu;
 }
 
 transformed data {
@@ -112,7 +114,7 @@ parameters {
   vector[K] xi;  // mixture locations. (Don't care about order.)
   vector[K] phi;  // mixture skewnesses.
   vector<lower=0>[K] sigma_sq;  // mixture scales.
-  vector<lower=0>[K] nu;  // mixture degrees of freedoms.
+  vector<lower=a_nu, upper=b_nu>[K] nu;  // mixture degrees of freedoms.
 
   real<lower=0, upper=1> p;
 }
@@ -134,9 +136,11 @@ model {
   eta_C ~ dirichlet(a_eta);
 
   sigma_sq ~ inv_gamma(a_sigma, b_sigma);
-  xi ~ normal(xi_bar, d_xi * sigma);  // g-prior
-  phi ~ normal(m_phi, d_phi * sigma);  // g-prior
-  nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
+  // xi ~ normal(xi_bar, d_xi * sigma);  // g-prior
+  // phi ~ normal(m_phi, d_phi * sigma);  // g-prior
+  xi ~ normal(xi_bar, s_xi);
+  phi ~ normal(m_phi, s_phi);
+  nu ~ uniform(a_nu, b_nu);  // degrees of freedom
   
   N_neginf_C ~ binomial(N_C, gamma_C);
   N_neginf_T ~ binomial(N_T, gamma_T_star);
