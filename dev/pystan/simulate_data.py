@@ -4,6 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import logsumexp
 
+def inv_gamma_moment(m, s):
+    v = s*s
+    a = (m / s) ** 2 + 2
+    b = m * (a - 1)
+    return a, b
+
 def rm_inf(x):
     return list(filter(lambda x: not np.isinf(x), x))
 
@@ -38,8 +44,7 @@ def compute_gamma_T_star(gamma_C, gamma_T, p):
     return p * gamma_T + (1 - p) * gamma_C
 
 def compute_eta_T_star(gamma_C, gamma_T, eta_C, eta_T, p, gamma_T_star):
-    numer = eta_T * (1 - gamma_T) * p + eta_C * (1 - p) * (1 - gamma_C)
-    return numer / (1 - gamma_T_star)
+    return p * eta_T + (1 - p) * eta_C
 
 def compute_stat_T_star(gamma_C, gamma_T, eta_C, eta_T, p):
     gamma_T_star = compute_gamma_T_star(gamma_C, gamma_T, p)
@@ -66,7 +71,7 @@ def get_true_density(data, y_grid=None, grid_length=1000, tcolor='red',
 
     kernel = skew_t_lpdf(y_grid[:, None],
                          data['nu'][None, ...],
-                         data['xi'][None, ...],
+                         data['mu'][None, ...],
                          data['sigma'][None, ...],
                          data['phi'][None, ...])
 
@@ -76,7 +81,8 @@ def get_true_density(data, y_grid=None, grid_length=1000, tcolor='red',
     return dict(pdf_T=np.exp(lpdf_T), pdf_C=np.exp(lpdf_C), y_grid=y_grid)
 
 def plot_data(yT, yC, tcolor='red', ccolor='blue', bins=50, alpha=0.6,
-              tlabel='T: Data', clabel='C: Data', zero_pos=-10, 
+              tlabel='T: Data', clabel='C: Data', 
+              zero_T_pos=-10, zero_C_pos=-9, 
               t0label='T prop. zeros', c0label='C: prop. zeros', 
               use_hist=False, lw=2, ls=":"):
     if use_hist:
@@ -88,9 +94,9 @@ def plot_data(yT, yC, tcolor='red', ccolor='blue', bins=50, alpha=0.6,
         sns.kdeplot(rm_inf(yT), color=tcolor, label=tlabel, ls=ls, lw=lw)
         sns.kdeplot(rm_inf(yC), color=ccolor, label=clabel, ls=ls, lw=lw)
 
-    plt.scatter(zero_pos, np.isinf(yT).mean(),
+    plt.scatter(zero_T_pos, np.isinf(yT).mean(),
                 s=100, color=tcolor, alpha=alpha, label=t0label)
-    plt.scatter(zero_pos, np.isinf(yC).mean(),
+    plt.scatter(zero_C_pos, np.isinf(yC).mean(),
                 s=100, color=ccolor, alpha=alpha, label=c0label)
  
 def gen_data(n_C, n_T, p, gamma_C, gamma_T, K, eta_C=None, eta_T=None, nu=None,
@@ -123,7 +129,7 @@ def gen_data(n_C, n_T, p, gamma_C, gamma_T, K, eta_C=None, eta_T=None, nu=None,
                  loc, scale, nu, phi)
 
     return dict(y_C=y_C, y_T=y_T, p=p, gamma_C=gamma_C, gamma_T=gamma_T,
-                eta_C=eta_C, eta_T=eta_T, xi=loc, sigma=scale, nu=nu, 
+                eta_C=eta_C, eta_T=eta_T, mu=loc, sigma=scale, nu=nu, 
                 phi=phi)
 
 

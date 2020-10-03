@@ -40,14 +40,14 @@ def vb_extract(results):
 
 def create_stan_data(y_C, y_T, K, a_gamma=1, b_gamma=1, a_eta=None,
                      a_sigma=3, b_sigma=2,
-                     m_phi=0, xi_bar=None, s_xi=1, s_phi=3,
+                     m_phi=0, mu_bar=None, s_mu=1, s_phi=3,
                      a_p=1, b_p=1, a_nu=10, b_nu=100):
     if a_eta is None:
         a_eta = np.ones(K) / K
 
-    if xi_bar is None:
+    if mu_bar is None:
         _y = np.concatenate([y_C, y_T])
-        xi_bar = np.mean(_y[_y > -np.inf])
+        mu_bar = np.mean(_y[_y > -np.inf])
 
     return dict(N_T=y_T.shape[0],
                 N_C=y_C.shape[0],
@@ -56,7 +56,7 @@ def create_stan_data(y_C, y_T, K, a_gamma=1, b_gamma=1, a_eta=None,
                 y_C=y_C,
                 K=K,
                 a_gamma=a_gamma, b_gamma=b_gamma, m_phi=m_phi,
-                a_eta=a_eta, xi_bar=xi_bar, s_xi=s_xi, s_phi=s_phi,
+                a_eta=a_eta, mu_bar=mu_bar, s_mu=s_mu, s_phi=s_phi,
                 a_sigma=a_sigma, b_sigma=b_sigma,
                 a_nu=a_nu, b_nu=b_nu)
 

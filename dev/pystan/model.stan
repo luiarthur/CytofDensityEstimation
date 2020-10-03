@@ -82,11 +82,11 @@ data {
 
   vector<lower=0>[K] a_eta;
 
-  real xi_bar;
+  real mu_bar;
   real m_phi;
-  // real<lower=0> d_xi;
+  // real<lower=0> d_mu;
   // real<lower=0> d_phi;
-  real<lower=0> s_xi;
+  real<lower=0> s_mu;
   real<lower=0> s_phi;
   real<lower=0> a_sigma;
   real<lower=0> b_sigma;
@@ -111,7 +111,7 @@ parameters {
   simplex[K] eta_T;
   simplex[K] eta_C;
 
-  vector[K] xi;  // mixture locations. (Don't care about order.)
+  vector[K] mu;  // mixture locations. (Don't care about order.)
   vector[K] phi;  // mixture skewnesses.
   vector<lower=0>[K] sigma_sq;  // mixture scales.
   vector<lower=a_nu, upper=b_nu>[K] nu;  // mixture degrees of freedoms.
@@ -122,8 +122,7 @@ parameters {
 transformed parameters {
   vector<lower=0>[K] sigma = sqrt(sigma_sq);
   real gamma_T_star = p * gamma_T + (1 - p) * gamma_C;
-  vector[K] eta_T_star = ((eta_T * p * (1 - gamma_T) + 
-                           eta_C * (1 - p) * (1 - gamma_C)) / (1 - gamma_T_star));
+  vector[K] eta_T_star = p * eta_T + (1 - p) * eta_C;
 }
 
 model {
@@ -136,15 +135,15 @@ model {
   eta_C ~ dirichlet(a_eta);
 
   sigma_sq ~ inv_gamma(a_sigma, b_sigma);
-  // xi ~ normal(xi_bar, d_xi * sigma);  // g-prior
+  // mu ~ normal(mu_bar, d_mu * sigma);  // g-prior
   // phi ~ normal(m_phi, d_phi * sigma);  // g-prior
-  xi ~ normal(xi_bar, s_xi);
+  mu ~ normal(mu_bar, s_mu);
   phi ~ normal(m_phi, s_phi);
   nu ~ uniform(a_nu, b_nu);  // degrees of freedom
   
   N_neginf_C ~ binomial(N_C, gamma_C);
   N_neginf_T ~ binomial(N_T, gamma_T_star);
 
-  target += loglike(y_finite_C, eta_C, nu, xi, sigma, phi);
-  target += loglike(y_finite_T, eta_T_star, nu, xi, sigma, phi);
+  target += loglike(y_finite_C, eta_C, nu, mu, sigma, phi);
+  target += loglike(y_finite_T, eta_T_star, nu, mu, sigma, phi);
 }

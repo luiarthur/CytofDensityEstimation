@@ -23,9 +23,9 @@ sys.path.append('../util')
 import util
 
 # Simulate data.
-def generate_scenarios(p):
+def generate_scenarios(p, N):
     return simulate_data.gen_data(
-        n_C=1000, n_T=1000, p=p, gamma_C=.3, gamma_T=.2, K=2,
+        n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=2,
         scale=np.array([0.7, 1.3]), nu=np.array([15, 30]),
         loc=np.array([1, -1]), phi=np.array([-2, -5]),
         eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]), seed=1)
@@ -33,13 +33,13 @@ def generate_scenarios(p):
 def simulation(data, p, method, results_dir):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
-                                             K=5, m_phi=-1, s_xi=1, s_phi=3,
+                                             K=5, m_phi=-1, s_mu=1, s_phi=3,
                                              a_p=.1, b_p=.9, a_nu=10, b_nu=50)
 
     # Parameters to store
     pars = ['gamma_T', 'gamma_C', 'eta_T', 'eta_C',
             'gamma_T_star', 'eta_T_star',
-            'xi', 'phi', 'sigma', 'nu', 'p']
+            'mu', 'phi', 'sigma', 'nu', 'p']
     
     # simulate.
     tic = time.time()
@@ -68,7 +68,7 @@ def simulation(data, p, method, results_dir):
 
     posterior_inference.plot_ci(fit['gamma_T_star'], loc=-10, alpha=.5,
                                 color='red', lw=2)
-    posterior_inference.plot_ci(fit['gamma_C'], loc=-10, alpha=.5,
+    posterior_inference.plot_ci(fit['gamma_C'], loc=-9, alpha=.5,
                                 color='blue', lw=2)
     plt.legend()
     plt.savefig(f'{results_dir}/postpred-simdata.pdf',
@@ -86,13 +86,14 @@ def parse_method(results_dir):
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
-        results_dir = 'results/test/p_0.95-method_advi'
-        # results_dir = 'results/test/p_0.05-method_advi'
-        # results_dir = 'results/test/p_0.95-method_nuts'
-        # results_dir = 'results/test/p_0.05-method_nuts'
+        results_dir = 'results/test/p_1.0-method_advi'
+        # results_dir = 'results/test/p_0.0-method_advi'
+        # results_dir = 'results/test/p_1.0-method_nuts'
+        # results_dir = 'results/test/p_0.0-method_nuts'
     else:
         results_dir = sys.argv[1]
 
+    os.makedirs(results_dir, exist_ok=True)
     p = parse_p(results_dir)
     method = parse_method(results_dir)
 
@@ -103,11 +104,11 @@ if __name__ == '__main__':
     sm = pickle.load(open(f'.model.pkl', 'rb'))
 
     # Scenarios:
-    # - p = (0.95, 0.05)
+    # - p = (1, 0)
     # - method = 'advi' or 'nuts'
 
     # Generate data.
-    data = generate_scenarios(p)
+    data = generate_scenarios(p, N=200)
 
     # Plot simulation data.
     simulate_data.plot_data(yT=data['y_T'], yC=data['y_C'], bins=30)
