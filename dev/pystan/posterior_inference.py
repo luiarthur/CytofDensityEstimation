@@ -168,6 +168,7 @@ def beta_posterior(fit, data, seed=None):
     # Finite y.
     yfinite_T = y_T[isfinite(y_T)]
 
+    p = fit['p']
     gamma_T_star = fit['gamma_T_star']
     gamma_C = fit['gamma_C']
     eta_T_star = fit['eta_T_star']
@@ -186,8 +187,8 @@ def beta_posterior(fit, data, seed=None):
 
     logit = ZT * (np.log(gamma_T_star) - np.log(gamma_C))
     logit += (nT - ZT) * (np.log1p(-gamma_T_star) - np.log1p(-gamma_C))
-    logit += kernel_numer - kernel_denom
+    logit += kernel_numer + np.log(p) - (kernel_denom + np.log1p(-p))
 
     p1 = expit(logit)
 
-    return p1 > np.random.randn(B)
+    return p1 > np.random.rand(B)

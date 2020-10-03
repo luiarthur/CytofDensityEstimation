@@ -18,7 +18,7 @@
 - [ ] Rerun and send results to Juhee
 - [X] Plot prior predictive.
 - [X] Prior for nu should be lognormal
-- [X] Compute beta posterior
+- [X] Compute beta posterior (double check)
 - [ ] Posterior plots for posterior predictive should optionally be made with
       beta, and p.
 - [ ] Posterior plots for all parameters
