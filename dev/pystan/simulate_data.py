@@ -43,12 +43,15 @@ def sample(n, gamma, eta, loc, scale, nu, phi):
 def compute_gamma_T_star(gamma_C, gamma_T, p):
     return p * gamma_T + (1 - p) * gamma_C
 
-def compute_eta_T_star(eta_C, eta_T, p):
-    return p * eta_T + (1 - p) * eta_C
+def compute_eta_T_star(eta_C, eta_T, p, gamma_C, gamma_T, gamma_T_star):
+    numer = p * eta_T * (1 -gamma_T) + (1 - p) * eta_C * (1 - gamma_C)
+    denom = 1 - gamma_T_star
+    return numer / denom
 
 def compute_stat_T_star(gamma_C, gamma_T, eta_C, eta_T, p):
     gamma_T_star = compute_gamma_T_star(gamma_C, gamma_T, p)
-    eta_T_star = compute_eta_T_star(eta_C, eta_T, p)
+    eta_T_star = compute_eta_T_star(eta_C, eta_T, p,
+                                    gamma_C, gamma_T, gamma_T_star)
     return dict(gamma=gamma_T_star, eta=eta_T_star)
 
 
@@ -136,10 +139,15 @@ def prior_samples(B, stan_data):
     p = np.random.beta(stan_data['a_p'], stan_data['b_p'], B)
     gamma_C  = np.random.beta(stan_data['a_gamma'], stan_data['b_gamma'], B)
     gamma_T  = np.random.beta(stan_data['a_gamma'], stan_data['b_gamma'], B)
-    gamma_T_star = compute_gamma_T_star(gamma_C=gamma_C, gamma_T=gamma_T, p=p)
     eta_C  = np.random.dirichlet(stan_data['a_eta'], B)
     eta_T  = np.random.dirichlet(stan_data['a_eta'], B)
-    eta_T_star = compute_eta_T_star(eta_C=eta_C, eta_T=eta_T, p=p[:, None])
+    gamma_T_star = compute_gamma_T_star(gamma_C, gamma_T, p)
+    eta_T_star = compute_eta_T_star(gamma_C=gamma_C[:, None],
+                                    gamma_T=gamma_T[:, None],
+                                    p=p[:, None],
+                                    gamma_T_star=gamma_T_star[:, None],
+                                    eta_C=eta_T,
+                                    eta_T=eta_T)
     mu = np.random.normal(stan_data['mu_bar'], stan_data['s_mu'], (B, K))
     sigma = 1 / np.random.gamma(stan_data['a_sigma'], 1/stan_data['b_sigma'], (B, K))
     nu = np.random.lognormal(stan_data['m_nu'], stan_data['s_nu'], (B, K))

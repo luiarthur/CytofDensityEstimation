@@ -122,7 +122,8 @@ parameters {
 transformed parameters {
   vector<lower=0>[K] sigma = sqrt(sigma_sq);
   real gamma_T_star = p * gamma_T + (1 - p) * gamma_C;
-  vector[K] eta_T_star = p * eta_T + (1 - p) * eta_C;
+  vector[K] eta_T_star = (p * eta_T * (1 - gamma_T) + 
+                          (1 - p) * eta_C * (1 - gamma_C)) / (1 - gamma_T_star);
 }
 
 model {
@@ -135,8 +136,6 @@ model {
   eta_C ~ dirichlet(a_eta);
 
   sigma_sq ~ inv_gamma(a_sigma, b_sigma);
-  // mu ~ normal(mu_bar, d_mu * sigma);  // g-prior
-  // phi ~ normal(m_phi, d_phi * sigma);  // g-prior
   mu ~ normal(mu_bar, s_mu);
   phi ~ normal(m_phi, s_phi);
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
