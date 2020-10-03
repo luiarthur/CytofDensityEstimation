@@ -1,13 +1,9 @@
 import numpy as np
-from scipy.special import logsumexp
-from simulate_data import rand_skew_t, skew_t_lpdf
+from scipy.special import logsumexp, expit, logit  # expit = sigmoid = logistic
+from simulate_data import rand_skew_t, skew_t_lpdf, prior_samples
 import matplotlib.pyplot as plt
 
-def prior_predictive_observed_samples(n, seed=None):
-    NotImplemented
-    # TODO:
-    # Create samps dictionary for parameters.
-    # Args: prior or distributions.
+def prior_predictive_observed_samples(n, samps, seed=None):
     return predictive_observed_samples(samps, seed=seed)
 
 def post_predictive_observed_samples(fit, seed=None):
@@ -64,11 +60,27 @@ def plot_ci(x, loc, a=0.05, **kwargs):
     x_upper = np.quantile(x, 1 - a / 2)
     plt.plot([loc, loc], [x_lower, x_upper], **kwargs)
 
+def plot_prior_density(stan_data, y_grid, B, title=None, a=0.05, digits=3,
+                       **kwargs):
+
+    samples = prior_samples(B, stan_data)
+
+    if title is None:
+        p_lower = np.round(np.quantile(samples['p'], a / 2), digits)
+        p_upper = np.round(np.quantile(samples['p'], 1 - a / 2), digits)
+        p_mean = np.round(np.mean(samples['p']), digits)
+        title = r'Prob($F_C \ne F_T$)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+
+    plot_post_density(samples, y_grid,
+                      tlabel='T: prior pred.', clabel='C: prior pred.',
+                      title=title, **kwargs)
 
 def plot_post_density(fit, y_grid, tlabel='T: post. pred.',
                       clabel='C: post. pred.', return_grid=False,
                       tcolor='red', ccolor='blue', fill_alpha=0.3,
-                      mean_alpha=1, digits=3, a=0.05, use_eta_T=False):
+                      mean_alpha=1, digits=3, a=0.05, use_eta_T=False,
+                      zero_C_pos=-9, zero_T_pos=-10, gamma_alpha=0.5,
+                      plot_gamma=True, title=None):
     post_dens = post_density(fit, y_grid, use_eta_T=use_eta_T)
 
     upper_T = np.percentile(post_dens['pdf_T'], 97.5, axis=-1)
@@ -94,9 +106,17 @@ def plot_post_density(fit, y_grid, tlabel='T: post. pred.',
     p_lower = np.round(np.quantile(fit['p'], a / 2), digits)
     p_upper = np.round(np.quantile(fit['p'], 1 - a / 2), digits)
     p_mean = np.round(np.mean(fit['p']), digits)
-    title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+
+    if title is None:
+        title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+
     plt.title(title)
 
+    if plot_gamma:
+        plot_ci(fit['gamma_T_star'], loc=zero_T_pos, alpha=gamma_alpha,
+                color=tcolor, lw=2)
+        plot_ci(fit['gamma_C'], loc=zero_C_pos, alpha=gamma_alpha,
+                color=ccolor, lw=2)
 
 def print_stat(param, fit, truth=None, digits=3, show_sd=True):
     m = np.round(fit[param].mean(0), digits)
@@ -113,16 +133,61 @@ def print_stat(param, fit, truth=None, digits=3, show_sd=True):
 
     print(msg)
 
-def print_summary(fit, truth=None, digits=3, show_sd=True):
+def print_summary(fit, truth=None, digits=3, show_sd=True,
+                  include_gamma_eta_T=False):
     print_stat('p', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('gamma_C', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('gamma_T_star', fit, digits=digits, show_sd=show_sd)
-    print_stat('gamma_T', fit, truth=truth, digits=digits, show_sd=show_sd)
-    print_stat('sigma', fit, truth=truth, digits=digits, show_sd=show_sd)
-    print_stat('phi', fit, truth=truth, digits=digits, show_sd=show_sd)
-    print_stat('mu', fit, truth=truth, digits=digits, show_sd=show_sd)
-    print_stat('nu', fit, truth=truth, digits=digits, show_sd=show_sd)
+    if include_gamma_eta_T:
+        print_stat('gamma_T', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('eta_C', fit, truth=truth, digits=digits, show_sd=show_sd)
     print_stat('eta_T_star', fit, digits=digits, show_sd=show_sd)
-    print_stat('eta_T', fit, truth=truth, digits=digits, show_sd=show_sd)
+    if include_gamma_eta_T:
+        print_stat('eta_T', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('nu', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('mu', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('sigma', fit, truth=truth, digits=digits, show_sd=show_sd)
+    print_stat('phi', fit, truth=truth, digits=digits, show_sd=show_sd)
 
+def isfinite(x):
+    return np.isinf(x) == False
+
+def beta_posterior(fit, data, seed=None):
+    if seed is not None:
+        np.random.seed(seed)
+
+    B, K = fit['mu'].shape
+
+    y_T = data['y_T']
+
+    nT = y_T.shape[0]
+
+    # number of zeros
+    ZT = np.isinf(y_T).sum()
+
+    # Finite y.
+    yfinite_T = y_T[isfinite(y_T)]
+
+    gamma_T_star = fit['gamma_T_star']
+    gamma_C = fit['gamma_C']
+    eta_T_star = fit['eta_T_star']
+    eta_C = fit['eta_C']
+
+    kernel = skew_t_lpdf(yfinite_T[:, None, None],
+                         nu=fit['nu'][None, ...],
+                         loc=fit['mu'][None, ...],
+                         scale=fit['sigma'][None, ...],
+                         skew=fit['phi'][None, ...])
+
+    kernel_numer = logsumexp(np.log(eta_T_star[None, ...]) +
+                             kernel, axis=-1).sum(0)
+    kernel_denom = logsumexp(np.log(eta_C[None, ...]) +
+                             kernel, axis=-1).sum(0)
+
+    logit = ZT * (np.log(gamma_T_star) - np.log(gamma_C))
+    logit += (nT - ZT) * (np.log1p(-gamma_T_star) - np.log1p(-gamma_C))
+    logit += kernel_numer - kernel_denom
+
+    p1 = expit(logit)
+
+    return p1 > np.random.randn(B)

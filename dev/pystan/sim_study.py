@@ -25,16 +25,35 @@ import util
 # Simulate data.
 def generate_scenarios(p, N):
     return simulate_data.gen_data(
-        n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=2,
-        scale=np.array([0.7, 1.3]), nu=np.array([15, 30]),
-        loc=np.array([1, -1]), phi=np.array([-2, -5]),
-        eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]), seed=1)
+        n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=3,
+        scale=np.array([0.7, 1.3, 1.0]), nu=np.array([15, 30, 10]),
+        loc=np.array([1, -1, 2]), phi=np.array([-2, -5, 0]),
+        eta_C=np.array([.5, 1 - .5 - 1e-8, 1e-8]), eta_T=np.array([.4, .45, .15]),
+        seed=1)
+    # return simulate_data.gen_data(
+    #     n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=2,
+    #     scale=np.array([0.7, 1.3]), nu=np.array([15, 30]),
+    #     loc=np.array([1, -1]), phi=np.array([-2, -5]),
+    #     eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]),
+    #     seed=1)
 
 def simulation(data, p, method, results_dir):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
-                                             K=5, m_phi=-1, s_mu=1, s_phi=3,
+                                             K=5, m_phi=-1, s_mu=2, s_phi=3,
                                              a_p=.1, b_p=.9)
+
+    # Plot prior predictive.
+    y_grid = np.linspace(-10, 8, 500)
+    simulate_data.plot_data(yT=data['y_T'], yC=data['y_C'], bins=30)
+    posterior_inference.plot_prior_density(
+        stan_data, y_grid, B=1000, fill_alpha=0.4, mean_alpha=0)
+    plt.xlim(-10.5, 10)
+    plt.legend(loc='upper right')
+    plt.savefig(f'{results_dir}/priorpred-simdata.pdf',
+                bbox_inches='tight')
+    plt.close()
+
 
     # Parameters to store
     pars = ['gamma_T', 'gamma_C', 'eta_T', 'eta_C',
@@ -57,19 +76,20 @@ def simulation(data, p, method, results_dir):
         fit = pystan_util.vb_extract(_fit)
         print(fit.keys())
 
+    # Append beta to results.
+    fit['beta'] = posterior_inference.beta_posterior(fit, stan_data)
+    posterior_inference.print_stat('beta', fit)
+
+
     posterior_inference.print_summary(fit, truth=data, digits=3, show_sd=False)
 
-    # Plot posterior predictive
+    # Plot data.
     simulate_data.plot_data(stan_data['y_T'], stan_data['y_C'])
 
-    y_grid = np.linspace(-8, 3, 200)
+    # Plot posterior predictive
+    y_grid = np.linspace(-8, 6, 500)
     posterior_inference.plot_post_density(
-        fit, y_grid, fill_alpha=0.6, mean_alpha=0)
-
-    posterior_inference.plot_ci(fit['gamma_T_star'], loc=-10, alpha=.5,
-                                color='red', lw=2)
-    posterior_inference.plot_ci(fit['gamma_C'], loc=-9, alpha=.5,
-                                color='blue', lw=2)
+        fit, y_grid, fill_alpha=0.4, mean_alpha=0, use_eta_T=False)
     plt.legend()
     plt.savefig(f'{results_dir}/postpred-simdata.pdf',
                 bbox_inches='tight')
@@ -109,6 +129,7 @@ if __name__ == '__main__':
 
     # Generate data.
     data = generate_scenarios(p, N=200)
+    # data = generate_scenarios(p, N=1000)
 
     # Plot simulation data.
     simulate_data.plot_data(yT=data['y_T'], yC=data['y_C'], bins=30)
@@ -123,4 +144,4 @@ if __name__ == '__main__':
     # Load with:
     # import pickle
     # results = pickle.load(open(f'{results_dir}/results.pkl', 'rb'))
-
+    

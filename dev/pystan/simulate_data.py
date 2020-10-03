@@ -20,15 +20,15 @@ def rand_skew_t(nu, loc, scale, phi, size=None):
     return (loc + scale * z * delta + 
             scale * np.sqrt(1 - delta**2) * np.random.normal(size=size))
 
-def skew_t_lpdf(x, nu, loc, scale, skew, clip_min=-100):
-    z = (np.clip(x, clip_min, np.inf) - loc) / scale
+def skew_t_lpdf(x, nu, loc, scale, skew):
+    z = (x - loc) / scale
     u = skew * z * np.sqrt((nu + 1) / (nu + z * z));
     kernel = (t.logpdf(z, nu, 0, 1) + 
               t.logcdf(u, nu + 1, 0, 1))
     return kernel + np.log(2/scale)
 
-def skew_t_pdf(x, nu, loc, scale, skew, clip_min=-100):
-    return np.exp(skew_t_lpdf(x, nu, loc, scale, skew, clip_min))
+def skew_t_pdf(x, nu, loc, scale, skew):
+    return np.exp(skew_t_lpdf(x, nu, loc, scale, skew))
 
 def sample(n, gamma, eta, loc, scale, nu, phi):
     K = eta.shape[0]
@@ -43,13 +43,12 @@ def sample(n, gamma, eta, loc, scale, nu, phi):
 def compute_gamma_T_star(gamma_C, gamma_T, p):
     return p * gamma_T + (1 - p) * gamma_C
 
-def compute_eta_T_star(gamma_C, gamma_T, eta_C, eta_T, p, gamma_T_star):
+def compute_eta_T_star(eta_C, eta_T, p):
     return p * eta_T + (1 - p) * eta_C
 
 def compute_stat_T_star(gamma_C, gamma_T, eta_C, eta_T, p):
     gamma_T_star = compute_gamma_T_star(gamma_C, gamma_T, p)
-    eta_T_star = compute_eta_T_star(gamma_C, gamma_T, eta_C, eta_T, p,
-                                    gamma_T_star)
+    eta_T_star = compute_eta_T_star(eta_C, eta_T, p)
     return dict(gamma=gamma_T_star, eta=eta_T_star)
 
 
@@ -83,7 +82,7 @@ def get_true_density(data, y_grid=None, grid_length=1000, tcolor='red',
 def plot_data(yT, yC, tcolor='red', ccolor='blue', bins=50, alpha=0.6,
               tlabel='T: Data', clabel='C: Data', 
               zero_T_pos=-10, zero_C_pos=-9, 
-              t0label='T prop. zeros', c0label='C: prop. zeros', 
+              t0label='T: prop. zeros', c0label='C: prop. zeros', 
               use_hist=False, lw=2, ls=":"):
     if use_hist:
         plt.hist(rm_inf(yT), color=tcolor, histtype='stepfilled', bins=bins,
@@ -131,6 +130,24 @@ def gen_data(n_C, n_T, p, gamma_C, gamma_T, K, eta_C=None, eta_T=None, nu=None,
     return dict(y_C=y_C, y_T=y_T, p=p, gamma_C=gamma_C, gamma_T=gamma_T,
                 eta_C=eta_C, eta_T=eta_T, mu=loc, sigma=scale, nu=nu, 
                 phi=phi)
+
+def prior_samples(B, stan_data):
+    K = stan_data['K']
+    p = np.random.beta(stan_data['a_p'], stan_data['b_p'], B)
+    gamma_C  = np.random.beta(stan_data['a_gamma'], stan_data['b_gamma'], B)
+    gamma_T  = np.random.beta(stan_data['a_gamma'], stan_data['b_gamma'], B)
+    gamma_T_star = compute_gamma_T_star(gamma_C=gamma_C, gamma_T=gamma_T, p=p)
+    eta_C  = np.random.dirichlet(stan_data['a_eta'], B)
+    eta_T  = np.random.dirichlet(stan_data['a_eta'], B)
+    eta_T_star = compute_eta_T_star(eta_C=eta_C, eta_T=eta_T, p=p[:, None])
+    mu = np.random.normal(stan_data['mu_bar'], stan_data['s_mu'], (B, K))
+    sigma = 1 / np.random.gamma(stan_data['a_sigma'], 1/stan_data['b_sigma'], (B, K))
+    nu = np.random.lognormal(stan_data['m_nu'], stan_data['s_nu'], (B, K))
+    phi = np.random.normal(stan_data['m_phi'], stan_data['s_phi'], (B, K))
+    return dict(p=p, K=K,
+                gamma_C=gamma_C, gamma_T=gamma_T, gamma_T_star=gamma_T_star,
+                eta_C=eta_C, eta_T=eta_T, eta_T_star=eta_T_star,
+                mu=mu, sigma=sigma, nu=nu, phi=phi)
 
 
 if __name__ == '__main__':

@@ -13,7 +13,20 @@
 
 # TODO
 - [ ] Rewrite model and send to Juhee
-- [ ] Rerun and send results to Juhee
 - [ ] In simulation truth, set p=(0, 1) => beta=(0, 1)
-- [ ] Prior for nu should be lognormal
-
+- [ ] 3 components in simulation truth, in control, only 2 components.
+- [ ] Rerun and send results to Juhee
+- [X] Plot prior predictive.
+- [X] Prior for nu should be lognormal
+- [X] Compute beta posterior
+- [ ] Posterior plots for posterior predictive should optionally be made with
+      beta, and p.
+- [ ] Posterior plots for all parameters
+    - [ ] mu
+    - [ ] sigma
+    - [ ] nu
+    - [ ] phi
+    - [ ] `eta_C`, `eta_T_star`, `eta_T`
+    - [ ] `gamma_C`, `gamma_T_star`, `gamma_T`
+    - [ ] p
+    - [ ] beta
