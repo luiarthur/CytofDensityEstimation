@@ -169,9 +169,9 @@ def beta_posterior(fit, data, seed=None):
     yfinite_T = y_T[isfinite(y_T)]
 
     p = fit['p']
-    gamma_T_star = fit['gamma_T_star']
+    gamma_T= fit['gamma_T']
     gamma_C = fit['gamma_C']
-    eta_T_star = fit['eta_T_star']
+    eta_T= fit['eta_T']
     eta_C = fit['eta_C']
 
     kernel = skew_t_lpdf(yfinite_T[:, None, None],
@@ -180,13 +180,13 @@ def beta_posterior(fit, data, seed=None):
                          scale=fit['sigma'][None, ...],
                          skew=fit['phi'][None, ...])
 
-    kernel_numer = logsumexp(np.log(eta_T_star[None, ...]) +
+    kernel_numer = logsumexp(np.log(eta_T[None, ...]) +
                              kernel, axis=-1).sum(0)
     kernel_denom = logsumexp(np.log(eta_C[None, ...]) +
                              kernel, axis=-1).sum(0)
 
-    logit = ZT * (np.log(gamma_T_star) - np.log(gamma_C))
-    logit += (nT - ZT) * (np.log1p(-gamma_T_star) - np.log1p(-gamma_C))
+    logit = ZT * (np.log(gamma_T) - np.log(gamma_C))
+    logit += (nT - ZT) * (np.log1p(-gamma_T) - np.log1p(-gamma_C))
     logit += kernel_numer + np.log(p) - (kernel_denom + np.log1p(-p))
 
     p1 = expit(logit)
