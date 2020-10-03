@@ -90,8 +90,8 @@ data {
   real<lower=0> s_phi;
   real<lower=0> a_sigma;
   real<lower=0> b_sigma;
-  real<lower=0> a_nu;
-  real<lower=0> b_nu;
+  real<lower=0> m_nu;
+  real<lower=0> s_nu;
 }
 
 transformed data {
@@ -114,7 +114,7 @@ parameters {
   vector[K] mu;  // mixture locations. (Don't care about order.)
   vector[K] phi;  // mixture skewnesses.
   vector<lower=0>[K] sigma_sq;  // mixture scales.
-  vector<lower=a_nu, upper=b_nu>[K] nu;  // mixture degrees of freedoms.
+  vector<lower=0>[K] nu;  // mixture degrees of freedoms.
 
   real<lower=0, upper=1> p;
 }
@@ -139,7 +139,7 @@ model {
   // phi ~ normal(m_phi, d_phi * sigma);  // g-prior
   mu ~ normal(mu_bar, s_mu);
   phi ~ normal(m_phi, s_phi);
-  nu ~ uniform(a_nu, b_nu);  // degrees of freedom
+  nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
   
   N_neginf_C ~ binomial(N_C, gamma_C);
   N_neginf_T ~ binomial(N_T, gamma_T_star);

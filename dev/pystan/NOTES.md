@@ -10,3 +10,10 @@
       representation is faster, but mixing is slower.
     - I could try stan's map-reduce, but that seems a little tedious.
 - Seems like advi/nuts gives you the same performance.
+
+# TODO
+- [ ] Rewrite model and send to Juhee
+- [ ] Rerun and send results to Juhee
+- [ ] In simulation truth, set p=(0, 1) => beta=(0, 1)
+- [ ] Prior for nu should be lognormal
+

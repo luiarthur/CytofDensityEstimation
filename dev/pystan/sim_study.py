@@ -34,7 +34,7 @@ def simulation(data, p, method, results_dir):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
                                              K=5, m_phi=-1, s_mu=1, s_phi=3,
-                                             a_p=.1, b_p=.9, a_nu=10, b_nu=50)
+                                             a_p=.1, b_p=.9)
 
     # Parameters to store
     pars = ['gamma_T', 'gamma_C', 'eta_T', 'eta_C',
