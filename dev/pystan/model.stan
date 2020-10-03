@@ -146,3 +146,26 @@ model {
   target += loglike(y_finite_C, eta_C, nu, mu, sigma, phi);
   target += loglike(y_finite_T, eta_T_star, nu, mu, sigma, phi);
 }
+
+// Doesn't work with ADVI.
+// generated quantities {
+//   real ll = 0;
+//   real beta;
+//   {
+//     real llC = loglike(y_finite_C, eta_C, nu, mu, sigma, phi);
+//     real llT = loglike(y_finite_T, eta_T, nu, mu, sigma, phi);
+//     real llTstar = loglike(y_finite_T, eta_T_star, nu, mu, sigma, phi);
+// 
+//     real binom_C = binomial_lpmf(N_neginf_C | N_C, gamma_C);
+//     real binom_T = binomial_lpmf(N_neginf_T | N_T, gamma_T);
+//     real binom_T_star = binomial_lpmf(N_neginf_T | N_T, gamma_T_star);
+// 
+//     real logit_prob_beta_is_1 = log(p) + llT + binom_T - (log1m(p) + llC + binom_C);
+// 
+//     ll += llC + llT;
+//     ll += binom_C;
+//     ll += binom_T_star;
+//     
+//     beta = inv_logit(logit_prob_beta_is_1) > uniform_rng(0, 1);
+//   }
+// }

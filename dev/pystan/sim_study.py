@@ -28,7 +28,8 @@ def generate_scenarios(p, N):
         n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=3,
         loc=np.array([-1, 1, 2]), scale=np.array([0.7, 1.3, 1.0]), 
         nu=np.array([15, 30, 10]), phi=np.array([-2, -5, 0]),
-        eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.4, .5, .1]),
+        # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .45, .05]),
+        eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .40, .10]),
         seed=1)
     # return simulate_data.gen_data(
     #     n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=2,
@@ -138,7 +139,7 @@ if __name__ == '__main__':
     plt.close()
 
     # Run analysis.
-    results = simulation(data, p, method, results_dir, stan_seed=4)
+    results = simulation(data, p, method, results_dir, stan_seed=5)
     with open(f'{results_dir}/results.pkl', 'wb') as f:
         pickle.dump(results, f)
 
