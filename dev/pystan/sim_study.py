@@ -37,11 +37,12 @@ def generate_scenarios(p, N):
     #     eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]),
     #     seed=1)
 
-def simulation(data, p, method, results_dir):
+def simulation(data, p, method, results_dir, stan_seed=1):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
                                              K=5, m_phi=-1, s_mu=2, s_phi=3,
-                                             a_p=.1, b_p=.9)
+                                             a_p=1, b_p=1)
+                                             # a_p=.1, b_p=.9)
 
     # Plot prior predictive.
     y_grid = np.linspace(-10, 8, 500)
@@ -63,11 +64,11 @@ def simulation(data, p, method, results_dir):
     # simulate.
     tic = time.time()
     if method == 'advi':
-        _fit = sm.vb(data=stan_data, iter=2000, seed=1, pars=pars,
+        _fit = sm.vb(data=stan_data, iter=2000, seed=stan_seed, pars=pars,
                      grad_samples=2, elbo_samples=2, output_samples=1000)
     else:
         fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, pars=pars,
-                          thin=1, chains=1, seed=1)
+                          thin=1, chains=1, seed=stan_seed)
 
     toc = time.time()
     print(f'Model inference time: {toc - tic}')
@@ -137,7 +138,7 @@ if __name__ == '__main__':
     plt.close()
 
     # Run analysis.
-    results = simulation(data, p, method, results_dir)
+    results = simulation(data, p, method, results_dir, stan_seed=4)
     with open(f'{results_dir}/results.pkl', 'wb') as f:
         pickle.dump(results, f)
 
