@@ -24,7 +24,7 @@ import util
 
 # Simulate data.
 def generate_scenarios(p, N):
-    return simulate_data.gen_data(
+    return simulate_data.gen_data(  # TODO: Juhee simulation.
         n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=3,
         loc=np.array([-1, 1, 2]), scale=np.array([0.7, 1.3, 1.0]), 
         nu=np.array([15, 30, 10]), phi=np.array([-2, -5, 0]),
