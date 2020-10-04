@@ -66,10 +66,12 @@ def plot_prior_density(stan_data, y_grid, B, title=None, a=0.05, digits=3,
     samples = prior_samples(B, stan_data)
 
     if title is None:
-        p_lower = np.round(np.quantile(samples['p'], a / 2), digits)
-        p_upper = np.round(np.quantile(samples['p'], 1 - a / 2), digits)
-        p_mean = np.round(np.mean(samples['p']), digits)
-        title = r'Prob($F_C \ne F_T$)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+        # p_lower = np.round(np.quantile(samples['p'], a / 2), digits)
+        # p_upper = np.round(np.quantile(samples['p'], 1 - a / 2), digits)
+        # p_mean = np.round(np.mean(samples['p']), digits)
+        # title = r'Prob($F_C \ne F_T$)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+        beta_mean = np.random.binomial(1, samples['p']).mean()
+        title = r'Prob($F_C \ne F_T$)$\approx$' + f"{beta_mean}"
 
     plot_post_density(samples, y_grid,
                       tlabel='T: prior pred.', clabel='C: prior pred.',
@@ -103,12 +105,14 @@ def plot_post_density(fit, y_grid, tlabel='T: post. pred.',
         plt.plot(y_grid, mean_C, alpha=mean_alpha, color=ccolor, label=clabel)
         plt.plot(y_grid, mean_T, alpha=mean_alpha, color=tcolor, label=tlabel)
 
-    p_lower = np.round(np.quantile(fit['p'], a / 2), digits)
-    p_upper = np.round(np.quantile(fit['p'], 1 - a / 2), digits)
-    p_mean = np.round(np.mean(fit['p']), digits)
-
     if title is None:
-        title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+        # p_lower = np.round(np.quantile(fit['p'], a / 2), digits)
+        # p_upper = np.round(np.quantile(fit['p'], 1 - a / 2), digits)
+        # p_mean = np.round(np.mean(fit['p']), digits)
+        # title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{p_mean} {(p_lower, p_upper)}"
+        if 'beta' in fit:
+            beta_mean = np.round(np.mean(fit['beta']), digits)
+            title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{beta_mean}"
 
     plt.title(title)
 

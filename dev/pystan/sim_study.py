@@ -28,15 +28,20 @@ def generate_scenarios(p, N):
         n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=3,
         loc=np.array([-1, 1, 2]), scale=np.array([0.7, 1.3, 1.0]), 
         nu=np.array([15, 30, 10]), phi=np.array([-2, -5, 0]),
+        # TODO: 
+        #     - Loop through these, run multiple chains.
+        #     - Select best run (seed). Report results.
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .50, 1e-16]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .45, .05]),
-        # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .40, .10]),
+        eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .40, .10]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .35, .15]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .30, .20]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .25, .25]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .20, .30]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .15, .35]),
-        eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .10, .40]),
+        # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .10, .40]),
+        # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .05, .45]),
+        # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, 1e-16, .5]),
         seed=1)
     # return simulate_data.gen_data(
     #     n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=2,
@@ -49,7 +54,7 @@ def simulation(data, p, method, results_dir, stan_seed=1):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
                                              K=5, m_phi=-1, s_mu=2, s_phi=3,
-                                             a_p=1, b_p=1)
+                                             a_p=.5, b_p=.5)
                                              # a_p=.1, b_p=.9)
 
     # Plot prior predictive.
@@ -68,12 +73,14 @@ def simulation(data, p, method, results_dir, stan_seed=1):
     pars = ['gamma_T', 'gamma_C', 'eta_T', 'eta_C',
             'gamma_T_star', 'eta_T_star',
             'mu', 'phi', 'sigma', 'nu', 'p']
-    
+
     # simulate.
     tic = time.time()
     if method == 'advi':
+        # NOTE: Seed is very important for ADVI.
+        #       Need to run with different seeds and pick run with best ELBO. 
         _fit = sm.vb(data=stan_data, iter=2000, seed=stan_seed, pars=pars,
-                     grad_samples=2, elbo_samples=2, output_samples=1000)
+                     output_samples=1000)
     else:
         fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, pars=pars,
                           thin=1, chains=1, seed=stan_seed)
@@ -88,7 +95,8 @@ def simulation(data, p, method, results_dir, stan_seed=1):
     # Append beta to results.
     fit['beta'] = posterior_inference.beta_posterior(fit, stan_data)
     posterior_inference.print_stat('beta', fit)
-    posterior_inference.print_summary(fit, truth=data, digits=3, show_sd=True)
+    posterior_inference.print_summary(fit, truth=data, digits=3, show_sd=True,
+                                      include_gamma_eta_T=True)
 
     # Plot data.
     simulate_data.plot_data(stan_data['y_T'], stan_data['y_C'])
@@ -144,7 +152,7 @@ if __name__ == '__main__':
     plt.close()
 
     # Run analysis.
-    results = simulation(data, p, method, results_dir, stan_seed=2)
+    results = simulation(data, p, method, results_dir, stan_seed=3)
     with open(f'{results_dir}/results.pkl', 'wb') as f:
         pickle.dump(results, f)
 
