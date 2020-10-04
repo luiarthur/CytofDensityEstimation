@@ -80,7 +80,11 @@ def simulation(data, p, method, results_dir, stan_seed=1):
         # NOTE: Seed is very important for ADVI.
         #       Need to run with different seeds and pick run with best ELBO. 
         _fit = sm.vb(data=stan_data, iter=2000, seed=stan_seed, pars=pars,
-                     output_samples=1000)
+                     # diagnostic_file=f'{results_dir}/diagnostic.csv',
+                     # sample_file=f'{results_dir}/samples.csv',
+                     # NOTE: log_p__ in `sample_file` is the
+                     # log unnormalized posterior.
+                     output_samples=1000, algorithm='meanfield')
     else:
         fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, pars=pars,
                           thin=1, chains=1, seed=stan_seed)
