@@ -75,6 +75,10 @@ def simulation(data, p, method, results_dir, stan_seed=1):
             'gamma_T_star', 'eta_T_star',
             'mu', 'phi', 'sigma', 'nu', 'p']
 
+    # Optimization.
+    # NOTE: Needs to be run several times with different initial values.
+    opt_fit = sm.optimizing(data=stan_data, tol_obj=0.5, seed=stan_seed)
+
     # simulate.
     tic = time.time()
     if method == 'advi':
@@ -119,7 +123,7 @@ def simulation(data, p, method, results_dir, stan_seed=1):
     ks = ks_2samp(stan_data['y_T'], stan_data['y_C'])
     print(ks)
 
-    return dict(data=data, fit=fit, ks=ks)
+    return dict(data=data, fit=fit, ks=ks, opt_fit=opt_fit)
 
 def parse_p(results_dir):
     return float(re.findall(r'(?<=p_)\d+\.\d+', results_dir)[0])
