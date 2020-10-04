@@ -16,7 +16,7 @@ functions {
     return num_inf;
   }
 
-  // Collect only the finite values in x.
+  // Collects only the finite values in x.
   real[] collect_finite(real[] x) {
     int pos = 0;
     int num_inf = count_inf(x);
@@ -30,6 +30,7 @@ functions {
     return x_finite;
   }
 
+  // Skew-t log pdf.
   // nu:positive, loc:real, scale:positive, phi:real
   real skew_t_lpdf(real x, real nu, real loc, real scale, real phi) {
     real z;
@@ -43,6 +44,7 @@ functions {
     return (kernel + log(2) - log(scale));
   }
 
+  // Log likelihood for mixture.
   real loglike(real[] y_finite, vector eta,
                vector nu, vector loc, vector scale, vector phi) {
     
@@ -67,25 +69,20 @@ functions {
 }
 
 data {
-  int<lower=0> N_T;
-  int<lower=0> N_C;
-  real y_T[N_T];
-  real y_C[N_C];
+  int<lower=0> N_T;  // Number of observations in sample T.
+  int<lower=0> N_C; // Number of observations in sample C.
+  real y_T[N_T];  // Sample T, the log-transformed data with support on entire real line.
+  real y_C[N_C];  // Sample C, the log-transformed data with support on entire real line.
   int<lower=0> K;  // number of mixture components.
 
-  // hyper parameters
+  // Hyper parameters for priors.
   real<lower=0> a_gamma;
   real<lower=0> b_gamma;
-
   real<lower=0> a_p;
   real<lower=0> b_p;
-
   vector<lower=0>[K] a_eta;
-
   real mu_bar;
   real m_phi;
-  // real<lower=0> d_mu;
-  // real<lower=0> d_phi;
   real<lower=0> s_mu;
   real<lower=0> s_phi;
   real<lower=0> a_sigma;
@@ -95,13 +92,13 @@ data {
 }
 
 transformed data {
-  int<lower=0, upper=N_C> N_neginf_C = count_inf(y_C);
-  int<lower=0, upper=N_C> N_finite_C = N_C - N_neginf_C;
-  real y_finite_C[N_finite_C] = collect_finite(y_C);
+  int<lower=0, upper=N_C> N_neginf_C = count_inf(y_C);  // number of -Inf in sample C
+  int<lower=0, upper=N_C> N_finite_C = N_C - N_neginf_C;  // number of finite values in samples C
+  real y_finite_C[N_finite_C] = collect_finite(y_C);  // only the finite values in sample C
 
-  int<lower=0, upper=N_T> N_neginf_T = count_inf(y_T);
-  int<lower=0, upper=N_T> N_finite_T = N_T - N_neginf_T;
-  real y_finite_T[N_finite_T] = collect_finite(y_T);
+  int<lower=0, upper=N_T> N_neginf_T = count_inf(y_T);  // number of -Inf in sample T
+  int<lower=0, upper=N_T> N_finite_T = N_T - N_neginf_T;  // number of finite values in samples T
+  real y_finite_T[N_finite_T] = collect_finite(y_T);  // only the finite values in sample T
 }
 
 parameters {
@@ -129,43 +126,25 @@ transformed parameters {
 model {
   p ~ beta(a_p, b_p);  // prob. treatment has effect.
 
+  // Probability of zeros.
   gamma_T ~ beta(a_gamma, b_gamma);
   gamma_C ~ beta(a_gamma, b_gamma);
 
+  // Mixture weights.
   eta_T ~ dirichlet(a_eta);
   eta_C ~ dirichlet(a_eta);
 
-  sigma_sq ~ inv_gamma(a_sigma, b_sigma);
-  mu ~ normal(mu_bar, s_mu);
-  phi ~ normal(m_phi, s_phi);
+  // Mixture parameters.
+  mu ~ normal(mu_bar, s_mu);  // locations
+  sigma_sq ~ inv_gamma(a_sigma, b_sigma);  // squared scale
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
+  phi ~ normal(m_phi, s_phi);  // skewness
   
+  // This is just a trick.
   N_neginf_C ~ binomial(N_C, gamma_C);
   N_neginf_T ~ binomial(N_T, gamma_T_star);
 
+  // Increment log target density (i.e. log unnormalized joint posterior).
   target += loglike(y_finite_C, eta_C, nu, mu, sigma, phi);
   target += loglike(y_finite_T, eta_T_star, nu, mu, sigma, phi);
 }
-
-// Doesn't work with ADVI.
-// generated quantities {
-//   real ll = 0;
-//   real beta;
-//   {
-//     real llC = loglike(y_finite_C, eta_C, nu, mu, sigma, phi);
-//     real llT = loglike(y_finite_T, eta_T, nu, mu, sigma, phi);
-//     real llTstar = loglike(y_finite_T, eta_T_star, nu, mu, sigma, phi);
-// 
-//     real binom_C = binomial_lpmf(N_neginf_C | N_C, gamma_C);
-//     real binom_T = binomial_lpmf(N_neginf_T | N_T, gamma_T);
-//     real binom_T_star = binomial_lpmf(N_neginf_T | N_T, gamma_T_star);
-// 
-//     real logit_prob_beta_is_1 = log(p) + llT + binom_T - (log1m(p) + llC + binom_C);
-// 
-//     ll += llC + llT;
-//     ll += binom_C;
-//     ll += binom_T_star;
-//     
-//     beta = inv_logit(logit_prob_beta_is_1) > uniform_rng(0, 1);
-//   }
-// }
