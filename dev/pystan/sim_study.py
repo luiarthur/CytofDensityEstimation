@@ -10,6 +10,7 @@ import matplotlib as mpl
 mpl.use("Agg")
 import seaborn as sns
 import os
+from scipy.stats import ks_2samp
 
 import pystan_util
 import simulate_data
@@ -114,7 +115,11 @@ def simulation(data, p, method, results_dir, stan_seed=1):
                 bbox_inches='tight')
     plt.close()
 
-    return dict(data=data, fit=fit)
+    # KS test.
+    ks = ks_2samp(stan_data['y_T'], stan_data['y_C'])
+    print(ks)
+
+    return dict(data=data, fit=fit, ks=ks)
 
 def parse_p(results_dir):
     return float(re.findall(r'(?<=p_)\d+\.\d+', results_dir)[0])
