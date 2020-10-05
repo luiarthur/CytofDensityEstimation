@@ -15,7 +15,7 @@ sim-study: compile
 				results_dir="$(RESULTS_DIR)/etaTK_$${etaTK}-method_$${method}-stanseed_$${stanseed}"; \
 				mkdir -p $${results_dir}; \
 				echo $${results_dir}; \
-				source ../venv/bin/activate && \
+				. venv/bin/activate && \
 				  python3 sim_study.py $${results_dir} $$etaTK $$method $$stanseed &> \
 				  $${results_dir}/log.txt & \
 			done; \
@@ -27,4 +27,8 @@ send-results:
 
 get-results:
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
+
+freeze:
+	rm -f requirements.txt
+	. venv/bin/activate && pip freeze > requirements.txt
 
