@@ -24,7 +24,9 @@ sys.path.append('../util')
 import util
 
 # Simulate data.
-def generate_scenarios(p, N):
+def generate_scenarios(N, etaTK, p=1):
+    eta_T = np.array([.5, 1 - etaTK - .5, etaTK])
+    eta_T = np.clip(eta_T, 1e-16, 0.5)
     return simulate_data.gen_data(  # TODO: Juhee simulation.
         n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=3,
         loc=np.array([-1, 1, 2]), scale=np.array([0.7, 1.3, 1.0]), 
@@ -34,7 +36,7 @@ def generate_scenarios(p, N):
         #     - Select best run (seed). Report results.
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .50, 1e-16]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .45, .05]),
-        eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .40, .10]),
+        eta_C=np.array([.5, .5, 1e-16]), eta_T=eta_T,
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .35, .15]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .30, .20]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .25, .25]),
@@ -91,8 +93,13 @@ def simulation(data, p, method, results_dir, stan_seed=1):
                      # log unnormalized posterior.
                      output_samples=1000, algorithm='meanfield')
     else:
-        fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, pars=pars,
-                          thin=1, chains=1, seed=stan_seed)
+        get_val = lambda k: opt_fit[k].item() if opt_fit[k].size == 1 else opt_fit[k]
+        init = dict([(k, get_val(k)) for k in opt_fit])
+        print('Using initial values from penalized mle:')
+        print(init)
+        fit = sm.sampling(data=stan_data, init=[init], iter=2000,
+                          warmup=1000, pars=pars, thin=1, chains=1,
+                          seed=stan_seed)
 
     toc = time.time()
     print(f'Model inference time: {toc - tic}')
@@ -125,25 +132,20 @@ def simulation(data, p, method, results_dir, stan_seed=1):
 
     return dict(data=data, fit=fit, ks=ks, opt_fit=opt_fit)
 
-def parse_p(results_dir):
-    return float(re.findall(r'(?<=p_)\d+\.\d+', results_dir)[0])
-    
-def parse_method(results_dir):
-    return re.findall(r'(?<=method_)\w+', results_dir)[0]
- 
 
 if __name__ == '__main__':
     if len(sys.argv) <= 1:
-        results_dir = 'results/test/p_1.0-method_advi'
-        # results_dir = 'results/test/p_0.0-method_advi'
-        # results_dir = 'results/test/p_1.0-method_nuts'
-        # results_dir = 'results/test/p_0.0-method_nuts'
+        results_dir = 'results/test/quick'
+        etaTK = 0.1  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5
+        method = "advi" # advi,nuts
+        stanseed = 1  # 1,2,3,4,5
     else:
         results_dir = sys.argv[1]
+        etaTK = float(sys.argv[2])
+        method = sys.argv[3]
+        stanseed = int(sys.argv[4])
 
     os.makedirs(results_dir, exist_ok=True)
-    p = parse_p(results_dir)
-    method = parse_method(results_dir)
 
     # Compile model if needed.
     os.system('make compile')
@@ -152,12 +154,13 @@ if __name__ == '__main__':
     sm = pickle.load(open(f'.model.pkl', 'rb'))
 
     # Scenarios:
-    # - p = (1, 0)
+    # - stan_seed = (1, 5) (for VB only)
+    # - etaTK = (0, 0.05, 0.10, ..., 0.50)
     # - method = 'advi' or 'nuts'
 
     # Generate data.
     # data = generate_scenarios(p, N=200)
-    data = generate_scenarios(p, N=400)
+    data = generate_scenarios(N=400, etaTK=etaTK)  # larger means more different.
 
     # Plot simulation data.
     simulate_data.plot_data(yT=data['y_T'], yC=data['y_C'], bins=30)
@@ -165,7 +168,7 @@ if __name__ == '__main__':
     plt.close()
 
     # Run analysis.
-    results = simulation(data, p, method, results_dir, stan_seed=3)
+    results = simulation(data, p, method, results_dir, stan_seed=stanseed)
     with open(f'{results_dir}/results.pkl', 'wb') as f:
         pickle.dump(results, f)
 
