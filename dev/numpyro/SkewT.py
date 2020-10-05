@@ -19,6 +19,8 @@ def std_studentt_lcdf(z, df):
 # tfd.StudentT(5, 0, 1).cdf(1)
 # std_studentt_cdf(1,5)
 
+# TODO: Are the shapes right???
+#       See this: https://github.com/pyro-ppl/numpyro/blob/master/numpyro/distributions/continuous.py
 class SkewT(dist.Distribution):
     support = constraints.real
 
@@ -32,7 +34,18 @@ class SkewT(dist.Distribution):
     def sample(self, key, sample_shape=()):
         # TODO.
         # it is enough to return an arbitrary sample with correct shape
-        return np.zeros(sample_shape + self.event_shape)
+        # return jnp.zeros(sample_shape + self.event_shape)
+        key_gamma, key_tn, key_normal = random.split(key, 3)
+
+        k = self.df / 2
+        w = random.gamma(key_gamma, k, sample_shape) / k
+        z = (dist.TruncatedNormal(loc=0., scale=jnp.sqrt(1/w), low=0.0)
+                 .sample(key_tn))
+        delta = self.skew / jnp.sqrt(1 + self.skew ** 2)
+
+        _loc = self.loc + self.scale * z * delta
+        _scale = self.scale * jnp.sqrt(1 - delta ** 2)
+        return random.normal(key_normal, sample_shape) * _scale + _loc
 
     def log_prob(self, x):
         z = (x - self.loc) / self.scale
@@ -41,6 +54,10 @@ class SkewT(dist.Distribution):
                   std_studentt_lcdf(z=u, df=self.df + 1))
         return kernel + jnp.log(2/self.scale)
 
+# TEST:
 # SkewT(2,3,4,-5).log_prob(-1)  # approx -2.3487
-
-
+# rng_key = random.PRNGKey(0)
+# st = SkewT(12,3,4,jnp.array([-5, 5]))
+# st.sample(rng_key, (10000, 2)).mean(0)
+# st.sample(rng_key, (10000, 2)).std(0)
+# st.log_prob(-1)
