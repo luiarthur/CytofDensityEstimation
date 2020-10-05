@@ -53,7 +53,7 @@ def generate_scenarios(N, etaTK, p=1):
     #     eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]),
     #     seed=1)
 
-def simulation(data, p, method, results_dir, stan_seed=1):
+def simulation(data, method, results_dir, stan_seed=1):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
                                              K=5, m_phi=-1, s_mu=2, s_phi=3,
@@ -168,9 +168,9 @@ if __name__ == '__main__':
     plt.close()
 
     # Run analysis.
-    results = simulation(data, p, method, results_dir, stan_seed=stanseed)
+    results = simulation(data, method, results_dir, stan_seed=stanseed)
     with open(f'{results_dir}/results.pkl', 'wb') as f:
-        pickle.dump(results, f)
+        pickle.dump(results, f, protocol=4)
 
     # Load with:
     # import pickle
