@@ -1,3 +1,6 @@
+# NOTE: Gradient of incomplete beta function is not implemented.
+#       Using skew normal instead.
+
 import Pkg; Pkg.activate(joinpath(@__DIR__, "../"))
 using Turing
 using StatsFuns
@@ -20,8 +23,8 @@ function compute_star(etaC, etaT, p, gammaC, gammaT)
   return (gammaT_star, etaT_star)
 end
 
-function mixlpdf(df, loc, scale, skew, y, w) 
-  lm = logsumexp(Helper.skewt_logpdf.(df', loc', scale', skew', y) .+
+function mixlpdf(loc, scale, skew, y, w) 
+  lm = logsumexp(Helper.skewnormal_logpdf.(loc', scale', skew', y) .+
                  log.(w)', dims=2)
   return sum(lm)
 end
@@ -38,14 +41,14 @@ end
   
   mu ~ filldist(Normal(0, 3), K)
   sigma ~ filldist(LogNormal(0, 0.5), K)
-  nu ~ filldist(LogNormal(3.5, 0.5), K)
+  # nu ~ filldist(LogNormal(3.5, 0.5), K)
   phi ~ filldist(Normal(0, 3), K)
 
   zC ~ Binomial(nC, gammaC)
   zT ~ Binomial(nT, gammaT_star)
 
-  Turing.acclogp!(_varinfo, mixlpdf(nu, mu, sigma, phi, yC_finite, etaC))
-  Turing.acclogp!(_varinfo, mixlpdf(nu, mu, sigma, phi, yT_finite, etaT_star))
+  Turing.acclogp!(_varinfo, mixlpdf(mu, sigma, phi, yC_finite, etaC))
+  Turing.acclogp!(_varinfo, mixlpdf(mu, sigma, phi, yT_finite, etaT_star))
   # yC_finite .~ UnivariateGMM(mu, sigma, Categorical(etaC))
   # yT_finite .~ UnivariateGMM(mu, sigma, Categorical(etaT_star))
 end
