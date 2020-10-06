@@ -17,14 +17,19 @@ struct SkewT{Tdf<:Real, Tloc<:Real, Tscale<:Real, Tskew<:Real} <: ContinuousUniv
   skew::Tskew
 end
 
+function skewt_logpdf(df, loc, scale, skew, x)
+  z = (x - loc) / scale
+  u = skew * z * sqrt((df + 1) / (df + z ^ 2))
+  # kernel = logpdf(TDist(df), z) + std_t_lcdf(u, df + 1)
+  kernel = logpdf(TDist(df), z) + logcdf(TDist(df + 1), u)
+  return kernel + log(2 / scale)
+end
+
 function Distributions.logpdf(d::SkewT{Tdf, Tloc, Tscale, Tskew}, x::Real) where {Tdf<:Real,
                                                                                   Tloc<:Real,
                                                                                   Tscale<:Real,
                                                                                   Tskew<:Real}
-  z = (x - d.loc) / d.scale
-  u = d.skew * z * sqrt((d.df + 1) / (d.df + z ^ 2))
-  kernel = logpdf(TDist(d.df), z) + std_t_lcdf(u, d.df + 1)
-  return kernel + log(2 / d.scale)
+  return skewt_logpdf(d.df, d.loc, d.scale, d.skew, x)
 end
 
 function Distributions.rand(rng::AbstractRNG,
