@@ -11,10 +11,17 @@
 #SBATCH -t 72:00:00  # Run Time (hh:mm:ss) - 72 hours (optional)
 #SBATCH --mem=42G # Memory to be allocated PER NODE
 
+
 date 
 echo "Starting jobs!"
+gcc --version
+echo $PYTHONPATH
 
-make compile
+# make compile
+echo "Compile model ..."
+PYTHONPATH="" && . venv/bin/activate && export PYTHONPATH="" && which python
+PYTHONPATH="" && . venv/bin/activate && export PYTHONPATH="" && time venv/bin/python compile_stan_model.py
+echo "Finished compiling model ..."
 make sim-study
 
 echo "Done submitting jobs."

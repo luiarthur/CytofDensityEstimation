@@ -1,5 +1,6 @@
 import re
 import time
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import pystan
@@ -87,8 +88,8 @@ def simulation(data, method, results_dir, stan_seed=1):
         # NOTE: Seed is very important for ADVI.
         #       Need to run with different seeds and pick run with best ELBO. 
         _fit = sm.vb(data=stan_data, iter=2000, seed=stan_seed, pars=pars,
-                     # diagnostic_file=f'{results_dir}/diagnostic.csv',
-                     # sample_file=f'{results_dir}/samples.csv',
+                     diagnostic_file=f'{results_dir}/diagnostic.csv',
+                     sample_file=f'{results_dir}/samples.csv',
                      # NOTE: log_p__ in `sample_file` is the
                      # log unnormalized posterior.
                      output_samples=1000, algorithm='meanfield')
@@ -98,6 +99,7 @@ def simulation(data, method, results_dir, stan_seed=1):
         print('Using initial values from penalized mle:')
         print(init)
         fit = sm.sampling(data=stan_data, init=[init], iter=2000,
+                          sample_file=f'{results_dir}/samples.csv',
                           warmup=1000, pars=pars, thin=1, chains=1,
                           seed=stan_seed)
 
@@ -134,6 +136,7 @@ def simulation(data, method, results_dir, stan_seed=1):
 
 
 if __name__ == '__main__':
+    print(datetime.now())
     if len(sys.argv) <= 1:
         results_dir = 'results/test/quick'
         etaTK = 0.1  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5
@@ -160,7 +163,7 @@ if __name__ == '__main__':
 
     # Generate data.
     # data = generate_scenarios(p, N=200)
-    data = generate_scenarios(N=400, etaTK=etaTK)  # larger means more different.
+    data = generate_scenarios(N=1000, etaTK=etaTK)  # larger means more different.
 
     # Plot simulation data.
     simulate_data.plot_data(yT=data['y_T'], yC=data['y_C'], bins=30)
@@ -175,4 +178,5 @@ if __name__ == '__main__':
     # Load with:
     # import pickle
     # results = pickle.load(open(f'{results_dir}/results.pkl', 'rb'))
+    print(datetime.now())
 
