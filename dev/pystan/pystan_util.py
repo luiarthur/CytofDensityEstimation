@@ -1,6 +1,7 @@
+import pandas as pd
+import re
 import numpy as np
 from collections import OrderedDict
-
 
 def vb_extract(results):
     param_specs = results['sampler_param_names']
@@ -61,4 +62,25 @@ def create_stan_data(y_C, y_T, K, a_gamma=1, b_gamma=1, a_eta=None,
                 a_eta=a_eta, mu_bar=mu_bar, s_mu=s_mu, s_phi=s_phi,
                 a_sigma=a_sigma, b_sigma=b_sigma,
                 m_nu=m_nu, s_nu=s_nu)
+
+def group_vectors(d, key):
+    columns = d.keys()
+    rgx = f'{key}\.\d+'
+    res = re.findall(rgx, ','.join(columns))
+    return sorted(res)
+
+def sanitize_vectors(d, key):
+    group = group_vectors(d, key)
+    d[key] = np.stack([d[k] for k in group], axis=-1)
+    for g in group:
+        d.pop(g)
+
+def read_samples_file(samples_file,
+                      vec_params=['mu', 'sigma_sq', 'sigma','nu', 'phi',
+                                  'eta_T', 'eta_T_star', 'eta_C']):
+    samples = pd.read_csv(samples_file, comment='#')
+    samples = {key: samples[key].to_numpy() for key in samples.keys()}
+    for param in vec_params:
+        sanitize_vectors(samples, param)
+    return samples
 
