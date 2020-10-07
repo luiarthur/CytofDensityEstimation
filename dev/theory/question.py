@@ -32,10 +32,9 @@ def mh_run(y, nsamps=1000, nburn=2000, p=0.5, sd=0.1, stepsize=0.1):
 
     def log_prob(p):
         log_prior = stats.beta(.5, .5).logpdf(p)
-        log_like_1 = np.log(p) + mcmc.lpdf_normal(y, 1, sd)
-        log_like_0 = np.log1p(-p) + mcmc.lpdf_normal(y, 0, sd)
-        log_like = np.stack([log_like_1, log_like_0], axis=-1)
-        log_like = logsumexp(log_like, axis=-1).sum()
+        log_like_1 = np.log(p) + mcmc.lpdf_normal(y, 1, sd).sum()
+        log_like_0 = np.log1p(-p) + mcmc.lpdf_normal(y, 0, sd).sum()
+        log_like = np.logaddexp(log_like_0, log_like_1)
         return log_prior + log_like
 
     def update(p, tuner):
@@ -54,7 +53,7 @@ def mh_run(y, nsamps=1000, nburn=2000, p=0.5, sd=0.1, stepsize=0.1):
 stan_model = """
 data {
   int<lower=0> N;
-  real y[N];
+  vector[N] y;
   real<lower=0> s;
 }
 
@@ -63,24 +62,24 @@ parameters {
 }
 
 model {
-  vector[N] ll;
+  vector[N] ll0;
+  vector[N] ll1;
 
   p ~ beta(0.5, 0.5);
-  
-  for (i in 1:N) {
-    ll[i] = log_mix(p,
-                    normal_lpdf(y[i] | 1, s),
-                    normal_lpdf(y[i] | 0, s));
-  }
 
-  target += sum(ll);
+  for (i in 1:N) {
+    ll0[i] = normal_lpdf(y | 0, s);
+    ll1[i] = normal_lpdf(y | 1, s);
+  }
+  
+  target += log_mix(p, sum(ll1), sum(ll0));
 }
 """
 
 if __name__ == '__main__':
-    mu = 1
+    mu = 0
     sd = 0.1
-    y = np.random.randn(5) * sd + mu
+    y = np.random.randn(100) * sd + mu
     out_gibbs = conjugate_run(y, sd=sd)
 
     # plt.hist(y); plt.show()
@@ -91,15 +90,16 @@ if __name__ == '__main__':
     print(f'beta: {np.mean(out_gibbs["beta"])}')
     print(f'p: {np.mean(out_gibbs["p"])}')
 
-    # sm = pystan.StanModel(model_code=stan_model)
-    # stan_data = dict(y=y, s=sd, N=len(y))
-    # fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, chains=1, seed=1)
-    # nuts_beta_mean = np.mean([update_beta(y, p, sd) for p in fit['p']])
-    # print(f'NUTS:')
-    # print(f'beta: {nuts_beta_mean}')
-    # print(f'p: {np.mean(fit["p"])}')
+    sm = pystan.StanModel(model_code=stan_model)
+    stan_data = dict(y=y, s=sd, N=len(y))
+    fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, chains=1, seed=1)
+    nuts_beta_mean = np.mean([update_beta(y, p, sd) for p in fit['p']])
+    print("---------------- RESULTS --------------------")
+    print(f'NUTS:')
+    print(f'beta: {nuts_beta_mean}')
+    print(f'p: {np.mean(fit["p"])}')
 
-    out_mh = mh_run(y, sd=sd)
+    out_mh = mh_run(y, sd=sd, stepsize=2)
     print("---------------- RESULTS --------------------")
     print(f'MH:')
     # print(f'beta: {np.mean(out_mh["beta"])}')
@@ -109,5 +109,4 @@ if __name__ == '__main__':
     plt.legend()
     plt.show()
 
-    # Question: Why are the results different (for p ) after marginalizing 
-    # over beta?
+    # I figured it out. Yes, marginalizing is always ok.
