@@ -109,3 +109,5 @@ if __name__ == '__main__':
     plt.legend()
     plt.show()
 
+    # Question: Why are the results different (for p ) after marginalizing 
+    # over beta?
