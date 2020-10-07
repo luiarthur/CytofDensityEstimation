@@ -1,4 +1,4 @@
-from scipy.special import expit, logit
+from scipy.special import expit, logit, logsumexp
 from scipy import stats
 import matplotlib.pyplot as plt
 import pystan
@@ -32,9 +32,10 @@ def mh_run(y, nsamps=1000, nburn=2000, p=0.5, sd=0.1, stepsize=0.1):
 
     def log_prob(p):
         log_prior = stats.beta(.5, .5).logpdf(p)
-        log_like_1 = np.log(p) + mcmc.lpdf_normal(y, 1, sd).sum()
-        log_like_0 = np.log1p(-p) + mcmc.lpdf_normal(y, 0, sd).sum()
-        log_like = np.logaddexp(log_like_1, log_like_0)
+        log_like_1 = np.log(p) + mcmc.lpdf_normal(y, 1, sd)
+        log_like_0 = np.log1p(-p) + mcmc.lpdf_normal(y, 0, sd)
+        log_like = np.stack([log_like_1, log_like_0], axis=-1)
+        log_like = logsumexp(log_like, axis=-1).sum()
         return log_prior + log_like
 
     def update(p, tuner):
@@ -85,17 +86,15 @@ if __name__ == '__main__':
     # plt.hist(y); plt.show()
     # plt.hist(out['p'], bins=50); plt.show()
 
-    # sm = pystan.StanModel(model_code=stan_model)
-    # stan_data = dict(y=y, s=sd, N=len(y))
-    # fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, chains=1, seed=1)
-
-    # nuts_beta_mean = np.mean([update_beta(y, p, sd) for p in fit['p']])
-
     print("---------------- RESULTS --------------------")
     print(f'Gibbs:')
     print(f'beta: {np.mean(out_gibbs["beta"])}')
     print(f'p: {np.mean(out_gibbs["p"])}')
 
+    # sm = pystan.StanModel(model_code=stan_model)
+    # stan_data = dict(y=y, s=sd, N=len(y))
+    # fit = sm.sampling(data=stan_data, iter=2000, warmup=1000, chains=1, seed=1)
+    # nuts_beta_mean = np.mean([update_beta(y, p, sd) for p in fit['p']])
     # print(f'NUTS:')
     # print(f'beta: {nuts_beta_mean}')
     # print(f'p: {np.mean(fit["p"])}')
