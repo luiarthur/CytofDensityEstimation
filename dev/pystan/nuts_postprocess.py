@@ -22,11 +22,14 @@ reload(simulate_data); reload(pystan_util); reload(posterior_inference)
 
 import sys
 
+# TODO
+
 resdir = 'results/simstudy'
-etaTK = '0.00'
+etaTK = '0.50'
 data = pickle.load(open(f'{resdir}/etaTK_{etaTK}-method_advi-stanseed_1/results.pkl', 'rb'))['data']
 samples_path = f'{resdir}/etaTK_{etaTK}-method_nuts-stanseed_1/samples.csv'
 fit = pystan_util.read_samples_file(samples_path)
 fit['beta'] = posterior_inference.beta_posterior(fit, data)
+posterior_inference.print_stat('beta', fit)
 posterior_inference.print_summary(fit)
 plt.plot(results['lp__']); plt.show()

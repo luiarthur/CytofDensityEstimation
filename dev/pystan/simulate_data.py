@@ -13,10 +13,10 @@ def inv_gamma_moment(m, s):
 def rm_inf(x):
     return list(filter(lambda x: not np.isinf(x), x))
 
-def rand_skew_t(nu, loc, scale, phi, size=None):
+def rand_skew_t(nu, loc, scale, skew, size=None):
     w = np.random.gamma(nu/2, 2/nu, size=size)
     z = truncnorm.rvs(0, np.inf, scale=np.sqrt(1/w), size=size)
-    delta = phi / np.sqrt(1 + phi**2)
+    delta = skew / np.sqrt(1 + skew**2)
     return (loc + scale * z * delta + 
             scale * np.sqrt(1 - delta**2) * np.random.normal(size=size))
 
@@ -32,44 +32,33 @@ def skew_t_pdf(x, nu, loc, scale, skew):
 
 def sample(n, gamma, eta, loc, scale, nu, phi):
     K = eta.shape[0]
-
-    n_zero = np.clip(np.random.binomial(n, gamma), 1, n - 1)
-    n_nonzero = n - n_zero
-    k = np.random.choice(K, size=n_nonzero, replace=True, p=eta)
+    n_neginf = np.clip(np.random.binomial(n, gamma), 1, n - 1)
+    n_finite = n - n_neginf
+    k = np.random.choice(K, size=n_finite, replace=True, p=eta)
     y_nonzero = rand_skew_t(nu[k], loc[k], scale[k], phi[k],
-                            size=n_nonzero)
-    return np.concatenate([y_nonzero, np.full(n_zero, -np.inf)], axis=0)
+                            size=n_finite)
+    return np.concatenate([y_nonzero, np.full(n_neginf, -np.inf)], axis=0)
 
-def compute_gamma_T_star(gamma_C, gamma_T, p):
-    return p * gamma_T + (1 - p) * gamma_C
-
-def compute_eta_T_star(eta_C, eta_T, p, gamma_C, gamma_T, gamma_T_star):
-    numer = p * eta_T * (1 -gamma_T) + (1 - p) * eta_C * (1 - gamma_C)
-    denom = 1 - gamma_T_star
-    return numer / denom
-
-def compute_stat_T_star(gamma_C, gamma_T, eta_C, eta_T, p):
-    gamma_T_star = compute_gamma_T_star(gamma_C, gamma_T, p)
-    eta_T_star = compute_eta_T_star(eta_C, eta_T, p,
-                                    gamma_C, gamma_T, gamma_T_star)
-    return dict(gamma=gamma_T_star, eta=eta_T_star)
-
+def get_range(yC, yT):
+    yC_finite = yC[np.isfinite(yC)]
+    yT_finite = yT[np.isfinite(yT)]
+    y_finite = np.concatenate([yC_finite, yT_finite])
+    return (y_finite.min(), y_finite.max())
 
 def get_true_density(data, y_grid=None, grid_length=1000, tcolor='red',
                      ccolor='blue', tlabel='T: Data', clabel='C: Data', lw=2,
-                     ls=":"):
+                     ls=":", yC_key='y_C', yT_key='y_T'):
+    beta = data['beta']
+
     if y_grid is None:
-        yC_finite = data['y_C'][data['y_C'] > -np.inf]
-        yT_finite = data['y_T'][data['y_T'] > -np.inf]
-        y_finite = np.concatenate([yC_finite, yT_finite])
-        y_min, y_max = y_finite.min(), y_finite.max()
+        y_min, y_max = get_range(data[yC_key], data[yT_key])
         y_grid = np.linspace(y_min, y_max, grid_length)
 
-
-    stat_T_star = compute_stat_T_star(data['gamma_C'], data['gamma_T'],
-                                      data['eta_C'], data['eta_T'], data['p'])
-    eta_T_star = stat_T_star['eta']
+    eta_T = data['eta_T']
     eta_C = data['eta_C']
+    gamma_T = data['gamma_T']
+    gamma_C = data['gamma_C']
+    eta_T_star = eta_T if beta == 1 else eta_C
 
     kernel = skew_t_lpdf(y_grid[:, None],
                          data['nu'][None, ...],
@@ -77,10 +66,18 @@ def get_true_density(data, y_grid=None, grid_length=1000, tcolor='red',
                          data['sigma'][None, ...],
                          data['phi'][None, ...])
 
-    lpdf_T = logsumexp(np.log(eta_T_star[None, ...]) + kernel, axis=-1)
     lpdf_C = logsumexp(np.log(eta_C[None, ...]) + kernel, axis=-1)
+    prop0_C = gamma_C
 
-    return dict(pdf_T=np.exp(lpdf_T), pdf_C=np.exp(lpdf_C), y_grid=y_grid)
+    if beta == 1:
+        lpdf_T = logsumexp(np.log(eta_T_star[None, ...]) + kernel, axis=-1)
+        prop0_T = gamma_T
+    else:
+        lpdf_T = lpdf_C
+        prop0_T = prop0_C
+
+    return dict(pdf_T=np.exp(lpdf_T), pdf_C=np.exp(lpdf_C), y_grid=y_grid,
+                prop0_C=prop0_C, prop0_T=prop0_T)
 
 def plot_data(yT, yC, tcolor='red', ccolor='blue', bins=50, alpha=0.6,
               tlabel='T: Data', clabel='C: Data', 
@@ -101,8 +98,8 @@ def plot_data(yT, yC, tcolor='red', ccolor='blue', bins=50, alpha=0.6,
     plt.scatter(zero_C_pos, np.isinf(yC).mean(),
                 s=100, color=ccolor, alpha=alpha, label=c0label)
  
-def gen_data(n_C, n_T, p, gamma_C, gamma_T, K, eta_C=None, eta_T=None, nu=None,
-             loc=None, scale=None, phi=None, seed=None):
+def gen_data(n_C, n_T, beta, gamma_C, gamma_T, K, eta_C=None, eta_T=None,
+             nu=None, loc=None, scale=None, phi=None, seed=None):
 
     if seed is not None:
         np.random.seed(seed)
@@ -125,48 +122,49 @@ def gen_data(n_C, n_T, p, gamma_C, gamma_T, K, eta_C=None, eta_T=None, nu=None,
     if phi is None:
         phi = np.random.normal(-3, 1, K)
 
-    stat_T_star = compute_stat_T_star(gamma_C, gamma_T, eta_C, eta_T, p)
     y_C = sample(n_C, gamma_C, eta_C, loc, scale, nu, phi)
-    y_T = sample(n_T, stat_T_star['gamma'], stat_T_star['eta'],
-                 loc, scale, nu, phi)
 
-    return dict(y_C=y_C, y_T=y_T, p=p, gamma_C=gamma_C, gamma_T=gamma_T,
-                eta_C=eta_C, eta_T=eta_T, mu=loc, sigma=scale, nu=nu, 
-                phi=phi)
+    if beta == 0:
+        y_T = sample(n_T, gamma_C, eta_C, loc, scale, nu, phi)
+    else:
+        y_T = sample(n_T, gamma_T, eta_T, loc, scale, nu, phi)
 
+
+    return dict(y_C=y_C, y_T=y_T, beta=beta, gamma_C=gamma_C, gamma_T=gamma_T,
+                eta_C=eta_C, eta_T=eta_T, mu=loc, sigma=scale, nu=nu, phi=phi)
+
+# FIXME
 def prior_samples(B, stan_data):
     K = stan_data['K']
     p = np.random.beta(stan_data['a_p'], stan_data['b_p'], B)
+    beta = p > np.random.rand(B)
     gamma_C  = np.random.beta(stan_data['a_gamma'], stan_data['b_gamma'], B)
     gamma_T  = np.random.beta(stan_data['a_gamma'], stan_data['b_gamma'], B)
-    eta_C  = np.random.dirichlet(stan_data['a_eta'], B)
-    eta_T  = np.random.dirichlet(stan_data['a_eta'], B)
-    gamma_T_star = compute_gamma_T_star(gamma_C, gamma_T, p)
-    eta_T_star = compute_eta_T_star(gamma_C=gamma_C[:, None],
-                                    gamma_T=gamma_T[:, None],
-                                    p=p[:, None],
-                                    gamma_T_star=gamma_T_star[:, None],
-                                    eta_C=eta_T,
-                                    eta_T=eta_T)
+    eta_C = np.random.dirichlet(stan_data['a_eta'], B)
+    eta_T = np.random.dirichlet(stan_data['a_eta'], B)
+    gamma_T_star = np.where(beta == 1, gamma_T, gamma_C)
+    eta_T_star = np.where(beta[:, None] == 1, eta_T, eta_C)
     mu = np.random.normal(stan_data['mu_bar'], stan_data['s_mu'], (B, K))
     sigma = 1 / np.random.gamma(stan_data['a_sigma'], 1/stan_data['b_sigma'], (B, K))
     nu = np.random.lognormal(stan_data['m_nu'], stan_data['s_nu'], (B, K))
     phi = np.random.normal(stan_data['m_phi'], stan_data['s_phi'], (B, K))
-    return dict(p=p, K=K,
+    return dict(p=p, K=K, beta=beta,
                 gamma_C=gamma_C, gamma_T=gamma_T, gamma_T_star=gamma_T_star,
                 eta_C=eta_C, eta_T=eta_T, eta_T_star=eta_T_star,
                 mu=mu, sigma=sigma, nu=nu, phi=phi)
 
-
+# FIXME
 if __name__ == '__main__':
     print('Testing...')
 
-    data = gen_data(11, 9, p=.6, gamma_C=.4, gamma_T=.6, K=4)
+    data = gen_data(11, 9, beta=1, gamma_C=.4, gamma_T=.6, K=4)
 
     print('Tests execute successfully.')
     
     x = rand_skew_t(30, 2, .5, -3, size=10000)
-    plt.hist(x, bins=100, density=True)
+    plt.hist(x, bins=100 if x.shape[0] >= 10000 else None, density=True)
+    sns.kdeplot(x, label='kde', lw=3)
     xx = np.linspace(-1, 4, 1000)
-    plt.plot(xx, skew_t_pdf(xx, 30, 2, .5, -3))
+    plt.plot(xx, skew_t_pdf(xx, 30, 2, .5, -3), label='pdf', lw=3)
+    plt.legend()
     plt.show()

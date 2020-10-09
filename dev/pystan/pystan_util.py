@@ -77,7 +77,7 @@ def sanitize_vectors(d, key):
 
 def read_samples_file(samples_file,
                       vec_params=['mu', 'sigma_sq', 'sigma','nu', 'phi',
-                                  'eta_T', 'eta_T_star', 'eta_C']):
+                                  'eta_T', 'eta_C']):
     samples = pd.read_csv(samples_file, comment='#')
     samples = {key: samples[key].to_numpy() for key in samples.keys()}
     for param in vec_params:

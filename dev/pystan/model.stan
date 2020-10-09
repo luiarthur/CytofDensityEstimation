@@ -44,20 +44,22 @@ functions {
     return (kernel + log(2) - log(scale));
   }
 
+  real loglike_neginf(int N_infinite, int N_finite, real gamma) {
+    return N_infinite * log(gamma) + (N_finite) * log1m(gamma);
+  }
+
   // Log likelihood for mixture.
-  real loglike(real[] y_finite, vector eta,
-               vector nu, vector loc, vector scale, vector phi) {
+  real loglike_finite(matrix F_finite, vector eta) {
     
-    int N_finite = size(y_finite);
+    int N_finite = rows(F_finite);
     int K = rows(eta);
     vector[N_finite] res;
     vector[K] log_eta = log(eta);
     vector[K] lpdf_mix;
 
     for (n in 1:N_finite) {
-      lpdf_mix[1:K] = log_eta;
       for (k in 1:K) {
-        lpdf_mix[k] += skew_t_lpdf(y_finite[n] | nu[k], loc[k], scale[k], phi[k]);
+        lpdf_mix[k] = F_finite[n, k] + log_eta[k];
       }
       res[n] = log_sum_exp(lpdf_mix);
     }
@@ -65,6 +67,29 @@ functions {
     // Vectorized for efficiency:
     // https://mc-stan.org/docs/2_22/stan-users-guide/vectorization.html
     return sum(res);
+  }
+
+  matrix skew_t_lpdf_components(real[] y_finite, vector nu, vector loc,
+                                vector scale, vector phi) {
+    int N_finite = size(y_finite);
+    int K = rows(nu);
+    matrix[N_finite, K] F;
+
+    for (n in 1:N_finite) for (k in 1:K) {
+      F[n, k] = skew_t_lpdf(y_finite[n] | nu[k], loc[k], scale[k], phi[k]);
+    }
+
+    return F;
+  }
+
+  real loglike(matrix F_finite, int N_infinite, vector eta, real gamma) {
+    int N_finite = rows(F_finite);
+    real ll;
+
+    ll = loglike_neginf(N_infinite, N_finite, gamma);
+    ll += loglike_finite(F_finite, eta);
+
+    return ll;
   }
 }
 
@@ -118,12 +143,12 @@ parameters {
 
 transformed parameters {
   vector<lower=0>[K] sigma = sqrt(sigma_sq);
-  real gamma_T_star = p * gamma_T + (1 - p) * gamma_C;
-  vector[K] eta_T_star = (p * eta_T * (1 - gamma_T) + 
-                          (1 - p) * eta_C * (1 - gamma_C)) / (1 - gamma_T_star);
 }
 
 model {
+  matrix[N_finite_C, K] FC_finite;
+  matrix[N_finite_T, K] FT_finite;
+
   p ~ beta(a_p, b_p);  // prob. treatment has effect.
 
   // Probability of zeros.
@@ -140,11 +165,12 @@ model {
   nu ~ lognormal(m_nu, s_nu);  // degrees of freedom
   phi ~ normal(m_phi, s_phi);  // skewness
   
-  // This is just a trick.
-  N_neginf_C ~ binomial(N_C, gamma_C);
-  N_neginf_T ~ binomial(N_T, gamma_T_star);
+  // Matrix of skew t lpdf evaluations.
+  FC_finite = skew_t_lpdf_components(y_finite_C, nu, mu, sigma, phi);
+  FT_finite = skew_t_lpdf_components(y_finite_T, nu, mu, sigma, phi);
 
-  // Increment log target density (i.e. log unnormalized joint posterior).
-  target += loglike(y_finite_C, eta_C, nu, mu, sigma, phi);
-  target += loglike(y_finite_T, eta_T_star, nu, mu, sigma, phi);
+  target += loglike(FC_finite, N_neginf_C, eta_C, gamma_C);
+  target += log_mix(p,
+                    loglike(FT_finite, N_neginf_T, eta_T, gamma_T),
+                    loglike(FT_finite, N_neginf_T, eta_C, gamma_C));
 }

@@ -12,9 +12,13 @@
 - Seems like advi/nuts gives you the same performance.
 
 # TODO
-- [ ] Rewrite model and send to Juhee
+- [X] fix `posterior_inference.py`
+- [X] fix `simulate_data.py`
+- [X] fix `pystan_util.py`
+- [ ] fix `sim_study.py`
+- [X] Rewrite model and send to Juhee
+- [X] 3 components in simulation truth, in control, only 2 components.
 - [ ] In simulation truth, set p=(0, 1) => beta=(0, 1)
-- [ ] 3 components in simulation truth, in control, only 2 components.
 - [ ] Rerun and send results to Juhee
 - [X] Plot prior predictive.
 - [X] Prior for nu should be lognormal

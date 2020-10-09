@@ -25,11 +25,11 @@ sys.path.append('../util')
 import util
 
 # Simulate data.
-def generate_scenarios(N, etaTK, p=1):
+def generate_scenarios(N, etaTK, beta):
     eta_T = np.array([.5, 1 - etaTK - .5, etaTK])
     eta_T = np.clip(eta_T, 1e-16, 0.5)
     return simulate_data.gen_data(  # TODO: Juhee simulation.
-        n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=3,
+        n_C=N, n_T=N, beta=beta, gamma_C=.3, gamma_T=.2, K=3,
         loc=np.array([-1, 1, 2]), scale=np.array([0.7, 1.3, 1.0]), 
         nu=np.array([15, 30, 10]), phi=np.array([-2, -5, 0]),
         # TODO: 
@@ -47,18 +47,12 @@ def generate_scenarios(N, etaTK, p=1):
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, .05, .45]),
         # eta_C=np.array([.5, .5, 1e-16]), eta_T=np.array([.5, 1e-16, .5]),
         seed=1)
-    # return simulate_data.gen_data(
-    #     n_C=N, n_T=N, p=p, gamma_C=.3, gamma_T=.2, K=2,
-    #     scale=np.array([0.7, 1.3]), nu=np.array([15, 30]),
-    #     loc=np.array([1, -1]), phi=np.array([-2, -5]),
-    #     eta_C=np.array([.99, .01]), eta_T=np.array([.01, .99]),
-    #     seed=1)
 
 def simulation(data, method, results_dir, stan_seed=1):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
                                              K=5, m_phi=-1, s_mu=2, s_phi=3,
-                                             a_p=.5, b_p=.5)
+                                             a_p=1, b_p=1)
                                              # a_p=.1, b_p=.9)
 
     # Plot prior predictive.
@@ -75,12 +69,7 @@ def simulation(data, method, results_dir, stan_seed=1):
 
     # Parameters to store
     pars = ['gamma_T', 'gamma_C', 'eta_T', 'eta_C',
-            'gamma_T_star', 'eta_T_star',
             'mu', 'phi', 'sigma', 'nu', 'p']
-
-    # Optimization.
-    # NOTE: Needs to be run several times with different initial values.
-    opt_fit = sm.optimizing(data=stan_data, tol_obj=0.5, seed=stan_seed)
 
     # simulate.
     tic = time.time()
@@ -94,14 +83,19 @@ def simulation(data, method, results_dir, stan_seed=1):
                      # log unnormalized posterior.
                      output_samples=1000, algorithm='meanfield')
     else:
+        # Optimization.
+        # NOTE: Needs to be run several times with different initial values.
+        opt_fit = sm.optimizing(data=stan_data, tol_obj=0.5, seed=stan_seed)
         get_val = lambda k: opt_fit[k].item() if opt_fit[k].size == 1 else opt_fit[k]
         init = dict([(k, get_val(k)) for k in opt_fit])
         print('Using initial values from penalized mle:')
         print(init)
-        fit = sm.sampling(data=stan_data, init=[init], iter=2000,
+        fit = sm.sampling(data=stan_data, iter=1000, init=[init],
                           sample_file=f'{results_dir}/samples.csv',
-                          warmup=1000, pars=pars, thin=1, chains=1,
+                          warmup=500, pars=pars, thin=1, chains=1,
+                          control=dict(max_treedepth=3),
                           seed=stan_seed)
+        fit = fit.extract()  # FIXME: loses some info...
 
     toc = time.time()
     print(f'Model inference time: {toc - tic}')
@@ -112,7 +106,6 @@ def simulation(data, method, results_dir, stan_seed=1):
 
     # Append beta to results.
     fit['beta'] = posterior_inference.beta_posterior(fit, stan_data)
-    posterior_inference.print_stat('beta', fit)
     posterior_inference.print_summary(fit, truth=data, digits=3, show_sd=True,
                                       include_gamma_eta_T=True)
 
@@ -132,16 +125,16 @@ def simulation(data, method, results_dir, stan_seed=1):
     ks = ks_2samp(stan_data['y_T'], stan_data['y_C'])
     print(ks)
 
-    return dict(data=data, fit=fit, ks=ks, opt_fit=opt_fit)
+    return dict(data=data, fit=fit, ks=ks) #, opt_fit=opt_fit)
 
 
 if __name__ == '__main__':
     print(datetime.now())
     if len(sys.argv) <= 1:
         results_dir = 'results/test/quick'
-        etaTK = 0.1  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5
-        method = "advi" # advi,nuts
-        stanseed = 1  # 1,2,3,4,5
+        etaTK = 0.2  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5
+        method = "nuts" # advi,nuts
+        stanseed = 6  # 1,2,3,4,5
     else:
         results_dir = sys.argv[1]
         etaTK = float(sys.argv[2])
@@ -162,8 +155,8 @@ if __name__ == '__main__':
     # - method = 'advi' or 'nuts'
 
     # Generate data.
-    # data = generate_scenarios(p, N=200)
-    data = generate_scenarios(N=1000, etaTK=etaTK)  # larger means more different.
+    # data = generate_scenarios(N=1000, beta=1, etaTK=etaTK)  # larger etaTK means more different.
+    data = generate_scenarios(N=500, beta=1, etaTK=etaTK)  # larger etaTK means more different.
 
     # Plot simulation data.
     simulate_data.plot_data(yT=data['y_T'], yC=data['y_C'], bins=30)
