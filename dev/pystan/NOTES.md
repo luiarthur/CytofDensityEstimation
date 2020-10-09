@@ -34,3 +34,9 @@
     - [ ] `gamma_C`, `gamma_T_star`, `gamma_T`
     - [ ] p
     - [ ] beta
+- [ ] Full conditionals
+- [ ] Sim study
+    - [ ] a. `gammaC`=0.3, `gammaT`=0.2, `etaC`=(.5,.5,0), `etaT`=(.5,.2,.3)
+    - [ ] b. `gammaC`=0.3, `gammaT`=0.3, `etaC`=(.5,.5,0), `etaT`=(.5,.2,.3)
+    - [ ] c. `gammai`=0.3, `etaC`=(.5,.5,0)
+    - with K=5. Focus on inference for beta and `F_i`.
