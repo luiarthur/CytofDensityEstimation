@@ -13,16 +13,16 @@ skew_t = function(n, nu, loc, scale, alpha) {
   # rnorm(n, loc + z * alpha, scale/sqrt(w))
 
   delta = alpha / sqrt(1 + alpha^2)
-  loc + scale * z * delta + scale * sqrt(1 - delta^2) * rnorm(n)
+  loc + scale * z * delta + scale * sqrt(1 - delta^2) * rnorm(n) / sqrt(w)
 }
 
 
-nu=30
-loc=3
-scale=.2
-alpha=-10
+nu=runif(1, 3, 10)
+loc=rnorm(1, 0, 3)
+scale=1/rgamma(1, 3, 2)
+alpha=rnorm(1, 0, 3)
 
 x = skew_t(1e6, nu, loc, scale, alpha)
-xx = seq(-10, 10, len=10000)
-hist(x, prob=T, breaks=100)
+xx = seq(-20, 20, len=10000)
+hist(x, prob=T, breaks=200)
 lines(xx, exp(d_skew_t(xx, nu, loc, scale, alpha)), lwd=3, col='blue')

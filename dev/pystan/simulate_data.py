@@ -18,7 +18,8 @@ def rand_skew_t(nu, loc, scale, skew, size=None):
     z = truncnorm.rvs(0, np.inf, scale=np.sqrt(1/w), size=size)
     delta = skew / np.sqrt(1 + skew**2)
     return (loc + scale * z * delta + 
-            scale * np.sqrt(1 - delta**2) * np.random.normal(size=size))
+            scale * np.sqrt(1 - delta**2) * 
+            np.random.normal(size=size) / np.sqrt(w))
 
 def skew_t_lpdf(x, nu, loc, scale, skew):
     z = (x - loc) / scale
@@ -161,10 +162,10 @@ if __name__ == '__main__':
 
     print('Tests execute successfully.')
     
-    x = rand_skew_t(30, 2, .5, -3, size=10000)
+    x = rand_skew_t(30, 2, .5, -3, size=100000)
     plt.hist(x, bins=100 if x.shape[0] >= 10000 else None, density=True)
-    sns.kdeplot(x, label='kde', lw=3)
+    sns.kdeplot(x, label='kde', lw=2)
     xx = np.linspace(-1, 4, 1000)
-    plt.plot(xx, skew_t_pdf(xx, 30, 2, .5, -3), label='pdf', lw=3)
+    plt.plot(xx, skew_t_pdf(xx, 30, 2, .5, -3), label='pdf', lw=2)
     plt.legend()
     plt.show()
