@@ -69,7 +69,7 @@ def simulation(data, method, results_dir, stan_seed=1):
 
     # Parameters to store
     pars = ['gamma_T', 'gamma_C', 'eta_T', 'eta_C',
-            'mu', 'phi', 'sigma', 'nu', 'p']
+            'mu', 'phi', 'sigma', 'nu', 'p', 'beta', 'll']
 
     # simulate.
     tic = time.time()
@@ -82,6 +82,7 @@ def simulation(data, method, results_dir, stan_seed=1):
                      # NOTE: log_p__ in `sample_file` is the
                      # log unnormalized posterior.
                      output_samples=1000, algorithm='meanfield')
+        fit = pystan_util.vb_extract(_fit)
     else:
         # Optimization.
         # NOTE: Needs to be run several times with different initial values.
@@ -93,19 +94,13 @@ def simulation(data, method, results_dir, stan_seed=1):
         fit = sm.sampling(data=stan_data, iter=1000, init=[init],
                           sample_file=f'{results_dir}/samples.csv',
                           warmup=500, pars=pars, thin=1, chains=1,
-                          control=dict(max_treedepth=3),
+                          control=dict(max_treedepth=5),
                           seed=stan_seed)
-        fit = fit.extract()  # FIXME: loses some info...
 
     toc = time.time()
     print(f'Model inference time: {toc - tic}')
 
-    if method == 'advi':
-        fit = pystan_util.vb_extract(_fit)
-        print(fit.keys())
-
-    # Append beta to results.
-    fit['beta'] = posterior_inference.beta_posterior(fit, stan_data)
+    # Print posterior summaries.
     posterior_inference.print_summary(fit, truth=data, digits=3, show_sd=True,
                                       include_gamma_eta_T=True)
 
@@ -134,7 +129,7 @@ if __name__ == '__main__':
         results_dir = 'results/test/quick'
         etaTK = 0.2  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5
         method = "nuts" # advi,nuts
-        stanseed = 6  # 1,2,3,4,5
+        stanseed = 5  # 1,2,3,4,5
     else:
         results_dir = sys.argv[1]
         etaTK = float(sys.argv[2])
@@ -148,6 +143,7 @@ if __name__ == '__main__':
 
     # Load model.
     sm = pickle.load(open(f'.model.pkl', 'rb'))
+    # sm = pystan.StanModel('model_reparameterized.stan')
 
     # Scenarios:
     # - stan_seed = (1, 5) (for VB only)

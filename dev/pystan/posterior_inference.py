@@ -107,9 +107,8 @@ def plot_post_density(fit, y_grid, tlabel='T: post. pred.',
 
     beta = fit['beta']
     if title is None:
-        if 'beta' in fit:
-            beta_mean = np.round(np.mean(beta), digits)
-            title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{beta_mean}"
+        beta_mean = np.round(np.mean(beta), digits)
+        title = r'Prob($F_C \ne F_T$ | data)$\approx$' + f"{beta_mean}"
 
     plt.title(title)
 
