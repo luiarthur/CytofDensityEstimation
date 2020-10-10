@@ -174,3 +174,22 @@ model {
                     loglike(FT_finite, N_neginf_T, eta_T, gamma_T),
                     loglike(FT_finite, N_neginf_T, eta_C, gamma_C));
 }
+
+// Doesn't work with ADVI.
+generated quantities {
+  real ll = 0;
+  real beta;
+  {
+    matrix[N_finite_C, K] FC_finite = skew_t_lpdf_components(y_finite_C, nu, mu, sigma, phi);
+    matrix[N_finite_T, K] FT_finite = skew_t_lpdf_components(y_finite_T, nu, mu, sigma, phi);
+
+    real llC = loglike(FC_finite, N_neginf_C, eta_C, gamma_C);
+    real llTT = loglike(FT_finite, N_neginf_T, eta_T, gamma_T);
+    real llTC = loglike(FT_finite, N_neginf_T, eta_C, gamma_C);
+    real llT = log_mix(p, llTT, llTC);
+    real logit_prob_beta_is_1 = log(p) + llTT - (log1m(p) + llTC);
+
+    ll = llC + llT;
+    beta = inv_logit(logit_prob_beta_is_1) > uniform_rng(0, 1);
+  }
+}
