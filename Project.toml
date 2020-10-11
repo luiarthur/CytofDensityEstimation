@@ -1,2 +1,7 @@
+name = "CytofDensityEstimation"
+uuid = "71dbb2dc-75e3-4f4f-89b5-1ed3079c8b77"
+version = "0.1.0"
+authors = ["Arthur Lui<luiarthur@gmail.com>"]
+
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
