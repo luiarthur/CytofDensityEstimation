@@ -15,9 +15,9 @@ function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners)
   update_beta!(state, data, prior, tuners)
   update_gamma!(state, data, prior, tuners)
   update_eta!(state, data, prior, tuners)
+  update_lambda!(state, data, prior, tuners)
 
   # TODO
-  # update_lambda!(state, data, prior, tuners)
   # update_mu!(state, data, prior, tuners)
   # update_nu!(state, data, prior, tuners)
   # update_omega!(state, data, prior, tuners)

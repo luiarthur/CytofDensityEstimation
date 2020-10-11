@@ -115,6 +115,10 @@ log 1 minus. For example, `log1m(.3) == log(1 - .3) == log1p(-.3) == log(.7)`.
 log1m(x::T) where {T <: Number} = log1p(-x)
 
 
+"""
+Convert a vector of indices to a one-hot matrix, given also the number of
+categories.
+"""
 function to_onehot(indvec::Vector{Int}, categories::Int)
   N = length(indvec)
   onehot_matrix = zeros(Int, N, categories)
@@ -122,4 +126,16 @@ function to_onehot(indvec::Vector{Int}, categories::Int)
     onehot_matrix[n, indvec[n]] = 1
   end
   return onehot_matrix
+end
+
+
+"""
+log pdf of gaussian mixture model
+"""
+function gmmlogpdf(x, m, s, w; dims)
+  return logsumexp(normlogpdf.(m, s, x) .+ log.(w), dims=dims)
+end
+
+function gmmlogpdf(x::Real, m, s, w)
+  return logsumexp(normlogpdf.(m, s, x) .+ log.(w))
 end
