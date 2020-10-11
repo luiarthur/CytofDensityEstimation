@@ -6,7 +6,7 @@ mutable struct TuningParam{T}
   value::T
   acceptanceCount::Int
   currentIter::Int
-  batch_size::Int
+  batchsize::Int
   delta::Function
   targetAcc::Float64
 
@@ -27,8 +27,8 @@ function update_tuning_param_default(param::TuningParam, accept::Bool)
 
   param.currentIter += 1
 
-  if param.currentIter % param.batch_size == 0
-    n = Int(floor(param.currentIter / param.batch_size))
+  if param.currentIter % param.batchsize == 0
+    n = Int(floor(param.currentIter / param.batchsize))
     factor = exp(param.delta(n))
     if acceptanceRate(param) > param.targetAcc
       param.value *= factor
@@ -43,6 +43,6 @@ function update_tuning_param_default(param::TuningParam, accept::Bool)
 end
 
 function acceptanceRate(param::TuningParam)
-  return param.acceptanceCount / param.batch_size
+  return param.acceptanceCount / param.batchsize
 end
 
