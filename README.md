@@ -1,2 +1,2 @@
-# cytof_density_estimation
+# CytofDensityEstimation
 Project 3 of dissertation. CyTOF density estimation.
