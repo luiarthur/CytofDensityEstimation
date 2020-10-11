@@ -43,11 +43,16 @@ function Distributions.logpdf(d::SkewT{Tloc, Tscale, Tdf, Tskew}, x::Real) where
 end
 
 function SkewT(; loc, scale, altscale, altskew)
-  skew = altskew / sqrt(altscale)
-  scale = sqrt(altskew^2 + altscale^2)
+  scale, skew = fromaltskewt(altscale, altskew)
   SkewT(loc, scale, df, skew)
 end
 
+
+function fromaltskewt(altscale, altskew)
+  skew = altskew / sqrt(altscale)
+  scale = sqrt(altskew^2 + altscale^2)
+  return [scale, skew]
+end
 
 ### TEST ###
 #=

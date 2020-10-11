@@ -1,0 +1,27 @@
+include("update_p.jl")
+include("update_beta.jl")
+include("update_gamma.jl")
+include("update_eta.jl")
+include("update_lambda.jl")
+include("update_mu.jl")
+include("update_nu.jl")
+include("update_omega.jl")
+include("update_psi.jl")
+include("update_v.jl")
+include("update_zeta.jl")
+
+function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners)
+  update_p!(state, data, prior, tuners)
+  update_beta!(state, data, prior, tuners)
+  update_gamma!(state, data, prior, tuners)
+  update_eta!(state, data, prior, tuners)
+
+  # TODO
+  # update_lambda!(state, data, prior, tuners)
+  # update_mu!(state, data, prior, tuners)
+  # update_nu!(state, data, prior, tuners)
+  # update_omega!(state, data, prior, tuners)
+  # update_psi!(state, data, prior, tuners)
+  # update_v!(state, data, prior, tuners)
+  # update_zeta!(state, data, prior, tuners)
+end

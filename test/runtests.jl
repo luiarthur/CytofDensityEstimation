@@ -9,4 +9,7 @@ using CytofDensityEstimation
 using StatsFuns
 using Statistics
 
+const CDE = CytofDensityEstimation
+
 include("test_gibbs.jl")
+include("test_updates.jl")

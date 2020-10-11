@@ -10,8 +10,8 @@ end
     append!(loglike, normlogpdf(state.x))
     sleep(.001)
   end
-  out, laststate = CytofDensityEstimation.MCMC.gibbs(init, update!,
-                                                     thins=[10], monitors=[[:x]], nmcmc=1000)
+  out, laststate = CDE.MCMC.gibbs(init, update!, thins=[10], monitors=[[:x]],
+                                  nmcmc=500, nburn=500)
   println(laststate)
   # println(out[1])
 end

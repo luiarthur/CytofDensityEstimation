@@ -1,5 +1,6 @@
 struct Prior
   K::Int
+  p::Beta
   gamma::Beta
   eta::Dirichlet
   mu::Normal
@@ -8,11 +9,11 @@ struct Prior
   psi::Normal
 end
 
-function Prior(K; gamma=Beta(1,1), eta=nothing, mu=Normal(0, 3), 
-               omega=InverseGamma(3, 2), nu=LogNormal(3.5, 0.5),
-               psi=Normal(-1, 3))
+function Prior(K; p=Beta(.5, .5), gamma=Beta(1,1), eta=nothing,
+               mu=Normal(0, 3), omega=InverseGamma(3, 2),
+               nu=LogNormal(3.5, 0.5), psi=Normal(-1, 3))
   eta != nothing || (eta = Dirichlet(K, 1/K))
-  return Prior(K, gamma, eta, mu, omega, nu, psi)
+  return Prior(K, p, gamma, eta, mu, omega, nu, psi)
 end
 
 #= TEST:

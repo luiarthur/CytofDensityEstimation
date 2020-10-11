@@ -113,3 +113,13 @@ end
 log 1 minus. For example, `log1m(.3) == log(1 - .3) == log1p(-.3) == log(.7)`.
 """
 log1m(x::T) where {T <: Number} = log1p(-x)
+
+
+function to_onehot(indvec::Vector{Int}, categories::Int)
+  N = length(indvec)
+  onehot_matrix = zeros(Int, N, categories)
+  for n in 1:N
+    onehot_matrix[n, indvec[n]] = 1
+  end
+  return onehot_matrix
+end
