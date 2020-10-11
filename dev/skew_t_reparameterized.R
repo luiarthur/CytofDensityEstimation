@@ -25,7 +25,8 @@ alpha = psi/sqrt(omega)
 sigma = sqrt(omega + psi^2)
 xx = seq(-15, 6, len=1000)
 
-hist(rskewt(1e6, nu=nu, xi=xi, psi=psi, omega=omega), breaks=300, freq=F)
+print(system.time(x <- rskewt(1e6, nu=nu, xi=xi, psi=psi, omega=omega)))
+hist(x, prob=T, breaks=100)
 lines(xx, dskew(xx, nu, xi, sigma, alpha), lwd=3, col='blue')
 
 cat('nu:', nu, 'xi:', xi, 'psi:', psi, 'omega:', omega,
