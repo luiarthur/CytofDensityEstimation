@@ -4,9 +4,11 @@ function update_lambda!(state::State, data::Data, prior::Prior)
 end
 
 
-function sample_lambda(y::Vector{Y}, mu::Vector{F}, psi::Vector{F},
-                       omega::Vector{F}, eta::Vector{F},
-                       zeta::Vector{F}, v::Vector{F}) where {Y<:AbstractFloat, F<:AbstractFloat}
+function sample_lambda(y::AbstractVector{<:Real}, mu::AbstractVector{<:Real},
+                       psi::AbstractVector{<:Real},
+                       omega::AbstractVector{<:Real},
+                       eta::AbstractVector{<:Real},
+                       zeta::AbstractVector{<:Real}, v::AbstractVector{<:Real})
   logeta = log.(eta)
   lambda = [let
               loc = mu + psi .* zeta[n]

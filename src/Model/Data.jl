@@ -1,8 +1,8 @@
-struct Data{F <: AbstractFloat}
-  yC::Vector{F}
-  yT::Vector{F}
-  yC_finite::Vector{F}
-  yT_finite::Vector{F}
+struct Data{T <: AbstractVector{<:Real}}
+  yC::T
+  yT::T
+  yC_finite::T
+  yT_finite::T
   NC::Int
   NT::Int
   NC_finite::Int
@@ -12,7 +12,7 @@ struct Data{F <: AbstractFloat}
 end
 
 
-function Data(yC::Vector{F}, yT::Vector{F}) where {F <: AbstractFloat}
+function Data(yC::AbstractVector{<:Real}, yT::AbstractVector{<:Real})
   yC_finite = yC[isfinite.(yC)]
   yT_finite = yT[isfinite.(yT)]
   NC = length(yC)

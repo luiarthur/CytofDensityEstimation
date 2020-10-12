@@ -13,8 +13,8 @@ function metropolis(curr::Real, log_prob::Function, stepSD::Real)
 end
 
 
-function metropolis(curr::AbstractVector, log_prob::Function,
-                    stepSD::AbstractMatrix)
+function metropolis(curr::AbstractVector{<:Real}, log_prob::Function,
+                    stepSD::AbstractMatrix{<:Real})
   cand = rand(MvNormal(curr, stepSD))
   logU = log(rand())
   p = log_prob(cand) - log_prob(curr)

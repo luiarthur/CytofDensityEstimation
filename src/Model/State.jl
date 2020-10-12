@@ -1,25 +1,24 @@
-mutable struct State{F <: AbstractFloat}
+mutable struct State{F <: AbstractFloat, V <: AbstractVector{<:Real}}
   p::F
   beta::Bool
   gammaC::F
   gammaT::F
-  etaC::Vector{F}  # K
-  etaT::Vector{F}  # K
+  etaC::V  # K
+  etaT::V  # K
   lambdaC::Vector{Int}  # NC
   lambdaT::Vector{Int}  # NT
-  mu::Vector{F}  # K
-  nu::Vector{F}  # K
-  omega::Vector{F}  # K. alt variance.
-  psi::Vector{F}  # K. alt skew.
-  vC::Vector{F}  # NC
-  vT::Vector{F}  # NT
-  zetaC::Vector{F}  # NC
-  zetaT::Vector{F}  # NT
+  mu::V  # K
+  nu::V  # K
+  omega::V  # K. alt variance.
+  psi::V  # K. alt skew.
+  vC::V  # NC
+  vT::V  # NT
+  zetaC::V  # NC
+  zetaT::V  # NT
 end
 
 
 function State(data::Data, prior::Prior)
-  # TODO
   p = rand(prior.p)
   beta = true
   gammaC = rand(prior.gamma)

@@ -3,10 +3,12 @@ Marginal loglikelihood for sample i. Marginalizes over lambda and uses
 skew-t likelihood.
 """
 function marginal_loglike(gamma::AbstractFloat, 
-                          eta::Vector{F}, loc::Vector{F},
-                          scale::Vector{F}, df::Vector{F},
-                          skew::Vector{F}, N::Int,
-                          yfinite::Vector{G}) where {F <: AbstractFloat, G <: AbstractFloat}
+                          eta::AbstractVector{<:Real},
+                          loc::AbstractVector{<:Real},
+                          scale::AbstractVector{<:Real},
+                          df::AbstractVector{<:Real},
+                          skew::AbstractVector{<:Real}, N::Int,
+                          yfinite::AbstractVector{<:Real})
   Nfinite = length(yfinite)
   Z = N - Nfinite
   K = length(eta)
@@ -21,11 +23,15 @@ end
 Marginal loglikelihood for sample i. Marginalizes over lambda and uses
 Normal likelihood using latent variable representation of skew-t.
 """
-function marginal_loglike_latent_var(
-  gamma::AbstractFloat, eta::Vector{F}, mu::Vector{F}, psi::Vector{F},
-  omega::Vector{F}, nu::Vector{F}, zeta::Vector{F}, v::Vector{F}, 
-  N::Int, yfinite::Vector{G}
-) where {F <: AbstractFloat, G <: AbstractFloat}
+function marginal_loglike_latent_var(gamma::AbstractFloat,
+                                     eta::AbstractVector{<:Real},
+                                     mu::AbstractVector{<:Real},
+                                     psi::AbstractVector{<:Real},
+                                     omega::AbstractVector{<:Real},
+                                     nu::AbstractVector{<:Real},
+                                     zeta::AbstractVector{<:Real},
+                                     v::AbstractVector{<:Real}, N::Int,
+                                     yfinite::AbstractVector{<:Real})
   Nfinite = length(yfinite)
   Z = N - Nfinite
   K = length(eta)

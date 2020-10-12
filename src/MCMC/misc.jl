@@ -1,7 +1,7 @@
 """
 weighted sampling: takes (unnormalized) log probs and returns index
 """
-function wsample_logprob(logProbs::Vector{T}) where {T <: Number}
+function wsample_logprob(logProbs::AbstractVector{<:Real})
   log_p_max = maximum(logProbs)
   p = exp.(logProbs .- log_p_max)
   return Distributions.wsample(p)
@@ -11,7 +11,7 @@ end
 """
 log 1 minus. For example, `log1m(.3) == log(1 - .3) == log1p(-.3) == log(.7)`.
 """
-log1m(x::T) where {T <: Number} = log1p(-x)
+log1m(x::T) where {T <: Real} = log1p(-x)
 
 
 """
