@@ -1,11 +1,6 @@
-# https://github.com/cloud-oak/ProgressBars.jl
-# set_description(iter, string(@sprintf("Loss: %.2f", loss)))
-import Dates
-using ProgressBars
-include("partition.jl")
-
 monitor_default() = Vector{Vector{Symbol}}([])
 thin_default() = Int[]
+
 
 """
 Checks if a field is a subtype.
@@ -13,6 +8,7 @@ If a field has the form "a__b", the name
 of the field is `a`, and it has a field `b`.
 """
 issubtype(x::Symbol)::Bool = occursin("__", String(x))
+
 
 function deepcopyFields(state::T, fields::Vector{Symbol}) where T
   substate = Dict{Symbol, Any}()
@@ -44,7 +40,6 @@ function gibbs(init::T, update!::Function;
                thins::Vector{Int}=thin_default(),
                nmcmc::Int=1000, nburn::Int=0,
                loglike=[], verbose::Int=1) where T
-
   # Make a copy of the initial state.
   state = deepcopy(init)
 
