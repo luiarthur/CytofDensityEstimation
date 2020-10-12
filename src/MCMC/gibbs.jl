@@ -1,5 +1,29 @@
 monitor_default() = Vector{Vector{Symbol}}([])
-thin_default() = Int[]
+
+
+"""
+Default callback function for `gibbs` does nothing. You can provide your own
+callback which has the same signature. One use for this is computing summary
+statistics like log-likelihood after each MCMC iteration. If summary statistics
+are returned, they will be appended and returned at the end of the MCMC.
+
+For example,
+```julia
+function callback_fn(state, iter, pbar)
+  out = nothing
+  if iter % 10 == 0
+    ll = round(compute_loglike(state), digits=3)
+    set_description(pbar, "loglike: \$(ll)")
+    out = Dict(:ll => ll)
+  end
+
+  return out
+end
+```
+"""
+function default_callback_fn(state::T, iter::Int, pbar::ProgressBar) where T
+  return
+end
 
 
 """
@@ -37,72 +61,83 @@ showtime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
 function gibbs(init::T, update!::Function;
                monitors::Vector{Vector{Symbol}}=monitor_default(),
-               thins::Vector{Int}=thin_default(),
-               nmcmc::Int=1000, nburn::Int=0,
-               loglike=[], verbose::Int=1) where T
+               nsamps::Vector{Int}=[1000], nburn::Int=0,
+               thin::Int=1, callback_fn::Function=default_callback_fn,
+               verbose::Int=1) where T
+  # Assert that the first monitor is the primary one.
+  # The first sample should collect the most samples.
+  @assert issorted(nsamps, rev=true)
+
   # Make a copy of the initial state.
   state = deepcopy(init)
 
   # Checking number of monitors.
-  numMonitors = length(monitors)
-  println("Number of monitors: $(numMonitors)"); flush(stdout)
-  @assert numMonitors == length(thins)
+  num_monitors = length(monitors)
+  println("Number of monitors: $(num_monitors)"); flush(stdout)
+  @assert num_monitors == length(nsamps)
+
+  # Total number of MCMC iterations
+  nmcmc = nburn + thin * nsamps[1] 
+  verbose > 0 && println("Total number of MCMC iterations: $(nmcmc)")
+
+  # Thin factor for each monitor
+  thins = div.(nmcmc, nsamps)
 
   # Check monitor
-  if numMonitors == 0
-    println("Using default monitor."); flush(stdout)
-    fnames = [fname for fname in fieldnames(typeof(init))]
+  if num_monitors == 0
+    verbose > 0 && println("Using default monitor.")
+    fnames = fieldnames(typeof(init))
     append!(monitors, [fnames])
-    append!(thins, 1)
-    numMonitors = 1
+    num_monitors = 1
   end
 
-  # Number of Samples for each Monitor
-  numSamps = [div(nmcmc, thins[i]) for i in 1:numMonitors]
-
-  verbose <= 0 || (println("Preallocating memory..."); flush(stdout))
+  verbose > 0 && println("Preallocating memory...")
 
   # Create object to return
-  @time out = [fill(deepcopyFields(state, monitors[i]), numSamps[i])
-               for i in 1:numMonitors]
+  @time chain = [fill(deepcopyFields(state, monitors[i]), nsamps[i])
+                 for i in 1:num_monitors]
 
-  function Msg(i::Int)
-    if (printFreq > 0) && (i % printFreq == 0) && (i > 1)
-      loglikeMsg = ismissing(loglike) ? "" : "-- loglike: $(last(loglike))"
-      print("$(showtime()) -- $(i)/$(nburn+nmcmc) $loglikeMsg"); flush(stdout)
+  # Initialize empty summary statistics.
+  summary_stats = []
 
-      if printlnAfterMsg
-        println(); flush(stdout)
-      end
+  # Initialize sample index tracker for each monitor.
+  counters = zeros(Int, num_monitors)
 
-      flush(stdout)
-    end
-  end
+  # Initialize progress bar.
+  pbar = ProgressBar(1:nmcmc)
 
-  counters = zeros(Int, numMonitors)
-
+  # Print time at beginning of MCMC.
   println(showtime()); flush(stdout)
-  pbar = ProgressBar(1:(nburn + nmcmc))
 
   # Gibbs loop.
   for i in pbar
-    update!(state, i)
+    update!(state)
     if i > nburn
-      for j in 1:numMonitors
+      for j in 1:num_monitors
         if i % thins[j] == 0
           substate = deepcopyFields(state, monitors[j])
           counters[j] += 1
-          out[j][counters[j]] = substate
+          chain[j][counters[j]] = substate
         end
       end
     end
-    if length(loglike) > 0
-      ll = round(last(loglike), digits=2)
-      set_description(pbar, "loglike: $(ll)")
+
+    # Execute callback function.
+    summary_stat = callback_fn(state, i, pbar)
+
+    # Append summary statistics if callback returns something.
+    if summary_stat != nothing
+      append!(summary_stats, summary_stat)
     end
+
+    # This is needed so that `/usr/bin/tail` in works properly
+    # in a BASH terminal.
     flush(stdout)
   end
 
+  # Print end time.
   println(showtime()); flush(stdout)
-  return (out, state)
+
+  # Return chain, last state, and summary statistics.
+  return (chain, state, summary_stats)
 end
