@@ -29,5 +29,3 @@ include("runtests.jl")
     CDE.Model.update_state!(state, data, prior, tuners, flags)
   end
 end
-
-
