@@ -1,4 +1,4 @@
-function update_eta!(state::State, data::Data, prior::Prior, tuners::Tuners)
+function update_eta!(state::State, data::Data, prior::Prior)
   update_etaC!(state, data, prior)
   update_etaT!(state, data, prior)
 end

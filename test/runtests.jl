@@ -8,6 +8,7 @@ using Test
 using CytofDensityEstimation
 using StatsFuns
 using Statistics
+using ProgressBars
 
 const CDE = CytofDensityEstimation
 

@@ -30,7 +30,7 @@ Adaptive metropolis (within Gibbs). See section 3 of the paper below:
 Another useful website:
   https://m-clark.github.io/docs/ld_mcmc/index_onepage.html
 """
-function metropolisAdaptive(curr::Real, log_prob::Real,
+function metropolisAdaptive(curr::Real, log_prob::Function,
                             tuner::TuningParam;
                             update::Function=update_tuning_param_default)
   draw, accept = metropolisBase(curr, log_prob, tuner.value)

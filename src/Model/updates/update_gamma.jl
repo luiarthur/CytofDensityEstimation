@@ -1,4 +1,4 @@
-function update_gamma!(state::State, data::Data, prior::Prior, tuners::Tuners)
+function update_gamma!(state::State, data::Data, prior::Prior)
   update_gammaC!(state, data, prior)
   update_gammaT!(state, data, prior)
 end

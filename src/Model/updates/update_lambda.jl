@@ -1,4 +1,4 @@
-function update_lambda!(state::State, data::Data, prior::Prior, tuners::Tuners)
+function update_lambda!(state::State, data::Data, prior::Prior)
   update_lambdaC!(state, data, prior)
   update_lambdaT!(state, data, prior)
 end

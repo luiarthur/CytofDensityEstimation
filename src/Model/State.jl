@@ -17,6 +17,7 @@ mutable struct State{F <: AbstractFloat}
   zetaT::Vector{F}  # NT
 end
 
+
 function State(data::Data, prior::Prior)
   # TODO
   p = rand(prior.p)
@@ -40,3 +41,9 @@ function State(data::Data, prior::Prior)
                mu, nu, omega, psi, vC, vT, zetaC, zetaT)
 end
 
+
+ref_gamma(state::State, i::Char) = i == 'C' ? state.zetaC : state.zetaT
+ref_eta(state::State, i::Char) = i == 'C' ? state.etaC : state.etaT
+ref_lambda(state::State, i::Char) = i == 'C' ? state.lambdaC : state.lambdaT
+ref_v(state::State, i::Char) = i == 'C' ? state.vC : state.vT
+ref_zeta(state::State, i::Char) = i == 'C' ? state.zetaC : state.zetaT

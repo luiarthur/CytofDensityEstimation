@@ -23,3 +23,10 @@ function Data(yC::Vector{F}, yT::Vector{F}) where {F <: AbstractFloat}
   ZT = NT - NT_finite
   Data(yC, yT, yC_finite, yT_finite, NC, NT, NC_finite, NT_finite, ZC, ZT)
 end
+
+const samplenames = ('C', 'T')
+
+ref_yfinite(data::Data, i::Char) = i == 'C' ? data.yC_finite : data.yT_finite
+ref_N(data::Data, i::Char) = i == 'C' ? data.NC : data.NT
+ref_Nfinite(data::Data, i::Char) = i == 'C' ? data.NC_finite : data.NT_finite
+ref_Z(data::Data, i::Char) = i == 'C' ? data.ZC : data.ZT
