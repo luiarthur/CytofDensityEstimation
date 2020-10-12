@@ -8,8 +8,9 @@
 - [ ] Methods for reading real data
 - [ ] Methods for prior predictive
 - [ ] Methods for plotting data
+- [ ] Compare results to KS using `HypothesisTests.ApproximateTwoSampleKSTest`
 - [ ] Methods for post processing
-    - [ ] Test that they work on server
+    - [ ] Test that `plots.gr()` works on server
     - [ ] Plot makers for each parameter
     - [ ] Credible interval for density estimate
 

@@ -2,6 +2,7 @@
 import Pkg; Pkg.activate("../")  # CytofDensityEstimation
 include("runtests.jl")
 =#
+# ApproximateTwoSampleKSTest(a, b)
 
 @testset "Test update!" begin
   K = 3
