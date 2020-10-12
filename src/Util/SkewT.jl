@@ -15,6 +15,14 @@ function skewtlogpdf(loc::Real, scale::Real, df::Real, skew::Real, x::Real)
 end
 
 
+function skewtpdf(loc::Real, scale::Real, df::Real, skew::Real, x::Real)
+  z = (x - loc) / scale
+  u = skew * z * sqrt((df + 1) / (df + z ^ 2))
+  kernel = tdistpdf(df, z) * tdistcdf(df + 1, u)
+  return kernel * 2 / scale
+end
+
+
 function randskewt(rng::AbstractRNG, loc::Real, scale::Real, df::Real, skew::Real)
   w = rand(rng, Gamma(df/2, 2/df))
   inv_sqrt_w = sqrt(1 / w)
@@ -25,22 +33,26 @@ function randskewt(rng::AbstractRNG, loc::Real, scale::Real, df::Real, skew::Rea
 
   return randn(rng) * _scale + _loc
 end
-randskewt(loc::Real, scale::Real, df::Real, skew::Real) = randskewt(Random.GLOBAL_RNG)
+function randskewt(loc::Real, scale::Real, df::Real, skew::Real)
+  return randskewt(Random.GLOBAL_RNG, loc, scale, df, skew)
+end
 
 
 function Distributions.rand(rng::AbstractRNG,
-                            d::SkewT{Tloc, Tscale, Tdf, Tskew}
-                           ) where {Tloc <: Real, Tscale <: Real, Tdf <: Real, Tskew <: Real}
+                            d::SkewT{<:Real, <:Real, <:Real, <:Real})
   return randskewt(rng, d.loc, d.scale, d.df, d.skew)
 end
 
 
-function Distributions.logpdf(d::SkewT{Tloc, Tscale, Tdf, Tskew}, x::Real) where {Tloc<:Real,
-                                                                                  Tscale<:Real,
-                                                                                  Tdf<:Real,
-                                                                                  Tskew<:Real}
+function Distributions.logpdf(d::SkewT{<:Real, <:Real, <:Real, <:Real}, x::Real)
   return skewtlogpdf(d.loc, d.scale, d.df, d.skew, x)
 end
+
+
+function Distributions.pdf(d::SkewT{<:Real, <:Real, <:Real, <:Real}, x::Real)
+  return skewtpdf(d.loc, d.scale, d.df, d.skew, x)
+end
+
 
 function SkewT(; loc, scale, altscale, altskew)
   scale, skew = fromaltskewt(altscale, altskew)
@@ -53,19 +65,3 @@ function fromaltskewt(altscale, altskew)
   scale = sqrt(altskew^2 + altscale^2)
   return [scale, skew]
 end
-
-### TEST ###
-#=
-import Pkg; Pkg.activate("../../")
-using Distributions
-import Random: AbstractRNG, GLOBAL_RNG
-using StatsFuns
-using Plots
-import StatsPlots: density
-
-st = SkewT(randn()*3, rand(), rand(LogNormal(3.5, .5)), rand()*3)
-@time x = rand(st, Int(1e6));
-xx = collect(range(-6, 6, length=10000))
-histogram(x, color=:grey, normalize=true, label=nothing, linecolor=:grey)
-plot!(xx, pdf.(st, xx), add=true, lw=2, color=:blue, label=nothing)
-=#
