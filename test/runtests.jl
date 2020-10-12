@@ -16,3 +16,4 @@ const CDE = CytofDensityEstimation
 include("test_skewt.jl")
 include("test_gibbs.jl")
 include("test_updates.jl")
+include("test_fit.jl")

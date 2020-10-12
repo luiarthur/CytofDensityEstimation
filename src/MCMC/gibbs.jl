@@ -1,4 +1,4 @@
-monitor_default() = Vector{Vector{Symbol}}([])
+monitors_default() = Vector{Vector{Symbol}}([])
 
 
 """
@@ -60,7 +60,7 @@ showtime() = Dates.format(Dates.now(), "yyyy-mm-dd HH:MM:SS")
 
 
 function gibbs(init::T, update!::Function;
-               monitors::Vector{Vector{Symbol}}=monitor_default(),
+               monitors::Vector{Vector{Symbol}}=monitors_default(),
                nsamps::Vector{Int}=[1000], nburn::Int=0,
                thin::Int=1, callback_fn::Function=default_callback_fn,
                verbose::Int=1) where T

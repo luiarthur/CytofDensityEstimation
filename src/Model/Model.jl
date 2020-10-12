@@ -2,6 +2,7 @@ module Model
 
 using Distributions
 using StatsFuns
+import Printf
 
 include("../Util/Util.jl")
 include("../MCMC/MCMC.jl")
@@ -11,5 +12,7 @@ include("State.jl")
 include("Tuners.jl")
 include("loglike.jl")
 include("updates/update.jl")
+include("fit.jl")
+include("postprocess.jl")
 
 end # module

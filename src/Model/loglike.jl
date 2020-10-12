@@ -39,7 +39,52 @@ function marginal_loglike_latent_var(gamma::AbstractFloat,
   loc = mu' .+ psi' .* zeta
   scale = sqrt.(omega)' ./ sqrt.(v)
   g = logsumexp(normlogpdf.(loc, scale, yfinite) .+ 
-                gammalogpdf.(nu'/2, nu'/2, v) .+
+                gammalogpdf.(nu' / 2, 2 ./ nu', v) .+
                 log.(eta)', dims=2)
   return Z * log(gamma) + Nfinite * log1p(-gamma) * sum(g)
+end
+
+
+
+"""
+Loglikelihood for sample i. Does not marginalize over lambda, and uses Normal
+likelihood using latent variable representation of skew-t.
+"""
+function loglike_latent_var(gamma::AbstractFloat,
+                            lambda::Vector{Int},
+                            mu::AbstractVector{<:Real},
+                            psi::AbstractVector{<:Real},
+                            omega::AbstractVector{<:Real},
+                            nu::AbstractVector{<:Real},
+                            zeta::AbstractVector{<:Real},
+                            v::AbstractVector{<:Real}, N::Int,
+                            yfinite::AbstractVector{<:Real})
+  Nfinite = length(yfinite)
+  Z = N - Nfinite
+
+  loc = mu[lambda] + psi[lambda] .* zeta
+  scale = sqrt.(omega)[lambda] ./ sqrt.(v)
+  F = sum(normlogpdf.(loc, scale, yfinite))
+  return Z * log(gamma) + Nfinite * log1p(-gamma) * sum(F)
+end
+
+
+"""
+Loglikelihood for sample i. Does not marginalize over lambda, and uses Normal
+likelihood using latent variable representation of skew-t. Arguments 
+are `state::State` and `data::Data` only.
+"""
+function loglike_latent_var(state::State, data::Data; normalize::Bool=false)
+  gammaC = state.gammaC
+  gammaT = state.beta ? state.gammaT : state.gammaC
+
+  llC = loglike_latent_var(gammaC, state.lambdaC, state.mu, state.psi,
+                           state.omega, state.nu, state.zetaC, state.vC,
+                           data.NC, data.yC_finite)
+
+  llT = loglike_latent_var(gammaT, state.lambdaT, state.mu, state.psi,
+                           state.omega, state.nu, state.zetaT, state.vT,
+                           data.NT, data.yT_finite)
+
+  return llC + llT
 end
