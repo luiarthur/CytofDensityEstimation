@@ -31,7 +31,7 @@ function marginal_loglike_latent_var(
   K = length(eta)
 
   loc = mu' .+ psi' .* zeta
-  scale = sqrt.(omega)' ./ v
+  scale = sqrt.(omega)' ./ sqrt.(v)
   g = logsumexp(normlogpdf.(loc, scale, yfinite) .+ 
                 gammalogpdf.(nu'/2, nu'/2, v) .+
                 log.(eta)', dims=2)
