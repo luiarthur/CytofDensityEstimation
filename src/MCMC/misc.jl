@@ -32,7 +32,7 @@ end
 log pdf of gaussian mixture model, for a vector of x of size N and (m: mixture
 locations, s: mixture scales, w: mixture weights) each vectors of size K
 """
-function gmmlogpdf(x, m, s, w; dims)
+function gmmlogpdf(m, s, w, x; dims)
   return logsumexp(normlogpdf.(m, s, x) .+ log.(w), dims=dims)
 end
 
@@ -41,7 +41,7 @@ end
 log pdf of gaussian mixture model, for a scalar x N and (m: mixture locations,
 s: mixture scales, w: mixture weights) each vectors of size K
 """
-function gmmlogpdf(x::Real, m, s, w)
+function gmmlogpdf(m, s, w, x::Real)
   return logsumexp(normlogpdf.(m, s, x) .+ log.(w))
 end
 
