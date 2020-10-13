@@ -5,8 +5,9 @@ RESULTS_DIR = results/$(SIMNAME)
 
 compile: .model.pkl
 
-.model.pkl: model.stan
-	PYTHONPATH="" && . venv/bin/activate && time python compile_stan_model.py
+.model.pkl: model_reparameterized.stan
+	# PYTHONPATH="" && . venv/bin/activate && time python compile_stan_model.py
+	time python3 compile_stan_model.py
 
 sim-study: compile
 	for method in advi nuts; do \

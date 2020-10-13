@@ -143,7 +143,6 @@ if __name__ == '__main__':
 
     # Load model.
     sm = pickle.load(open(f'.model.pkl', 'rb'))
-    # sm = pystan.StanModel('model_reparameterized.stan')
 
     # Scenarios:
     # - stan_seed = (1, 5) (for VB only)

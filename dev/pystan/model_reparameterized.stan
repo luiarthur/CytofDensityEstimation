@@ -69,18 +69,21 @@ functions {
     return sum(res);
   }
 
-  matrix skew_t_lpdf_hierarchical(real[] y_finite, matrix zeta,
-                                  vector loc, vector scale, vector phi) {
+  matrix skew_t_lpdf_hierarchical(real[] y_finite, vector zeta, vector v,
+                                  vector loc, vector scale, vector nu, vector phi) {
     int N_finite = size(y_finite);
     int K = rows(loc);
     matrix[N_finite, K] F;
-    vector[K] delta = phi ./ sqrt(1 + phi .* phi);
+    vector[K] omega_root = scale ./ sqrt(1 + phi .* phi);
+    vector[K] psi = phi .* omega_root .* omega_root;
     real loc_nk;
-    vector[K] scales = scale .* sqrt(1 - delta .* delta);
+    real scale_nk;
 
     for (n in 1:N_finite) for (k in 1:K) {
-      loc_nk = loc[k] + scale[k] * zeta[n, k] * delta[k];
-      F[n, k] = normal_lpdf(y_finite[n] | loc_nk, scales[k]);
+      loc_nk = loc[k] + psi[k] * zeta[n];
+      scale_nk = omega_root[k] / sqrt(v[n]);
+      F[n, k] = normal_lpdf(y_finite[n] | loc_nk, scale_nk);
+      F[n, k] += gamma_lpdf(v[n] | nu[k]/2, nu[k]/2);
     }
 
     return F;
@@ -142,10 +145,10 @@ parameters {
   // Hierarchical representation of skew-t.
   vector[K] mu;  // mixture locations. (Don't care about order.)
   vector[K] phi;
-  matrix<lower=0>[N_finite_C, K] v_C;
-  matrix<lower=0>[N_finite_T, K] v_T;
-  matrix<lower=0>[N_finite_C, K] zeta_C;
-  matrix<lower=0>[N_finite_T, K] zeta_T;
+  vector<lower=0>[N_finite_C] v_C;
+  vector<lower=0>[N_finite_T] v_T;
+  vector<lower=0>[N_finite_C] zeta_C;
+  vector<lower=0>[N_finite_T] zeta_T;
   vector<lower=0>[K] sigma_sq;  // mixture scales.
   vector<lower=0>[K] nu;  // mixture degrees of freedoms.
 }
@@ -169,12 +172,8 @@ model {
   eta_C ~ dirichlet(a_eta);
 
   // auxiliary parameters
-  for (k in 1:K) {
-    v_C[:, k] ~ gamma(nu[k]/2, nu[k]/2);
-    v_T[:, k] ~ gamma(nu[k]/2, nu[k]/2);
-    for (n in 1:N_finite_C) zeta_C[n, k] ~ normal(0, sqrt(1/v_C[n, k]))T[0, ];
-    for (n in 1:N_finite_T) zeta_T[n, k] ~ normal(0, sqrt(1/v_T[n, k]))T[0, ];
-  }
+  for (n in 1:N_finite_C) zeta_C[n] ~ normal(0, sqrt(1/v_C[n]))T[0, ];
+  for (n in 1:N_finite_T) zeta_T[n] ~ normal(0, sqrt(1/v_T[n]))T[0, ];
 
   // Mixture parameters.
   mu ~ normal(mu_bar, s_mu);  // locations
@@ -183,8 +182,8 @@ model {
   phi ~ normal(m_phi, s_phi);  // skewness
   
   // Matrix of skew t lpdf evaluations.
-  FC_finite = skew_t_lpdf_hierarchical(y_finite_C, zeta_C, mu, sigma, phi);
-  FT_finite = skew_t_lpdf_hierarchical(y_finite_T, zeta_T, mu, sigma, phi);
+  FC_finite = skew_t_lpdf_hierarchical(y_finite_C, zeta_C, v_C, mu, sigma, nu, phi);
+  FT_finite = skew_t_lpdf_hierarchical(y_finite_T, zeta_T, v_T, mu, sigma, nu, phi);
 
   target += loglike(FC_finite, N_neginf_C, eta_C, gamma_C);
   target += log_mix(p,
@@ -197,14 +196,16 @@ generated quantities {
   real ll = 0;
   real beta;
   {
-    matrix[N_finite_C, K] FC_finite = skew_t_lpdf_hierarchical(y_finite_C, zeta_C, mu, sigma, phi);
-    matrix[N_finite_T, K] FT_finite = skew_t_lpdf_hierarchical(y_finite_T, zeta_T, mu, sigma, phi);
+    matrix[N_finite_C, K] FC_finite = skew_t_lpdf_hierarchical(
+      y_finite_C, zeta_C, v_C, mu, sigma, nu, phi);
+    matrix[N_finite_T, K] FT_finite = skew_t_lpdf_hierarchical(
+      y_finite_T, zeta_T, v_T, mu, sigma, nu, phi);
 
     real llC = loglike(FC_finite, N_neginf_C, eta_C, gamma_C);
     real llTT = loglike(FT_finite, N_neginf_T, eta_T, gamma_T);
     real llTC = loglike(FT_finite, N_neginf_T, eta_C, gamma_C);
     real llT = log_mix(p, llTT, llTC);
-    real logit_prob_beta_is_1 = log(p) + llTT - (log1m(p) + llTC);
+    real logit_prob_beta_is_1 = logit(p) + llTT - llTC;
 
     ll = llC + llT;
     beta = inv_logit(logit_prob_beta_is_1) > uniform_rng(0, 1);
