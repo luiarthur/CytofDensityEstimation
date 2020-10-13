@@ -7,7 +7,7 @@ end
 
 function update_v!(i::Char, state::State, data::Data, prior::Prior)
   lami = ref_lambda(state, i)
-  zetai = ref_lambda(state, i)
+  zetai = ref_zeta(state, i)
   yi = ref_yfinite(data, i)
   vi = ref_v(state, i)
 

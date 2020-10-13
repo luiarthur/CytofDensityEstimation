@@ -24,3 +24,8 @@ function fetch_skewt_stats(chain; altskew_sym=:psi, altvar_sym=:omega)
 
   return (skew=skew, scale=scale)
 end
+
+
+function posterior_density(chain, ygrid)
+  # TODO
+end

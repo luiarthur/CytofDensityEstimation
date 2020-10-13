@@ -11,7 +11,7 @@ function sample_lambda(y::AbstractVector{<:Real}, mu::AbstractVector{<:Real},
                        zeta::AbstractVector{<:Real}, v::AbstractVector{<:Real})
   logeta = log.(eta)
   lambda = [let
-              loc = mu + psi .* zeta[n]
+              loc = mu + psi * zeta[n]
               scale = sqrt.(omega) / sqrt(v[n])
               logmix = normlogpdf.(loc, scale, y[n]) .+ logeta
               MCMC.wsample_logprob(logmix)

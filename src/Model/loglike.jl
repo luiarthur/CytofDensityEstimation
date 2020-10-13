@@ -1,3 +1,5 @@
+# TODO: Check math again!
+
 """
 Marginal loglikelihood for sample i. Marginalizes over lambda and uses
 skew-t likelihood.
@@ -74,7 +76,7 @@ Loglikelihood for sample i. Does not marginalize over lambda, and uses Normal
 likelihood using latent variable representation of skew-t. Arguments 
 are `state::State` and `data::Data` only.
 """
-function loglike_latent_var(state::State, data::Data; normalize::Bool=false)
+function loglike_latent_var(state::State, data::Data)
   gammaC = state.gammaC
   gammaT = state.beta ? state.gammaT : state.gammaC
 

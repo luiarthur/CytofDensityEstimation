@@ -16,7 +16,7 @@ function update_omega!(state::State, data::Data, prior::Prior)
   end
 
   anew = a .+ akernel / 2
-  bnew = b .+ akernel / 2
+  bnew = b .+ bkernel / 2
 
   for k in 1:prior.K
     state.omega[k] = rand(InverseGamma(anew[k], bnew[k]))
