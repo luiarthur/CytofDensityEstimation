@@ -17,8 +17,8 @@ include("runtests.jl")
     data = CDE.Model.Data([fill(-Inf, 300); randn(900)],
                           [fill(-Inf, 300); randn(700)])
     # NOTE: When the two distributions are the same, E[beta|data,param]
-    # approaches 50% because the parameters gammaC, gammaT, etaC, etaT
-    # can be qualitatively similar.
+    # approaches 50% because the parameters gammaC, gammaT, etaC, etaT can be
+    # qualitatively similar. So, p needs to be informatively small apriori?
   end
 
   prior = CDE.Model.Prior(K, p=Beta(10, 90))
