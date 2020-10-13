@@ -23,10 +23,14 @@ function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners;
   # NOTE: `lambda` must be updated immediately after updating beta since lambda
   # is marginalized over in the update of beta. Marginalizing over lambda makes
   # updates for beta slower, but the mixing will be faster.
-  isfixed(:lambda) || update_lambda!(state, data, prior)  
+  isfixed(:lambdaC) || update_lambdaC!(state, data, prior)  
+  isfixed(:lambdaT) || update_lambdaT!(state, data, prior)  
 
-  isfixed(:gamma) || update_gamma!(state, data, prior)
-  isfixed(:eta) || update_eta!(state, data, prior)
+  isfixed(:gammaC) || update_gammaC!(state, data, prior)
+  isfixed(:etaC) || update_etaC!(state, data, prior)
+  isfixed(:gammaT) || update_gammaT!(state, data, prior)
+  isfixed(:etaT) || update_etaT!(state, data, prior)
+
   isfixed(:mu) || update_mu!(state, data, prior)
   isfixed(:nu) || update_nu!(state, data, prior, tuners)
   isfixed(:omega) || update_omega!(state, data, prior)
