@@ -60,8 +60,12 @@ function SkewT(; loc, scale, altscale, altskew)
 end
 
 
+skewfromaltskewt(altscale, altskew) = altskew / sqrt(altscale)
+scalefromaltskewt(altscale, altskew) = sqrt(altskew^2 + altscale^2)
+
+
 function fromaltskewt(altscale, altskew)
-  skew = altskew / sqrt(altscale)
-  scale = sqrt(altskew^2 + altscale^2)
+  skew = skewfromaltskewt(altscale, altskew)
+  scale = scalefromaltskewt(altscale, altskew)
   return [scale, skew]
 end

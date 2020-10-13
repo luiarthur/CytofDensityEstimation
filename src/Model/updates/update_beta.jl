@@ -11,9 +11,8 @@ function update_beta!(state::State, data::Data, prior::Prior,
                                       state.zetaT, state.vT, data.NT,
                                       data.yT_finite)
   else
-    scale_skew = Matrix(hcat(Util.fromaltskewt.(sqrt.(state.omega), state.psi)...))
-    scale = scale_skew[1, :]
-    skew = scale_skew[2, :]
+    scale = Util.scalefromaltskewt.(sqrt.(state.omega), state.psi)
+    skew = Util.skewfromaltskewt.(sqrt.(state.omega), state.psi)
 
     llC = marginal_loglike(state.gammaC, state.etaC,
                            state.mu, scale, state.nu, skew, data.NT, 

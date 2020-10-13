@@ -127,7 +127,7 @@ function gibbs(init::T, update!::Function;
 
     # Append summary statistics if callback returns something.
     if summary_stat != nothing
-      append!(summary_stats, summary_stat)
+      append!(summary_stats, [summary_stat])
     end
 
     # This is needed so that `/usr/bin/tail` in works properly

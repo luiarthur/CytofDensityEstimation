@@ -6,3 +6,16 @@ function group(sym::Symbol, chain)
     end
   end
 end
+
+
+function fetch_skewt_stats(chain, altskew_sym=:psi, altvar_sym=:omega)
+  altskew = group(altskew_sym, chain)
+  altvar = group(altvar_sym, chain)
+
+  skew = [Util.skewfromaltskewt.(sqrt.(altvar[b]), altskew[b])
+          for b in eachindex(altskew)]
+  scale = [Util.scalefromaltskewt.(sqrt.(altvar[b]), altskew[b])
+           for b in eachindex(altskew)]
+
+  return (skew=skew, scale=scale)
+end

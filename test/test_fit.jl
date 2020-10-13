@@ -24,6 +24,19 @@ include("runtests.jl")
 
   chain, laststate, summarystats = CDE.Model.fit(state, data, prior, tuners)
 
-  println(mean(CDE.Model.group(:p, chain)))
-  println(mean(CDE.Model.group(:beta, chain)))
+  println("mean p: ", mean(CDE.Model.group(:p, chain)))
+  println("mean beta: ", mean(CDE.Model.group(:beta, chain)))
+  println("mean etaC: ", mean(CDE.Model.group(:etaC, chain)))
+  println("mean etaT ", mean(CDE.Model.group(:etaT, chain)))
+  println("mean gammaC: ", mean(CDE.Model.group(:gammaC, chain)))
+  println("mean gammaT ", mean(CDE.Model.group(:gammaT, chain)))
+  println("mean nu ", mean(CDE.Model.group(:nu, chain)))
+
+  skew, scale = CDE.Model.fetch_skewt_stats(chain)
+  println("Mean skew: ", mean(skew))
+  println("Mean scale: ", mean(scale))
+
+  # Plots
+  ll = [s[:loglike] for s in summarystats]
+  plot(ll); savefig("img/ll.pdf")
 end

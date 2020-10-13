@@ -7,7 +7,6 @@ end
 
 @testset "Gibbs" begin
   init = MyState(0.0, 0.0, 0.0, 0.0)
-  loglike = []
 
   function callback_fn(state, iter, pbar)
     out = nothing
