@@ -6,6 +6,7 @@ import Printf
 
 include("../Util/Util.jl")
 include("../MCMC/MCMC.jl")
+include("Simulate.jl")
 include("Data.jl")
 include("Prior.jl")
 include("State.jl")

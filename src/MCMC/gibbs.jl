@@ -108,7 +108,7 @@ function gibbs(init::T, update!::Function;
   pbar = ProgressBar(1:nmcmc)
 
   # Print time at beginning of MCMC.
-  println(showtime()); flush(stdout)
+  println("Start time: ", showtime()); flush(stdout)
 
   # Gibbs loop.
   for i in pbar
@@ -137,7 +137,7 @@ function gibbs(init::T, update!::Function;
   end
 
   # Print end time.
-  println(showtime()); flush(stdout)
+  println("End time: ", showtime()); flush(stdout)
 
   # Return chain, last state, and summary statistics.
   return (chain, state, summary_stats)

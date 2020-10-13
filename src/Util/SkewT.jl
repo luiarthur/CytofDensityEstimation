@@ -23,7 +23,8 @@ function skewtpdf(loc::Real, scale::Real, df::Real, skew::Real, x::Real)
 end
 
 
-function randskewt(rng::AbstractRNG, loc::Real, scale::Real, df::Real, skew::Real)
+function randskewt(rng::Random.AbstractRNG, loc::Real, scale::Real, df::Real,
+                   skew::Real)
   w = rand(rng, Gamma(df/2, 2/df))
   inv_sqrt_w = sqrt(1 / w)
   z = rand(rng, truncated(Normal(0, inv_sqrt_w), 0, Inf))
@@ -38,7 +39,7 @@ function randskewt(loc::Real, scale::Real, df::Real, skew::Real)
 end
 
 
-function Distributions.rand(rng::AbstractRNG,
+function Distributions.rand(rng::Random.AbstractRNG,
                             d::SkewT{<:Real, <:Real, <:Real, <:Real})
   return randskewt(rng, d.loc, d.scale, d.df, d.skew)
 end

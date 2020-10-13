@@ -1,7 +1,7 @@
 module Util
 
 using Distributions
-import Random: AbstractRNG, GLOBAL_RNG
+import Random
 using StatsFuns
 
 include("SkewT.jl")
