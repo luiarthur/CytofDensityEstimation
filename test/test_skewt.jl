@@ -1,6 +1,15 @@
 @testset "SkewT" begin
   # Test it compiles.
   st = CDE.Util.SkewT(randn()*3, rand(), rand(LogNormal(3.5, .5)), rand()*3)
+
+  skew = -3
+  scale = 2
+ 
+  altskew = CDE.Util.toaltskew(scale, skew)
+  altscale = CDE.Util.toaltscale(scale, skew)
+
+  @test isapprox(CDE.Util.scalefromaltskewt(altscale, altskew), scale)
+  @test isapprox(CDE.Util.skewfromaltskewt(altscale, altskew), skew)
 end
 
 #= Test via plots
