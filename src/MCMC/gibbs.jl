@@ -81,7 +81,8 @@ function gibbs(init::T, update!::Function;
   verbose > 0 && println("Total number of MCMC iterations: $(nmcmc)")
 
   # Thin factor for each monitor
-  thins = div.(nmcmc, nsamps)
+  thins = div.(nmcmc - nburn, nsamps)
+  println("Thinning factors: ", thins)
 
   # Check monitor
   if num_monitors == 0

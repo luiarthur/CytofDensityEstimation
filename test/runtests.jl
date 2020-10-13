@@ -10,6 +10,10 @@ using Distributions
 using StatsFuns
 using Statistics
 using ProgressBars
+using StatsPlots
+# NOTE: Might need to set
+# ENV["GRDIR"] = ""
+# ENV["GKSwstype"] = "nul"
 
 const CDE = CytofDensityEstimation
 

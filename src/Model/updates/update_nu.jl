@@ -13,7 +13,7 @@ function update_nu!(k::Int, state::State, data::Data, prior::Prior,
     logprior = normlogpdf(m, s, log_nu_k)
 
     nu_k = exp(log_nu_k)
-    loglike = zero(state.vC[1])
+    loglike = zero(state.p)
     for i in samplenames
       lam = ref_lambda(state, i)
       v = ref_v(state, i)
@@ -25,6 +25,7 @@ function update_nu!(k::Int, state::State, data::Data, prior::Prior,
     return logprior + loglike
   end
 
-  state.nu[k] = MCMC.metLogAdaptive(state.nu[k], log_prob, tuners.nu[k])
+  state.nu[k] = exp(MCMC.metropolisAdaptive(log(state.nu[k]),
+                                            log_prob, tuners.nu[k]))
 end
 
