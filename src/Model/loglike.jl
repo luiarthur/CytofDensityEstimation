@@ -17,7 +17,7 @@ function marginal_loglike(gamma::AbstractFloat,
 
   f = logsumexp(Util.skewtlogpdf.(loc', scale', df', skew', yfinite) .+ 
                 log.(eta)', dims=2)
-  return Z * log(gamma) + Nfinite * log1p(-gamma) * sum(f)
+  return Z * log(gamma) + Nfinite * log1p(-gamma) + sum(f)
 end
 
 
@@ -43,7 +43,7 @@ function marginal_loglike_latent_var(gamma::AbstractFloat,
   g = logsumexp(normlogpdf.(loc, scale, yfinite) .+ 
                 gammalogpdf.(nu' / 2, 2 ./ nu', v) .+
                 log.(eta)', dims=2)
-  return Z * log(gamma) + Nfinite * log1p(-gamma) * sum(g)
+  return Z * log(gamma) + Nfinite * log1p(-gamma) + sum(g)
 end
 
 
@@ -67,7 +67,7 @@ function loglike_latent_var(gamma::AbstractFloat,
   loc = mu[lambda] + psi[lambda] .* zeta
   scale = sqrt.(omega)[lambda] ./ sqrt.(v)
   F = sum(normlogpdf.(loc, scale, yfinite))
-  return Z * log(gamma) + Nfinite * log1p(-gamma) * sum(F)
+  return Z * log(gamma) + Nfinite * log1p(-gamma) + sum(F)
 end
 
 
