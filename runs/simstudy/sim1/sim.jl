@@ -20,7 +20,6 @@ using LaTeXStrings
 using Distributions
 using HypothesisTests
 import Random
-import StatsPlots.KernelDensity.kde
 
 const CDE = CytofDensityEstimation
 
@@ -28,7 +27,7 @@ Random.seed!(2);
 simdata = CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.2,
                                      etaC=[.5, .5, 0], etaT=[.5, .2, .3],
                                      # etaC=[.5, .5, 0], etaT=[.5, .5, .0],
-                                     loc=[-1, 1, 3.], scale=[1, 1, 1],
+                                     loc=[-1, 1, 3.], scale=[1, 1, 1]/10,
                                      df=[15, 30, 10], skew=[-20, -5, 0.])
 
 yC, yT = simdata[:yC], simdata[:yT]
@@ -39,7 +38,7 @@ density!(yT[isfinite.(yT)], lw=3, label=L"y_T", legendfont=legendfont,
          color=:red)
 
 Random.seed!(1)
-K = 7
+K = 6
 data = CDE.Model.Data(yC, yT)
 prior_mu = let 
   yfinite = [data.yC_finite; data.yT_finite]
@@ -84,8 +83,8 @@ tuners = CDE.Model.Tuners(K)
 # fix=[:gammaC, :gammaT, :etaC, :etaT, :nu]
 # fix=[:gammaC, :gammaT, :etaC, :etaT, :v]
 # fix=[:v]
-fix=Symbol[]
-# fix=Symbol[:nu]
+# fix=Symbol[]
+fix=Symbol[:nu]
 
 flags=Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
 # flags=Symbol[]  # TODO: Test this case.
@@ -114,22 +113,14 @@ omega = CDE.Model.group(:omega, chain)
 
 CDE.Model.printsummary(chain, summarystats)
 
-ygrid = range(-6, 6, length=1000)
-post_dens = CDE.Model.posterior_density(chain, ygrid)
+# CDE.Model.plot_posterior_predictive(yC, yT, chain, 0.1)
+# CDE.Model.plot_gamma(yC, yT, chain)
+@time CDE.Model.plotpostsummary(chain, summarystats, yC, yT, "img", 
+                                simdata=simdata, bw_postpred=.1)
 
-pdfC_lower = CDE.Model.MCMC.quantiles(hcat(post_dens[1]...), .025, dims=2)
-pdfC_upper = CDE.Model.MCMC.quantiles(hcat(post_dens[1]...), .975, dims=2)
-pdfT_lower = CDE.Model.MCMC.quantiles(hcat(post_dens[2]...), .025, dims=2)
-pdfT_upper = CDE.Model.MCMC.quantiles(hcat(post_dens[2]...), .975, dims=2)
-pdfC_mean = mean(post_dens[1])
-pdfT_mean = mean(post_dens[2])
-
-# Plot density
-plot(kde(yC[isfinite.(yC)], bandwidth=.3), lw=3, label=L"y_C",
-     legendfont=legendfont, color=:blue, ls=:dot)
-plot!(kde(yT[isfinite.(yT)], bandwidth=.3), lw=3, label=L"y_T",
-     legendfont=legendfont, color=:red, ls=:dot)
-plot!(ygrid, pdfC_mean, ribbon=(pdfC_mean-pdfC_lower, pdfC_upper-pdfC_mean),
-     color=:blue)
-plot!(ygrid, pdfT_mean, ribbon=(pdfT_mean-pdfT_lower, pdfT_upper-pdfT_mean),
-      color=:red)
+# Hard to recover (for K≥3):
+# simdata = CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.2,
+#                                      etaC=[.5, .5, 0], etaT=[.5, .2, .3],
+#                                      loc=[-1, 1, 3.], scale=[1, 1, 1]/10,
+#                                      df=[15, 30, 10], skew=[-20, -5, 0.])
+# - nu, phi (psi). All other parameters are easily recovered.

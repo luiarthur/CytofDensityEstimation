@@ -4,6 +4,10 @@ using Distributions
 using StatsFuns
 import Printf
 
+# For plotting.
+using StatsPlots, LaTeXStrings
+import StatsPlots.KernelDensity.kde
+
 include("../Util/Util.jl")
 using .Util: SkewT
 
