@@ -10,6 +10,7 @@
 # - [ ] If beta goes from 0 -> 1, update all other parameters 50-100 times.
 # - [ ] Or if beta goes from 1 -> 0, stop updating gammaT and etaT.
 # - Issues: cannot recover mu. Seems to be related to (v, zeta).
+# - NOTE: nu is a trouble-maker. Fixing it solves most of the problems!!! 
 
 import Pkg; Pkg.activate("../../../")
 
@@ -26,8 +27,9 @@ const CDE = CytofDensityEstimation
 Random.seed!(2);
 simdata = CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.2,
                                      etaC=[.5, .5, 0], etaT=[.5, .2, .3],
+                                     # etaC=[.5, .5, 0], etaT=[.5, .5, .0],
                                      loc=[-1, 1, 3.], scale=[1, 1, 1],
-                                     df=[150, 300, 100], skew=[-20, -5, 0.])
+                                     df=[15, 30, 10], skew=[-20, -5, 0.])
 
 yC, yT = simdata[:yC], simdata[:yT]
 legendfont=font(12)
@@ -36,15 +38,14 @@ density(yC[isfinite.(yC)],  lw=3, label=L"y_C", legendfont=legendfont,
 density!(yT[isfinite.(yT)], lw=3, label=L"y_T", legendfont=legendfont,
          color=:red)
 
-
 Random.seed!(1)
-K = 5
+K = 7
 data = CDE.Model.Data(yC, yT)
 prior_mu = let 
   yfinite = [data.yC_finite; data.yT_finite]
   Normal(mean(yfinite), std(yfinite)*3)
 end
-prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(5, .1))
+prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(3, .01), p=Beta(.1, .9))
 state = CDE.Model.State(data, prior)
 tuners = CDE.Model.Tuners(K)
 
@@ -58,23 +59,23 @@ tuners = CDE.Model.Tuners(K)
 #                                                 nsamps=[1000], nburn=2000,
 #                                                 fix=[:beta])
 
-state.beta = true
-state.gammaC = simdata[:gammaC]
-state.gammaT = simdata[:gammaT]
-state.etaC .= [simdata[:etaC]; zeros(2)]
-state.etaT .= [simdata[:etaT]; zeros(2)]
-state.mu .= [simdata[:loc]; rand(prior.mu, 2)]
-state.nu .= [simdata[:df]; rand(prior.nu, 2)]
-state.vC .= 1
-state.vT .= 1
-state.psi .= let
-  _psi = CDE.Util.toaltskew.(simdata[:scale], simdata[:skew])
-  [_psi; rand(prior.psi, 2)]
-end
-state.omega .= let
-  _omega = CDE.Util.toaltscale.(simdata[:scale], simdata[:skew]) .^ 2
-  [_omega; rand(prior.omega, 2)]
-end
+# state.beta = true
+# state.gammaC = simdata[:gammaC]
+# state.gammaT = simdata[:gammaT]
+# state.etaC .= [simdata[:etaC]; zeros(2)]
+# state.etaT .= [simdata[:etaT]; zeros(2)]
+# state.mu .= [simdata[:loc]; rand(prior.mu, 2)]
+# state.nu .= [simdata[:df]; rand(prior.nu, 2)]
+# state.vC .= 1
+# state.vT .= 1
+# state.psi .= let
+#   _psi = CDE.Util.toaltskew.(simdata[:scale], simdata[:skew])
+#   [_psi; rand(prior.psi, 2)]
+# end
+# state.omega .= let
+#   _omega = CDE.Util.toaltscale.(simdata[:scale], simdata[:skew]) .^ 2
+#   [_omega; rand(prior.omega, 2)]
+# end
 
 # fix=[:gammaC, :gammaT, :mu, :nu, :omega, :psi, :etaC, :etaT]
 # fix=[:gammaC, :gammaT, :mu, :nu, :omega, :psi, :v]
@@ -84,13 +85,14 @@ end
 # fix=[:gammaC, :gammaT, :etaC, :etaT, :v]
 # fix=[:v]
 fix=Symbol[]
+# fix=Symbol[:nu]
 
 flags=Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
 # flags=Symbol[]  # TODO: Test this case.
 
 init = deepcopy(state)
 chain, laststate, summarystats = CDE.Model.fit(init, data, prior, tuners,
-                                               nsamps=[500], nburn=2000,
+                                               nsamps=[1000], nburn=1000,
                                                fix=fix, flags=flags)
 # v, zeta, lambda
 

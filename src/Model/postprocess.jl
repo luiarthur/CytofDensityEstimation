@@ -56,6 +56,7 @@ end
 
 function printsummary(chain, summarystats, laststate=nothing)
   ll = [s[:loglike] for s in summarystats]
+  p = group(:p, chain)
   gammaC = group(:gammaC, chain)
   gammaT = group(:gammaT, chain)
   phi = group(:phi, chain)
@@ -69,6 +70,7 @@ function printsummary(chain, summarystats, laststate=nothing)
   psi = group(:psi, chain)
   omega = group(:omega, chain)
 
+  println("mean p: ", mean(p))
   println("mean beta: ", mean(beta))
   println("mean gammaC: ", mean(gammaC))
   println("mean gammaT[β=1]: ", mean(gammaT[beta .== 1]))
