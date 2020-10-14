@@ -18,8 +18,8 @@ function generate_sample(; N::Int, gamma::Real, eta::AbstractVector{<:Real},
   K = length(eta)
   Ninf= rand(Binomial(N, gamma))
   Nfinite = N - Ninf
-  lam = rand(Categorical(eta), Nfinite)
-  yfinite = Util.randskewt.(loc[lam], scale[lam], df[lam], skew[lam])
+  mm = MixtureModel([SkewT(loc[k], scale[k], df[k], skew[k]) for k in 1:K], eta)
+  yfinite = rand(mm, Nfinite)
   return [yfinite; fill(-Inf, Ninf)]
 end
 

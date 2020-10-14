@@ -1,6 +1,6 @@
 function update_nu!(state::State, data::Data, prior::Prior, tuners::Tuners)
   # NOTE: This could be optimized.
-  for k in 1:prior.K
+  for k in eachindex(state.nu)
     update_nu!(k, state, data, prior, tuners)
   end
 end
@@ -15,10 +15,10 @@ function update_nu!(k::Int, state::State, data::Data, prior::Prior,
     nu_k = exp(log_nu_k)
     loglike = zero(state.p)
     for i in samplenames
-      lam = ref_lambda(state, i)
-      v = ref_v(state, i)
-      for n in eachindex(v)
-        (lam[n] == k) && (loglike += gammalogpdf(nu_k/2, 2/nu_k, v[n]))
+      lami = ref_lambda(state, i)
+      vi = ref_v(state, i)
+      for n in eachindex(vi)
+        (lami[n] == k) && (loglike += gammalogpdf(nu_k/2, 2/nu_k, vi[n]))
       end
     end
 
@@ -28,4 +28,3 @@ function update_nu!(k::Int, state::State, data::Data, prior::Prior,
   state.nu[k] = exp(MCMC.metropolisAdaptive(log(state.nu[k]),
                                             log_prob, tuners.nu[k]))
 end
-

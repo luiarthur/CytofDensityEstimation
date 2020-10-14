@@ -5,6 +5,8 @@ using StatsFuns
 import Printf
 
 include("../Util/Util.jl")
+using .Util: SkewT
+
 include("../MCMC/MCMC.jl")
 include("Simulate.jl")
 include("Data.jl")

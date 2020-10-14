@@ -31,8 +31,8 @@ function State(data::Data, prior::Prior)
   nu = rand(prior.nu, prior.K)
   omega = rand(prior.omega, prior.K)
   psi = rand(prior.psi, prior.K)
-  vC = rand(Gamma(mean(nu)/2, 2/mean(nu)), data.NC_finite)
-  vT = rand(Gamma(mean(nu)/2, 2/mean(nu)), data.NT_finite)
+  vC = [rand(Gamma(nu[k]/2, 2/nu[k])) for k in lambdaC]
+  vT = [rand(Gamma(nu[k]/2, 2/nu[k])) for k in lambdaT]
   zetaC = [rand(truncated(Normal(0, sqrt(1/v)), 0, Inf)) for v in vC]
   zetaT = [rand(truncated(Normal(0, sqrt(1/v)), 0, Inf)) for v in vT]
 
@@ -41,8 +41,8 @@ function State(data::Data, prior::Prior)
 end
 
 
-ref_gamma(state::State, i::Char) = i == 'C' ? state.zetaC : state.zetaT
-ref_eta(state::State, i::Char) = i == 'C' ? state.etaC : state.etaT
-ref_lambda(state::State, i::Char) = i == 'C' ? state.lambdaC : state.lambdaT
-ref_v(state::State, i::Char) = i == 'C' ? state.vC : state.vT
-ref_zeta(state::State, i::Char) = i == 'C' ? state.zetaC : state.zetaT
+ref_gamma(state::State, i::Char) = (i == 'C') ? state.gammaC : state.gammaT
+ref_eta(state::State, i::Char) = (i == 'C') ? state.etaC : state.etaT
+ref_lambda(state::State, i::Char) = (i == 'C') ? state.lambdaC : state.lambdaT
+ref_v(state::State, i::Char) = (i == 'C') ? state.vC : state.vT
+ref_zeta(state::State, i::Char) = (i == 'C') ? state.zetaC : state.zetaT

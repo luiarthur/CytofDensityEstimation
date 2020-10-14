@@ -7,12 +7,12 @@ default_monitors() = [[:p, :beta, :gammaC, :gammaT, :etaC, :etaT, :mu, :nu,
 complete_monitors() = [default_monitors()[1],
                       [:lambdaC, :lambdaT, :vC, :vT, :zetaC, :zetaT]]
 
-default_flags() = [:update_beta_with_latent_var_like]
+default_flags() = [:update_beta_with_skewt, :update_lambda_with_skewt]
 
 function default_callback_fn(state::State, data::Data, prior::Prior,
                              iter::Int, pbar::MCMC.ProgressBars.ProgressBar)
-  ll = loglike_latent_var(state, data)
-  MCMC.ProgressBars.set_description(pbar, string(Printf.@sprintf("loglike: %.3e", ll)))
+  ll = round(loglike_latent_var(state, data), digits=3)
+  MCMC.ProgressBars.set_description(pbar, "Loglike: $(ll)")
   return Dict(:loglike => ll)
 end
 
@@ -28,7 +28,8 @@ end
 - `monitors::Vector{Vector{Symbol}}`: Parameters to keep samples of. Defaults
    to `default_monitors()`.
 - `fix::Vector{Symbol}`: Parameters to hold constant. Defaults to `Symbol[]`.
-- `flags::Vector{Symbol}`: Available options include `:update_beta_with_latent_var_like`.
+- `flags::Vector{Symbol}`: Available options include `:update_beta_with_skewt`
+   and `:update_lambda_with_skewt`.
    Defaults to `default_flags()`.
 - `verbose::Int`: How much info to print. Defaults to 1.
 - `callback_fn`: A function with signature `(state::State, data::Data,
@@ -41,8 +42,21 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
              callback_fn::Function=default_callback_fn,
              fix::Vector{Symbol}=Symbol[],
              flags::Vector{Symbol}=default_flags(), verbose::Int=1)
+  println(flags)
+  isfixed(sym::Symbol) = sym in fix
+
   function update!(state)
+    prev_beta = state.beta
+
     update_state!(state, data, prior, tuners, fix=fix, flags=flags)
+
+    # if state.beta != prev_beta
+    #   for _ in 1:20
+    #     isfixed(:lambdaT) || update_lambdaT!(state, data, prior, flags)
+    #     isfixed(:etaT) || update_etaT!(state, data, prior)
+    #     isfixed(:gammaT) || update_gammaT!(state, data, prior)
+    #   end
+    # end
   end
 
   function _callback_fn(state::State, iter::Int,

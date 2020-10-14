@@ -64,3 +64,10 @@ function partition(condition::Function, xs::Vector{T}) where T
 
   return good, bad
 end
+
+
+function quantiles(X, q; dims, drop=false)
+  Q = mapslices(x -> quantile(x, q), X, dims=dims)
+  out = drop ? dropdims(Q, dims=dims) : Q
+  return out
+end

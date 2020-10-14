@@ -55,9 +55,9 @@ function Distributions.pdf(d::SkewT{<:Real, <:Real, <:Real, <:Real}, x::Real)
 end
 
 
-function SkewT(; loc, scale, altscale, altskew)
+function AltSkewT(; loc, df, altscale, altskew)
   scale, skew = fromaltskewt(altscale, altskew)
-  SkewT(loc, scale, df, skew)
+  return SkewT(loc, scale, df, skew)
 end
 
 

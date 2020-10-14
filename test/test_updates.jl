@@ -25,12 +25,12 @@ include("runtests.jl")
   end
 
   # Test flags
-  flags = [:update_beta_with_latent_var_like]
-  p_orig = deepcopy(state.p)
+  flags = [:update_beta_with_skewt, :update_lambda_with_skewt]
+  mu_orig = deepcopy(state.mu)
   nu_orig = deepcopy(state.nu)
   @time for i in ProgressBar(1:100)
-    CDE.Model.update_state!(state, data, prior, tuners, fix=[:p], flags=flags)
+    CDE.Model.update_state!(state, data, prior, tuners, fix=[:mu], flags=flags)
   end
-  @test p_orig == state.p
+  @test mu_orig == state.mu
   @test nu_orig != state.nu
 end
