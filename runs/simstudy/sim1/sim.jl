@@ -1,25 +1,20 @@
 # TODO: DEBUG!
-# - [ ] Fix some parameters, and see if I recover truth.
-# - [ ] Plot posterior density.
 # - [ ] Is it perhaps needed to sample the other parameters multiple times
 #       after updating beta? Especially when the value of beta has changed?
 # - [ ] Is it necessary to fit the model with fixed beta first?
 # - [ ] Perhaps fit two models; one with beta=0, one with beta=1, 
 #       then sample beta after somehow?
 # - [ ] What happens if I don't marginalize over lambda when updating beta?
-# - [ ] If beta goes from 0 -> 1, update all other parameters 50-100 times.
-# - [ ] Or if beta goes from 1 -> 0, stop updating gammaT and etaT.
-# - Issues: cannot recover mu. Seems to be related to (v, zeta).
 # - NOTE: nu is a trouble-maker. Fixing it solves most of the problems!!! 
 
 import Pkg; Pkg.activate("../../../")
 
 using CytofDensityEstimation
-using StatsPlots
 using LaTeXStrings
 using Distributions
 using HypothesisTests
 import Random
+using BSON
 
 const CDE = CytofDensityEstimation
 
@@ -93,28 +88,24 @@ init = deepcopy(state)
 chain, laststate, summarystats = CDE.Model.fit(init, data, prior, tuners,
                                                nsamps=[1000], nburn=1000,
                                                fix=fix, flags=flags)
-# v, zeta, lambda
 
-# ks_fit = ApproximateTwoSampleKSTest(yC, yT)
+# Save results
+resultsdir = "results"
+imgdir = "$(resultsdir)/img"
+mkpath(imgdir)
 
-ll = [s[:loglike] for s in summarystats]
-gammaC = CDE.Model.group(:gammaC, chain)
-gammaT = CDE.Model.group(:gammaT, chain)
-phi = CDE.Model.group(:phi, chain)
-etaC = CDE.Model.group(:etaC, chain)
-etaT = CDE.Model.group(:etaT, chain)
-mu = CDE.Model.group(:mu, chain)
-beta = CDE.Model.group(:beta, chain)
-sigma = CDE.Model.group(:sigma, chain)
-phi = CDE.Model.group(:phi, chain)
-nu = CDE.Model.group(:nu, chain)
-psi = CDE.Model.group(:psi, chain)
-omega = CDE.Model.group(:omega, chain)
+BSON.bson("$(resultsdir)/results.bson",
+          Dict(:chain=>chain, :laststate=>laststate, :summarystats=>summarystats))
+
+# Load via:
+# using BSON, CytofDensityEstimation
+# xxx = BSON.load("$(resultsdir)/results.bson")
+
+ks_fit = ApproximateTwoSampleKSTest(yC, yT)
+println(ks_fit)
 
 CDE.Model.printsummary(chain, summarystats)
 
-# CDE.Model.plot_posterior_predictive(yC, yT, chain, 0.1)
-# CDE.Model.plot_gamma(yC, yT, chain)
 @time CDE.Model.plotpostsummary(chain, summarystats, yC, yT, "img", 
                                 simdata=simdata, bw_postpred=.1)
 
