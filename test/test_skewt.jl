@@ -32,5 +32,5 @@ yy = collect(range(-6, 6, length=10000));
 histogram(y, color=:grey, normalize=true, label=nothing, linecolor=:grey)
 plot!(yy, pdf.(mm, yy), add=true, lw=2, color=:blue, label=nothing)
 density!(y, label="kde", ls=:dot, color=:red, lw=3)
-xlims!(minimum(x), maximum(x))
+xlims!(minimum(y), maximum(y))
 =#
