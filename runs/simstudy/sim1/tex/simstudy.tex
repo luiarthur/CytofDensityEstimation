@@ -20,11 +20,13 @@
 \newcommand{\pd}[2]{ \frac{\partial#1}{\partial#2} }
 \newcommand{\pdd}[2]{\frac{\partial^2#1}{\partial{#2}^2} }
 % Distributions
-\newcommand{\Normal}{ \text{Normal} }
-\newcommand{\Beta}{ \text{Beta} }
-\newcommand{\G}{ \text{Gamma} }
-\newcommand{\InvGamma}{ \text{Inv-Gamma} }
-\newcommand{\Uniform}{ \text{Uniform} }
+\newcommand{\Normal}{\text{Normal}}
+\newcommand{\Beta}{\text{Beta}}
+\newcommand{\G}{\text{Gamma}}
+\newcommand{\InvGamma}{\text{Inv-Gamma}}
+\newcommand{\Uniform}{\text{Uniform}}
+\newcommand{\Dirichlet}{\text{Dirichlet}}
+\newcommand{\LogNormal}{\text{LogNormal}}
 % Statistics
 \newcommand{\E}{ \text{E} }
 \newcommand{\iid}{\overset{iid}{\sim}}
@@ -76,28 +78,44 @@ In scenario II, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.
 In scenario III, $\gamma_C^\true=\gamma_T^\true=0.3$, and
 $\bm\eta_C^\true=\bm\eta_T^\true=(0.5, 0.5, 0)$. Implicitly, $\beta^\true=0$.
 %
-Table~\ref{tab:sim-truth} summarizes the simulation truth for the model parameters.
+In each scenario, $N_i=1000$. Table~\ref{tab:sim-truth} summarizes the
+simulation truth for the model parameters.
 \begin{table}
   \centering
-  \begin{tabular}{|c|ccccc|}
+  \begin{tabular}{|c|cccccc|}
     \hline 
     Scenario & $\gamma_C^\true$ & $\gamma_T^\true$ & $\bm\eta_C^\true$ & 
-    $\bm\eta_T^\true$ & $\beta$ \\
+    $\bm\eta_T^\true$ & $\beta^\true$ & $\hat\beta$ \\
     \hline 
-    I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.2, 0.3) & 1 \\
-    II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.2, 0.3) & 1 \\
-    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.5, 0.0) & 0 \\
+    I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.2, 0.3) & 1 & 0.968 \\
+    II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.2, 0.3) & 1 & 1.000 \\
+    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.5, 0.0) & 0 & 0.001 \\
     \hline
   \end{tabular}
-  \caption{Simulation truth under various scenarios.}
+  \caption{Simulation truth under various scenarios. Posterior mean of
+  $\beta$ is included in the right-most column.}
   \label{tab:sim-truth}
 \end{table}
-In each scenario, $N_i=1000$.
 
 \section{Simulation Results}\label{sec:sim-results}
-Posterior inference was made via Gibbs sampling. The initial 1000 MCMC samples were discarded
-as burn-in, and the subsequent 1000 samples were kept for analysis. The inference speed was
-approximately 45 iterations per second.
+The following priors were used in this analysis.
+First, we set $K=6$. Then $p\sim\Beta(.1, .9)$, $\gamma_i\sim\Beta(0.5,
+0.5)$, $\bm\eta_i\sim\Dirichlet_K(1/K)$, $\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$,
+$\omega_k\sim\InvGamma(3, 2)$, $\nu_k\sim\LogNormal(4, 0.01)$,
+$\psi_k\sim\Normal(0, 3^2)$, where, respectively, $\bar{\mu}$ and $s_\mu$ are
+the empirical mean and standard deviation of the data for which $y_{i,n} >
+0$. Posterior inference was made via Gibbs sampling. The initial 1000 MCMC
+samples were discarded as burn-in, and the subsequent 1000 samples were kept
+for analysis. The inference speed was approximately 45 iterations per second.
+Figure~\ref{fig:sim-postdens} summarizes the posterior densities for the
+positive values of $y_{i,n}$. The dashed lines are kernel density estimates
+of the data, and the shaded regions are the 95\% credible intervals for the
+densities. Note that the intervals match the data closely. 
+\alert{Juhee: There seems to be difficulty in estimating $\nu_k$, $v_{i,n}$,
+and $\zeta_{i,n}$. $\nu_k$ and $v_{i,n}$ related to the degrees of freedom
+and $\zeta$ and $\psi_k$ relate to the skewness. I also wasn't able to obtain
+decent results unless I used the skew-$t$ pdf in the mixture in updating
+$\beta$, and in updating $\lambda_{i,n}$}.
 
 \begin{figure}[t!]
   \centering
@@ -113,7 +131,7 @@ approximately 45 iterations per second.
   \label{fig:sim-postdens}
 \end{figure}
 
-The Kolmogorov-Smirnov Statistics was also used ...
+\alert{TODO: Discuss Kolmogorov Smirnov statistic...}
 
 % Uncomment if using bibliography:
 % \bibliography{bib}
