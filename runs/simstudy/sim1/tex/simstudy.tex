@@ -110,19 +110,31 @@ for analysis. The inference speed was approximately 45 iterations per second.
 Figure~\ref{fig:sim-postdens} summarizes the posterior densities for the
 positive values of $y_{i,n}$. The dashed lines are kernel density estimates
 of the data, and the shaded regions are the 95\% credible intervals for the
-densities. Note that the intervals match the data closely. 
+densities. Note that the intervals match the data closely. Also, in scenario
+III, where $\beta^true=0$, the posterior mean of $\beta$ was also 0. Thus,
+$\gamma_T$ and $\bm\eta_T$ were simply samples from the prior. Thus, the 
+posterior density for sample T was not included here.
+
 \alert{Juhee: There seems to be difficulty in estimating $\nu_k$, $v_{i,n}$,
 and $\zeta_{i,n}$. $\nu_k$ and $v_{i,n}$ related to the degrees of freedom
 and $\zeta$ and $\psi_k$ relate to the skewness. I also wasn't able to obtain
 decent results unless I used the skew-$t$ pdf in the mixture in updating
-$\beta$, and in updating $\lambda_{i,n}$}.
+$\beta$, and in updating $\lambda_{i,n}$. Changing $K$ does affect the
+inference. In particular, when I used a $K=3$ I did not always recover the
+simulation truth, and at times the fit was poor. Using a larger $K$ did not
+always yield the original $\bm\eta_i$, but the fit was usually good.
+Under the same setup but with $\sigma_i^\true=0.1$ in the simulation truth,
+the credible intervals were much narrower.}.
 
 \begin{figure}[t!]
   \centering
   \begin{tabular}{c}
-    \includegraphics[scale=.5]{results/scenario1/img/postpred.pdf} \\
-    \includegraphics[scale=.5]{results/scenario2/img/postpred.pdf} \\
-    \includegraphics[scale=.5]{results/scenario3/img/postpred.pdf} \\
+    \includegraphics[scale=.45]{results/scenario1/img/postpred.pdf} \\
+    (a) Scenario I \\
+    \includegraphics[scale=.45]{results/scenario2/img/postpred.pdf} \\
+    (b) Scenario II \\
+    \includegraphics[scale=.45]{results/scenario3/img/postpred.pdf} \\
+    (c) Scenario III \\
   \end{tabular}
   \caption{Posterior density in each simulation scenario for observed data
   ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
