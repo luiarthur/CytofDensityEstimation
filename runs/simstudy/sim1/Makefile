@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-.PHONY: run compile compile_and_run
+.PHONY: run compile compile_and_run getresults
 
 SIMNAME = sim1
 RESULTS_DIR = $(SCRATCH_DIR)/cde/simstudy/$(SIMNAME)/results
@@ -16,3 +16,6 @@ run:
 
 
 compile_and_run: compile run
+
+getresults:
+	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
