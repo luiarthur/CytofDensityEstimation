@@ -12,6 +12,6 @@ function runsim() {
     echo ${resdir}
     echo ${awsbucket}
     julia sim.jl ${resdir} ${awsbucket} ${scenario} &> ${resdir}/log.txt &
-    sleep 100
+    sleep 200
   done
 }
