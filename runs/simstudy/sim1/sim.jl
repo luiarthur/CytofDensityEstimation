@@ -59,9 +59,9 @@ flags=Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
 
 # Run chain
 init = deepcopy(state)
-chain, laststate, summarystats = CDE.Model.fit(init, data, prior, tuners,
-                                               nsamps=[1000], nburn=1000,
-                                               fix=fix, flags=flags)
+@time chain, laststate, summarystats = CDE.Model.fit(init, data, prior, tuners,
+                                                     nsamps=[1000], nburn=1000,
+                                                     fix=fix, flags=flags)
 
 # Save results
 BSON.bson("$(resultsdir)/results.bson",
