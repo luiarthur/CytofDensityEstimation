@@ -49,7 +49,7 @@ prior_mu = let
   yfinite = [data.yC_finite; data.yT_finite]
   Normal(mean(yfinite), std(yfinite)*2)
 end
-prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(3, .01), p=Beta(.1, .9))
+prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(4, .01), p=Beta(.1, .9))
 state = CDE.Model.State(data, prior)
 tuners = CDE.Model.Tuners(K)
 println("Priors:\n", prior)  # Print prior.
