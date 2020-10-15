@@ -94,3 +94,5 @@ CDE.Model.printsummary(out[:chain], out[:summarystats])
 if awsbucket != nothing
   CDE.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
 end
+
+println("Done!")
