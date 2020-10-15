@@ -7,16 +7,23 @@
 # - [ ] What happens if I don't marginalize over lambda when updating beta?
 # - NOTE: nu is a trouble-maker. Fixing it solves most of the problems!!! 
 
+ENV["GKSwstype"] = "nul"  # For StatsPlots
+
 import Pkg; Pkg.activate("../../../")
 
 using CytofDensityEstimation
 using LaTeXStrings
 using Distributions
+using StatsPlots
 using HypothesisTests
 import Random
 using BSON
 
 const CDE = CytofDensityEstimation
+
+resultsdir = "results"
+imgdir = "$(resultsdir)/img"
+mkpath(imgdir)
 
 Random.seed!(2);
 simdata = CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.2,
@@ -24,13 +31,13 @@ simdata = CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.2,
                                      # etaC=[.5, .5, 0], etaT=[.5, .5, .0],
                                      loc=[-1, 1, 3.], scale=[1, 1, 1]/10,
                                      df=[15, 30, 10], skew=[-20, -5, 0.])
-
 yC, yT = simdata[:yC], simdata[:yT]
-legendfont=font(12)
-density(yC[isfinite.(yC)],  lw=3, label=L"y_C", legendfont=legendfont,
-        color=:blue)
-density!(yT[isfinite.(yT)], lw=3, label=L"y_T", legendfont=legendfont,
-         color=:red)
+
+# Plot data.
+density(yC[isfinite.(yC)],  lw=3, label=L"y_C", color=:blue)
+density!(yT[isfinite.(yT)], lw=3, label=L"y_T", color=:red)
+savefig(joinpath(imgdir, "data.pdf"))
+closeall()
 
 Random.seed!(1)
 K = 6
@@ -42,6 +49,8 @@ end
 prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(3, .01), p=Beta(.1, .9))
 state = CDE.Model.State(data, prior)
 tuners = CDE.Model.Tuners(K)
+
+println("Priors:\n", prior)
 
 # state.beta=0
 # chain0, laststate, summarystats = CDE.Model.fit(state, data, prior, tuners,
@@ -90,23 +99,22 @@ chain, laststate, summarystats = CDE.Model.fit(init, data, prior, tuners,
                                                fix=fix, flags=flags)
 
 # Save results
-resultsdir = "results"
-imgdir = "$(resultsdir)/img"
-mkpath(imgdir)
-
 BSON.bson("$(resultsdir)/results.bson",
           Dict(:chain=>chain, :laststate=>laststate, :summarystats=>summarystats))
 
 # Load via:
 # using BSON, CytofDensityEstimation
-# xxx = BSON.load("$(resultsdir)/results.bson")
+out = BSON.load("$(resultsdir)/results.bson")
+chain = out[:chain]
+laststate = out[:laststate]
+summarystats = out[:summarystats]
 
 ks_fit = ApproximateTwoSampleKSTest(yC, yT)
 println(ks_fit)
 
 CDE.Model.printsummary(chain, summarystats)
 
-@time CDE.Model.plotpostsummary(chain, summarystats, yC, yT, "img", 
+@time CDE.Model.plotpostsummary(chain, summarystats, yC, yT, imgdir,
                                 simdata=simdata, bw_postpred=.1)
 
 # Hard to recover (for K≥3):
