@@ -136,7 +136,6 @@ function plot_gamma(yC, yT, chain)
 
   boxplot([gammaC gammaT], outliers=false, color=[:blue  :red],
           label="", alpha=.5)
-  ylabel!("density")
   xticks!([1,2], [L"\gamma_C", L"\gamma_T"],
           xtickfont=font(20), ytickfont=font(16))
   scatter!([1, 2], [mean(isinf.(yC)), mean(isinf.(yT))], markersize=[10, 10], 
