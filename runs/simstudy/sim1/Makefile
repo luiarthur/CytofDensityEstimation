@@ -12,7 +12,7 @@ run:
 		mkdir -p $${resdir}; \
 		echo $${resdir}; \
 		echo $${awsbucket}; \
-		julia sim.jl $${resdir} $${awsbucket} $${s} > $${resdir}/log.txt &; \
+		julia sim.jl $${resdir} $${awsbucket} $${s} &> $${resdir}/log.txt & \
 	done;
 
 
