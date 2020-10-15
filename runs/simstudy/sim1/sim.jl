@@ -83,16 +83,20 @@ out = BSON.load("$(resultsdir)/results.bson")
 # Print KS statistic.
 ks_fit = ApproximateTwoSampleKSTest(yC, yT)
 println(ks_fit)
+flush(stdout)
 
 # Print summary statistics.
 CDE.Model.printsummary(out[:chain], out[:summarystats])
+flush(stdout)
 
 # Plot results.
 @time CDE.Model.plotpostsummary(out[:chain], out[:summarystats], yC, yT, imgdir,
                                 simdata=out[:simdata], bw_postpred=.1)
+flush(stdout)
 
 if awsbucket != nothing
   CDE.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
 end
 
 println("Done!")
+flush(stdout)
