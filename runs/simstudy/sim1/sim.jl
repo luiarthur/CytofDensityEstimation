@@ -52,7 +52,11 @@ end
 prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(4, .01), p=Beta(.1, .9))
 state = CDE.Model.State(data, prior)
 tuners = CDE.Model.Tuners(K)
-println("Priors:\n", prior)  # Print prior.
+
+println("Priors:")
+for fn in fieldnames(CDE.Model.Prior)
+  println(fn, " => ", getfield(prior, fn))
+end
 
 # Specify flags for modeling.
 flags = Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
