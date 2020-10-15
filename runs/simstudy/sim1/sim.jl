@@ -17,7 +17,7 @@ include("scenarios.jl")
 # Read command line args.
 if length(ARGS) > 1
   resultsdir = ARGS[1]
-  awsbucket = parse(Int, ARGS[2])
+  awsbucket = ARGS[2]
   snum = parse(Int, ARGS[3])
   println("ARGS: ", ARGS)
 else
