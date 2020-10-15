@@ -1,5 +1,22 @@
 ENV["GKSwstype"] = "nul"  # For StatsPlots
-println("pid: ", getpid()); flush(stdout)
+println("pid: ", getpid())
+
+# Read command line args.
+if length(ARGS) > 1
+  resultsdir = ARGS[1]
+  awsbucket = ARGS[2]
+  snum = parse(Int, ARGS[3])
+  println("ARGS: ", ARGS)
+else
+  resultsdir = "results/test/"
+  awsbucket = nothing
+  snum = 1
+end
+flush(stdout)
+
+# Create results/images dir if needed
+imgdir = "$(resultsdir)/img"
+mkpath(imgdir)
 
 import Pkg; Pkg.activate(joinpath(@__DIR__, "../../../"))
 
@@ -13,22 +30,6 @@ import Random
 using BSON
 
 include("scenarios.jl")
-
-# Read command line args.
-if length(ARGS) > 1
-  resultsdir = ARGS[1]
-  awsbucket = ARGS[2]
-  snum = parse(Int, ARGS[3])
-  println("ARGS: ", ARGS)
-else
-  resultsdir = "results/test/"
-  awsbucket = nothing
-  snum = 1
-end
-
-# Create results/images dir if needed
-imgdir = "$(resultsdir)/img"
-mkpath(imgdir)
 
 # Simulate data.
 Random.seed!(2);
