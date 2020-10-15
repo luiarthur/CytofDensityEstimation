@@ -1,5 +1,5 @@
 ENV["GKSwstype"] = "nul"  # For StatsPlots
-println("pid: ", getpid())
+println("pid: ", getpid()); flush(stdout)
 
 import Pkg; Pkg.activate(joinpath(@__DIR__, "../../../"))
 
@@ -55,7 +55,10 @@ tuners = CDE.Model.Tuners(K)
 println("Priors:\n", prior)  # Print prior.
 
 # Specify flags for modeling.
-flags=Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
+flags = Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
+
+# Parameters to fix
+fix = Symbol[]
 
 # Run chain
 init = deepcopy(state)
