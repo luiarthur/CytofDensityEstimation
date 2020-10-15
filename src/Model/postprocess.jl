@@ -1,3 +1,5 @@
+default_ygrid(; lo=-6, hi=6, length=1000) = range(lo, hi, length=length)
+
 function group(sym::Symbol, chain; altskew_sym=:psi, altvar_sym=:omega)
   if sym in (:sigma, :phi)
     skew, scale = fetch_skewt_stats(chain; altskew_sym=:psi, altvar_sym=:omega)
@@ -94,11 +96,12 @@ end
 
 
 function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
-                                   ygrid=range(-6, 6, length=1000),
+                                   ygrid=default_ygrid(),
                                    labelyT=L"y_T", legendfontsize=12,
                                    showT=true, alpha=0.3,
                                    labelCppd="post. density",
-                                   labelTppd="post. density")
+                                   labelTppd="post. density", 
+                                   simdata=nothing)
 
   pdfC, pdfT = posterior_density(chain, ygrid)
   beta = group(:beta, chain)
@@ -116,14 +119,24 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
   # Plot density
   legendfont = font(12)
 
-  plot(kde(yC[isfinite.(yC)], bandwidth=bw), lw=3, label=labelyC,
-       legendfont=legendfont, color=:blue, ls=:dot)
+  if simdata == nothing
+    plot(kde(yC[isfinite.(yC)], bandwidth=bw), lw=3, label=labelyC,
+         legendfont=legendfont, color=:blue, ls=:dot)
+  else
+    plot(ygrid, pdf.(simdata[:mmC], ygrid), lw=3, label=labelyC,
+         legendfont=legendfont, color=:blue, ls=:dot)
+  end
   plot!(ygrid, pdfC_lower, fillrange=pdfC_upper, alpha=alpha, color=:blue,
         label=labelCppd)
 
   if any(beta)
-    plot!(kde(yT[isfinite.(yT)], bandwidth=bw), lw=3, label=labelyT,
-         legendfont=legendfont, color=:red, ls=:dot)
+    if simdata == nothing
+      plot!(kde(yT[isfinite.(yT)], bandwidth=bw), lw=3, label=labelyT,
+           legendfont=legendfont, color=:red, ls=:dot)
+    else
+      plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=3, label=labelyT,
+           legendfont=legendfont, color=:red, ls=:dot)
+    end
     plot!(ygrid, pdfT_lower, fillrange=pdfT_upper, alpha=alpha, color=:red,
           label=labelTppd)
   end
@@ -165,7 +178,8 @@ end
 
 
 function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
-                         laststate=nothing, bw_postpred=0.3, simdata=nothing)
+                         laststate=nothing, bw_postpred=0.3, simdata=nothing,
+                         ygrid=default_ygrid())
   # Loglikelihood trace
   ll = [s[:loglike] for s in summarystats]
   plot(ll, label=nothing)
@@ -175,9 +189,16 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   closeall()
 
   # Posterior density
-  plot_posterior_predictive(yC, yT, chain, bw_postpred)
+  plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid)
   savefig("$(imgdir)/postpred.pdf")
   closeall()
+
+  if simdata != nothing
+    plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
+                              simdata=simdata)
+    savefig("$(imgdir)/postpred-true-data-density.pdf")
+    closeall()
+  end
 
   # Proportion of gammas.
   plot_gamma(yC, yT, chain)
