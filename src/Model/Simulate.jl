@@ -20,7 +20,7 @@ function generate_sample(; N::Int, gamma::Real, eta::AbstractVector{<:Real},
   Nfinite = N - Ninf
   mm = MixtureModel([SkewT(loc[k], scale[k], df[k], skew[k]) for k in 1:K], eta)
   yfinite = rand(mm, Nfinite)
-  return [yfinite; fill(-Inf, Ninf)]
+  return [yfinite; fill(-Inf, Ninf)], mm
 end
 
 
@@ -29,10 +29,10 @@ function generate_samples(; NC, NT, gammaC, gammaT, etaC, etaT,
   K = length(loc)
   @assert K == length(etaC) == length(etaT)
   @assert K == length(scale) == length(df) == length(skew)
-  yC = generate_sample(N=NC, gamma=gammaC, eta=etaC, loc=loc, scale=scale,
-                       df=df, skew=skew)
-  yT = generate_sample(N=NT, gamma=gammaT, eta=etaT, loc=loc, scale=scale,
-                       df=df, skew=skew)
+  yC, mmC = generate_sample(N=NC, gamma=gammaC, eta=etaC, loc=loc, scale=scale,
+                            df=df, skew=skew)
+  yT, mmT = generate_sample(N=NT, gamma=gammaT, eta=etaT, loc=loc, scale=scale,
+                            df=df, skew=skew)
   return (yC=yC, yT=yT, gammaC=gammaC, gammaT=gammaT, etaC=etaC, etaT=etaT,
-          loc=loc, scale=scale, df=df, skew=skew)
+          loc=loc, scale=scale, df=df, skew=skew, mmC=mmC, mmT=mmT)
 end
