@@ -23,18 +23,20 @@ function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners;
   # NOTE: `lambda` must be updated immediately after updating beta since lambda
   # is marginalized over in the update of beta. Marginalizing over lambda makes
   # updates for beta slower, but the mixing will be faster.
-  isfixed(:lambdaC) || update_lambdaC!(state, data, prior, flags)
-  isfixed(:lambdaT) || update_lambdaT!(state, data, prior, flags)
+  isfixed(:lambdaC) || isfixed(:lambda) || update_lambdaC!(state, data, prior, flags)
+  isfixed(:lambdaT) || isfixed(:lambda) || update_lambdaT!(state, data, prior, flags)
 
-  isfixed(:gammaC) || update_gammaC!(state, data, prior)
-  isfixed(:etaC) || update_etaC!(state, data, prior)
-  isfixed(:gammaT) || update_gammaT!(state, data, prior)
-  isfixed(:etaT) || update_etaT!(state, data, prior)
+  isfixed(:gammaC) || isfixed(:gamma) || update_gammaC!(state, data, prior)
+  isfixed(:etaC) || isfixed(:eta) ||  update_etaC!(state, data, prior)
+  isfixed(:gammaT) || isfixed(:gamma) || update_gammaT!(state, data, prior)
+  isfixed(:etaT) || isfixed(:eta) || update_etaT!(state, data, prior)
 
   isfixed(:mu) || update_mu!(state, data, prior)
   isfixed(:nu) || update_nu!(state, data, prior, tuners)
   isfixed(:omega) || update_omega!(state, data, prior)
   isfixed(:psi) || update_psi!(state, data, prior)
-  isfixed(:v) || update_v!(state, data, prior)
-  isfixed(:zeta) || update_zeta!(state, data, prior)
+  isfixed(:vC) || isfixed(:v) || update_v!('C', state, data, prior)
+  isfixed(:vT) || isfixed(:v) || update_v!('T', state, data, prior)
+  isfixed(:zetaC) || isfixed(:zeta) || update_zeta!('C', state, data, prior)
+  isfixed(:zetaT) || isfixed(:zeta) || update_zeta!('T', state, data, prior)
 end
