@@ -2,7 +2,7 @@ SHELL = /bin/bash
 
 .PHONY: linkresults
 
-SIMNAME = sim1
+SIMNAME = sim2
 RESULTS_DIR = $(SCRATCH_DIR)/cde/simstudy/$(SIMNAME)/results
 
 
