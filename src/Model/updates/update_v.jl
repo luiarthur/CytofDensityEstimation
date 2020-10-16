@@ -17,7 +17,7 @@ function update_v!(i::Char, state::State, data::Data, prior::Prior)
   mu = state.mu[lami]
 
   shape = nu/2 .+ 1
-  rate = (nu + zetai.^2 + ((yi + mu - psi .* zetai) .^ 2) ./ omega) / 2
+  rate = (nu + zetai.^2 + ((yi - mu - psi .* zetai) .^ 2) ./ omega) / 2
 
   for n in eachindex(vi)
     vi[n] = rand(Gamma(shape[n], 1/rate[n]))
