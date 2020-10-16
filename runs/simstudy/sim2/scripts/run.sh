@@ -4,7 +4,7 @@ function runsim() {
   RESULTS_DIR=$1
   AWS_BUCKET=$2
 
-  for scenario in `seq 3`; do
+  for scenario in `seq 4`; do
     resdir="${RESULTS_DIR}/scenario${scenario}"
     awsbucket="${AWS_BUCKET}/scenario${scenario}"
     rm -f ${resdir}/log.txt
