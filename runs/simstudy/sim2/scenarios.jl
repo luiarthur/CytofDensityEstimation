@@ -5,7 +5,7 @@ const CDE = CytofDensityEstimation
 =#
 
 
-function scenarios(n)
+function scenarios(n::Int)
   # NOTE: Later.
   # loc = [-1, 0., 1]
   # scale = [1, 1, 1]
@@ -15,7 +15,13 @@ function scenarios(n)
   etaC = [.5, .5, 0]
   df = [3, 5, 3.]
   skew = [-10, -5, 0.]
-  if n == 1
+
+  if n == 0  # TEST CASE!
+    return CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.3,
+                                      etaC=etaC, etaT=[1., 0, 0],
+                                      loc=loc, scale=scale,
+                                      df=df, skew=skew)
+  elseif n == 1
     return CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.2,
                                       etaC=etaC, etaT=[.5, .4, .1],
                                       loc=loc, scale=scale,
@@ -32,13 +38,15 @@ function scenarios(n)
                                       df=df, skew=skew)
   elseif n == 4
     return CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.3,
-                                      etaC=etaC, etaT=[.5, .5, .0],
+                                      etaC=etaC, etaT=[.5, .48, .02],
                                       loc=loc, scale=scale,
                                       df=df, skew=skew)
   elseif n == 5
     return CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.3,
-                                      etaC=etaC, etaT=[1., 0, 0],
+                                      etaC=etaC, etaT=[.5, .5, .0],
                                       loc=loc, scale=scale,
                                       df=df, skew=skew)
+  else
+    throw(ArgumentError("n=$(n) was provided. But n must be an integer between 0 and 5."))
   end
 end
