@@ -129,14 +129,14 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
   plot!(ygrid, pdfC_lower, fillrange=pdfC_upper, alpha=alpha, color=:blue,
         label=labelCppd)
 
+  if simdata == nothing
+    plot!(kde(yT[isfinite.(yT)], bandwidth=bw), lw=3, label=labelyT,
+         legendfont=legendfont, color=:red, ls=:dot)
+  else
+    plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=3, label=labelyT,
+         legendfont=legendfont, color=:red, ls=:dot)
+  end
   if any(beta)
-    if simdata == nothing
-      plot!(kde(yT[isfinite.(yT)], bandwidth=bw), lw=3, label=labelyT,
-           legendfont=legendfont, color=:red, ls=:dot)
-    else
-      plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=3, label=labelyT,
-           legendfont=legendfont, color=:red, ls=:dot)
-    end
     plot!(ygrid, pdfT_lower, fillrange=pdfT_upper, alpha=alpha, color=:red,
           label=labelTppd)
   end
@@ -201,6 +201,12 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
     savefig("$(imgdir)/postpred-true-data-density.pdf")
     closeall()
   end
+
+  # Trace of p, beta.
+  trace_kernel_param(:p, chain, paramname="p")
+  savefig("$(imgdir)/p-trace.pdf"); closeall()
+  trace_kernel_param(:beta, chain, paramname="β")
+  savefig("$(imgdir)/beta-trace.pdf"); closeall()
 
   # Proportion of gammas.
   plot_gamma(yC, yT, chain)
