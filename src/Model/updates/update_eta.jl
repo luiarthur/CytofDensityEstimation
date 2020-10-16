@@ -7,12 +7,12 @@ end
 function update_etaC!(state::State, data::Data, prior::Prior)
   anew = prior.eta.alpha .+ 0
 
-  for n in 1:data.NC_finite
+  for n in eachindex(state.lambdaC)
     anew[state.lambdaC[n]] += 1
   end
 
   if !state.beta
-    for n in 1:data.NT_finite
+    for n in eachindex(state.lambdaT)
       anew[state.lambdaT[n]] += 1
     end
   end
@@ -25,7 +25,7 @@ function update_etaT!(state::State, data::Data, prior::Prior)
   anew = prior.eta.alpha .+ 0
 
   if state.beta
-    for n in 1:data.NT_finite
+    for n in eachindex(state.lambdaT)
       anew[state.lambdaT[n]] += 1
     end
   end
