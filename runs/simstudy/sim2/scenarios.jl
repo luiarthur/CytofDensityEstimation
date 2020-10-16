@@ -6,11 +6,15 @@ const CDE = CytofDensityEstimation
 
 
 function scenarios(n)
-  loc = [-1, 0., 1]
+  # NOTE: Later.
+  # loc = [-1, 0., 1]
+  # scale = [1, 1, 1]
+
+  loc = [-1, 1, 3.]
+  scale = [.7, .7, .7]
   etaC = [.5, .5, 0]
   df = [3, 5, 3.]
   skew = [-10, -5, 0.]
-  scale = [1, 1, 1]
   if n == 1
     return CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.2,
                                       etaC=etaC, etaT=[.5, .4, .1],
