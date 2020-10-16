@@ -9,8 +9,7 @@ end
 function update_nu!(k::Int, state::State, data::Data, prior::Prior,
                     tuners::Tuners)
   log_prob = function(nu_k)
-    m, s = params(prior.nu)
-    logprior = logpdf(LogNormal(m, s), nu_k)
+    logprior = logpdf(prior.nu, nu_k)
 
     loglike = zero(state.p)
     for i in samplenames

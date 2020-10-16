@@ -2,13 +2,13 @@ default_ygrid(; lo=-6, hi=6, length=1000) = range(lo, hi, length=length)
 
 function group(sym::Symbol, chain; altskew_sym=:psi, altvar_sym=:omega)
   if sym in (:sigma, :phi)
-    skew, scale = fetch_skewt_stats(chain; altskew_sym=:psi, altvar_sym=:omega)
+    skew, scale = fetch_skewt_stats(chain; altskew_sym=altskew_sym,
+                                    altvar_sym=altvar_sym)
     return sym == :sigma ? scale : skew
   else
     for monitor in chain
       if sym in keys(monitor[1])
-        out = [s[sym] for s in monitor]
-        return out
+        return [s[sym] for s in monitor]
       end
     end
   end
@@ -179,7 +179,7 @@ end
 
 function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
                          laststate=nothing, bw_postpred=0.3, simdata=nothing,
-                         ygrid=default_ygrid())
+                         ygrid=default_ygrid(), xlims_=nothing)
   # Loglikelihood trace
   ll = [s[:loglike] for s in summarystats]
   plot(ll, label=nothing)
@@ -190,12 +190,14 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
 
   # Posterior density
   plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid)
+  xlims_ == nothing || xlims!(xlims_)
   savefig("$(imgdir)/postpred.pdf")
   closeall()
 
   if simdata != nothing
     plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
                               simdata=simdata)
+    xlims_ == nothing || xlims!(xlims_)
     savefig("$(imgdir)/postpred-true-data-density.pdf")
     closeall()
   end
@@ -214,6 +216,10 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   savefig("$(imgdir)/nu.pdf"); closeall()
   boxplot_kernel_param(:phi, chain, paramname="ϕ", simdata=simdata, simsym=:skew)
   savefig("$(imgdir)/phi.pdf"); closeall()
+  boxplot_kernel_param(:psi, chain, paramname="ψ")
+  savefig("$(imgdir)/psi.pdf"); closeall()
+  boxplot_kernel_param(:omega, chain, paramname="ω")
+  savefig("$(imgdir)/omega.pdf"); closeall()
   boxplot_kernel_param(:etaC, chain, paramname="ηc", simdata=simdata, simsym=:etaC)
   savefig("$(imgdir)/etaC.pdf"); closeall()
   boxplot_kernel_param(:etaT, chain, paramname="ηt", simdata=simdata, simsym=:etaT)
@@ -232,4 +238,8 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   savefig("$(imgdir)/etaC-trace.pdf"); closeall()
   trace_kernel_param(:etaT, chain, paramname="ηt")
   savefig("$(imgdir)/etaT-trace.pdf"); closeall()
+  trace_kernel_param(:psi, chain, paramname="ψ")
+  savefig("$(imgdir)/psi-trace.pdf"); closeall()
+  trace_kernel_param(:omega, chain, paramname="ω")
+  savefig("$(imgdir)/omega-trace.pdf"); closeall()
 end
