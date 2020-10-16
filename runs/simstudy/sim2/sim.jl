@@ -32,6 +32,8 @@ import CytofDensityEstimation.Model.default_ygrid
 
 include("scenarios.jl")
 
+plotsize = (400, 400)
+
 # Simulate data.
 Random.seed!(2);
 simdata = scenarios(snum)
@@ -45,7 +47,8 @@ function plot_trude_data_density()
         label=L"y_T", color=:red)
 end
 plot_trude_data_density()
-savefig(joinpath(imgdir, "data-density.pdf"))
+plot!(size=plotsize)
+savefig(joinpath(imgdir, "data-true-density.pdf"))
 closeall()
 
 # Plot observed data density.
@@ -54,7 +57,8 @@ function plot_observed_data_density()
   density!(yT[isfinite.(yT)], lw=3, label=L"y_T", color=:red)
 end
 plot_observed_data_density()
-savefig(joinpath(imgdir, "data.pdf"))
+plot!(size=plotsize)
+savefig(joinpath(imgdir, "data-kde.pdf"))
 closeall()
 
 # Define data, prior, and initial state.

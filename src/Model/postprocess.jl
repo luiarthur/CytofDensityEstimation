@@ -121,20 +121,21 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
 
   if simdata == nothing
     plot(kde(yC[isfinite.(yC)], bandwidth=bw), lw=3, label=labelyC,
-         legendfont=legendfont, color=:blue, ls=:dot)
+         # legendfont=legendfont,
+         color=:blue, ls=:dot)
   else
     plot(ygrid, pdf.(simdata[:mmC], ygrid), lw=3, label=labelyC,
-         legendfont=legendfont, color=:blue, ls=:dot)
+         color=:blue, ls=:dot)
   end
   plot!(ygrid, pdfC_lower, fillrange=pdfC_upper, alpha=alpha, color=:blue,
         label=labelCppd)
 
   if simdata == nothing
     plot!(kde(yT[isfinite.(yT)], bandwidth=bw), lw=3, label=labelyT,
-         legendfont=legendfont, color=:red, ls=:dot)
+          color=:red, ls=:dot)
   else
     plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=3, label=labelyT,
-         legendfont=legendfont, color=:red, ls=:dot)
+          color=:red, ls=:dot)
   end
   if any(beta)
     plot!(ygrid, pdfT_lower, fillrange=pdfT_upper, alpha=alpha, color=:red,
@@ -170,7 +171,7 @@ function trace_kernel_param(sym, chain; paramname="", simdata=nothing,
                             simsym=nothing)
   param = group(sym, chain)
   plot(hcat(param...)', outliers=false, labels=nothing)
-  xlabel!("$(paramname) MCMC Iteration", font=font(12))
+  xlabel!("MCMC Iteration", font=font(12))
   ylabel!(paramname, font=font(12))
   simdata == nothing || hline!(simdata[simsym], ls=:dot, labels="truth")
   return
@@ -179,18 +180,21 @@ end
 
 function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
                          laststate=nothing, bw_postpred=0.3, simdata=nothing,
-                         ygrid=default_ygrid(), xlims_=nothing)
+                         ygrid=default_ygrid(), xlims_=nothing,
+                         plotsize=(400,400))
   # Loglikelihood trace
   ll = [s[:loglike] for s in summarystats]
   plot(ll, label=nothing)
   ylabel!("log likelihood")
   xlabel!("MCMC iteration")
+  plot!(size=plotsize)
   savefig("$(imgdir)/loglike.pdf")
   closeall()
 
   # Posterior density
   plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid)
   xlims_ == nothing || xlims!(xlims_)
+  plot!(size=plotsize)
   savefig("$(imgdir)/postpred.pdf")
   closeall()
 
@@ -198,54 +202,88 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
     plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
                               simdata=simdata)
     xlims_ == nothing || xlims!(xlims_)
+    plot!(size=plotsize)
     savefig("$(imgdir)/postpred-true-data-density.pdf")
     closeall()
   end
 
   # Trace of p, beta.
   trace_kernel_param(:p, chain, paramname="p")
+  plot!(size=plotsize)
   savefig("$(imgdir)/p-trace.pdf"); closeall()
   trace_kernel_param(:beta, chain, paramname="β")
+  plot!(size=plotsize)
   savefig("$(imgdir)/beta-trace.pdf"); closeall()
 
   # Proportion of gammas.
   plot_gamma(yC, yT, chain)
+  plot!(size=plotsize)
   savefig("$(imgdir)/gammas.pdf")
   closeall()
 
   # Plot kernel parameters boxplot
   boxplot_kernel_param(:mu, chain, paramname="μ", simdata=simdata, simsym=:loc)
+  plot!(size=plotsize)
   savefig("$(imgdir)/mu.pdf"); closeall()
+
   boxplot_kernel_param(:sigma, chain, paramname="σ", simdata=simdata, simsym=:scale)
+  plot!(size=plotsize)
   savefig("$(imgdir)/sigma.pdf"); closeall()
+
   boxplot_kernel_param(:nu, chain, paramname="ν", simdata=simdata, simsym=:df)
+  plot!(size=plotsize)
   savefig("$(imgdir)/nu.pdf"); closeall()
+
   boxplot_kernel_param(:phi, chain, paramname="ϕ", simdata=simdata, simsym=:skew)
+  plot!(size=plotsize)
   savefig("$(imgdir)/phi.pdf"); closeall()
+
   boxplot_kernel_param(:psi, chain, paramname="ψ")
+  plot!(size=plotsize)
   savefig("$(imgdir)/psi.pdf"); closeall()
+
   boxplot_kernel_param(:omega, chain, paramname="ω")
+  plot!(size=plotsize)
   savefig("$(imgdir)/omega.pdf"); closeall()
+
   boxplot_kernel_param(:etaC, chain, paramname="ηc", simdata=simdata, simsym=:etaC)
+  plot!(size=plotsize)
   savefig("$(imgdir)/etaC.pdf"); closeall()
+
   boxplot_kernel_param(:etaT, chain, paramname="ηt", simdata=simdata, simsym=:etaT)
+  plot!(size=plotsize)
   savefig("$(imgdir)/etaT.pdf"); closeall()
 
   # Plot kernel parameters trace plot
   trace_kernel_param(:mu, chain, paramname="μ")
+  plot!(size=plotsize)
   savefig("$(imgdir)/mu-trace.pdf"); closeall()
+
   trace_kernel_param(:sigma, chain, paramname="σ")
+  plot!(size=plotsize)
   savefig("$(imgdir)/sigma-trace.pdf"); closeall()
+
   trace_kernel_param(:nu, chain, paramname="ν")
+  plot!(size=plotsize)
   savefig("$(imgdir)/nu-trace.pdf"); closeall()
+
   trace_kernel_param(:phi, chain, paramname="ϕ")
+  plot!(size=plotsize)
   savefig("$(imgdir)/phi-trace.pdf"); closeall()
+
   trace_kernel_param(:etaC, chain, paramname="ηc")
+  plot!(size=plotsize)
   savefig("$(imgdir)/etaC-trace.pdf"); closeall()
+
   trace_kernel_param(:etaT, chain, paramname="ηt")
+  plot!(size=plotsize)
   savefig("$(imgdir)/etaT-trace.pdf"); closeall()
+
   trace_kernel_param(:psi, chain, paramname="ψ")
+  plot!(size=plotsize)
   savefig("$(imgdir)/psi-trace.pdf"); closeall()
+
   trace_kernel_param(:omega, chain, paramname="ω")
+  plot!(size=plotsize)
   savefig("$(imgdir)/omega-trace.pdf"); closeall()
 end
