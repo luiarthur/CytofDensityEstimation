@@ -13,12 +13,12 @@ function scenarios(n::Int)
   loc = [-1, 1, 3.]
   scale = [.7, .7, .7]
   etaC = [.5, .5, 0]
-  df = [3, 5, 3.]
-  skew = [-10, -5, 0.]
+  df = [7, 5, 10.]
+  skew = [-5, -3, 0.]
   Ni = 10000
 
   if n == 0  # TEST CASE!
-    return CDE.Model.generate_samples(NC=1000, NT=1000, gammaC=0.3, gammaT=0.3,
+    return CDE.Model.generate_samples(NC=100, NT=100, gammaC=0.3, gammaT=0.3,
                                       etaC=[1., 0, 0], etaT=[1., 0, 0],
                                       loc=loc, scale=scale, df=df, skew=skew)
   elseif n == 1

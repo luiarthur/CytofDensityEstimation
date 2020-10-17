@@ -41,7 +41,9 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
              nsamps::Vector{Int}=[1000], nburn::Int=1000, thin::Int=1,
              monitors::Vector{Vector{Symbol}}=default_monitors(),
              callback_fn::Function=default_callback_fn,
-             fix::Vector{Symbol}=Symbol[], reps_for_beta0::Int=0,
+             fix::Vector{Symbol}=Symbol[],
+             rep_beta_flipped::Int=0,
+             rep_aux::Int=0,
              flags::Vector{Symbol}=default_flags(), verbose::Int=1)
   println(flags)
   isfixed(sym::Symbol) = sym in fix
@@ -52,12 +54,17 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
     update_state!(state, data, prior, tuners, fix=fix, flags=flags)
 
     if state.beta != prev_beta
-      for _ in 1:reps_for_beta0
-        isfixed(:lambdaT) || update_lambdaT!(state, data, prior, flags)
-        isfixed(:etaT) || update_etaT!(state, data, prior)
-        isfixed(:gammaT) || update_gammaT!(state, data, prior)
-        isfixed(:zetaT) || update_zeta!('T', state, data, prior)
-        isfixed(:vT) || update_v!('T', state, data, prior)
+      for _ in 1:rep_beta_flipped
+        isfixed(:lambda) || isfixed(:lambdaT) || update_lambdaT!(state, data, prior, flags)
+        isfixed(:eta) || isfixed(:etaT) || update_etaT!(state, data, prior)
+        isfixed(:gamma) || isfixed(:gammaT) || update_gammaT!(state, data, prior)
+        isfixed(:zeta) || isfixed(:zetaT) || update_zeta!('T', state, data, prior)
+        isfixed(:v) || isfixed(:vT) || update_v!('T', state, data, prior)
+      end
+    else
+      for _ in 1:rep_aux
+        update_state!(state, data, prior, tuners, flags=flags,
+                      fix=[fix; [:p, :beta, :lambda, :gamma, :eta]])
       end
     end
   end

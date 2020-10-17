@@ -2,7 +2,7 @@ default_ygrid(; lo=-6, hi=6, length=1000) = range(lo, hi, length=length)
 
 function group(sym::Symbol, chain; altskew_sym=:psi, altvar_sym=:omega)
   if sym in (:sigma, :phi)
-    skew, scale = fetch_skewt_stats(chain; altskew_sym=altskew_sym,
+    scale, skew = fetch_skewt_stats(chain; altskew_sym=altskew_sym,
                                     altvar_sym=altvar_sym)
     return sym == :sigma ? scale : skew
   else
@@ -24,7 +24,7 @@ function fetch_skewt_stats(chain; altskew_sym=:psi, altvar_sym=:omega)
   scale = [Util.scalefromaltskewt.(sqrt.(altvar[b]), altskew[b])
            for b in eachindex(altskew)]
 
-  return (skew=skew, scale=scale)
+  return (scale=scale, skew=skew)
 end
 
 

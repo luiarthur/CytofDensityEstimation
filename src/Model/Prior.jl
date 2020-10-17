@@ -9,10 +9,16 @@ struct Prior
   psi::Normal
 end
 
-function Prior(K; p=Beta(.5, .5), gamma=Beta(1,1), eta=nothing,
-               mu=Normal(0, 3), omega=InverseGamma(3, 2),
-               nu=LogNormal(3.5, 0.3), psi=Normal(0, 1))
-  eta != nothing || (eta = Dirichlet(K, 1/K))
+function compute_prior_mu(data::Data)
+  yfinite = [data.yC_finite; data.yT_finite]
+  return Normal(mean(yfinite), std(yfinite))
+end
+
+function Prior(K; p=Beta(100, 100), gamma=Beta(1,1), eta=nothing,
+               mu=Normal(0, 3), omega=InverseGamma(.1, .1),
+               nu=LogNormal(1.6, 0.4), psi=Normal(-1, 1), data=nothing)
+  eta == nothing && (eta = Dirichlet(K, 1/K))
+  data == nothing || (mu = compute_prior_mu(data))
   return Prior(K, p, gamma, eta, mu, omega, nu, psi)
 end
 

@@ -70,7 +70,7 @@ prior_mu = let
   Normal(mean(yfinite), std(yfinite))
 end
 prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(1.6, 0.4), p=Beta(100, 100),
-                        omega=InverseGamma(3, 2), psi=Normal(-2, 3))
+                        omega=InverseGamma(.1, .1), psi=Normal(-1, 1))
 state = CDE.Model.State(data, prior)
 tuners = CDE.Model.Tuners(K, 0.1)
 
@@ -81,6 +81,7 @@ end
 
 # Specify flags for modeling.
 flags = Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
+# flags = Symbol[:update_beta_with_skewt]
 # flags = Symbol[:update_lambda_with_skewt]
 # flags = Symbol[]
 
@@ -92,6 +93,8 @@ flags = Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
 #   large amount of data to estimate.
 # - eta can be easily recovered when n → ∞.
 fix = Symbol[]
+# fix = Symbol[:omega]
+# fix = Symbol[:psi]
 # fix = Symbol[:nu, :psi]
 # fix = Symbol[:mu, :omega, :nu, :eta]
 # state.mu[1:3] .= simdata[:loc]
@@ -103,17 +106,18 @@ fix = Symbol[]
 monitors = CDE.Model.default_monitors()
 
 # Warmup.
-_tuners = deepcopy(tuners)
-state.beta = 1
-@time _, state, _ = CDE.Model.fit(
-    state, data, prior, _tuners, nsamps=[1], nburn=200, thin=1,
-    fix=[fix; [:beta]], flags=flags, monitors=monitors,
-    reps_for_beta0=50)
+# _tuners = deepcopy(tuners)
+# state.beta = 1
+# @time _, state, _ = CDE.Model.fit(
+#     state, data, prior, _tuners, nsamps=[1], nburn=200, thin=1,
+#     fix=[fix; [:beta]], flags=flags, monitors=monitors,
+#     rep_beta_flipped=50)
 
 # Run chain.
 @time chain, laststate, summarystats = CDE.Model.fit(
     state, data, prior, tuners, nsamps=[2000], nburn=2000, thin=1,
-    fix=Symbol[], flags=flags, monitors=monitors, reps_for_beta0=50)
+    rep_aux=10,
+    fix=fix, flags=flags, monitors=monitors, rep_beta_flipped=50)
 
 # Save results
 BSON.bson("$(resultsdir)/results.bson",
