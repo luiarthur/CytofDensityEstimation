@@ -41,8 +41,9 @@ function State(data::Data, prior::Prior)
 end
 
 
-ref_gamma(state::State, i::Char) = (i == 'C') ? state.gammaC : state.gammaT
-ref_eta(state::State, i::Char) = (i == 'C') ? state.etaC : state.etaT
 ref_lambda(state::State, i::Char) = (i == 'C') ? state.lambdaC : state.lambdaT
 ref_v(state::State, i::Char) = (i == 'C') ? state.vC : state.vT
 ref_zeta(state::State, i::Char) = (i == 'C') ? state.zetaC : state.zetaT
+
+ref_eta(state::State, i::Char) = (i == 'C') ? state.etaC : state.etaT
+ref_gamma(state::State, i::Char) = (i == 'C') ? state.gammaC : state.gammaT

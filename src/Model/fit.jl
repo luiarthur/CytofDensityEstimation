@@ -12,6 +12,7 @@ default_flags() = [:update_beta_with_skewt, :update_lambda_with_skewt]
 function default_callback_fn(state::State, data::Data, prior::Prior,
                              iter::Int, pbar::MCMC.ProgressBars.ProgressBar)
   ll = round(loglike_latent_var(state, data), digits=3)
+  # ll = round(marginal_loglike(state, data), digits=3)
   MCMC.ProgressBars.set_description(pbar, "Loglike: $(ll)")
   return Dict(:loglike => ll)
 end
