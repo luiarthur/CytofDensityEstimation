@@ -55,11 +55,13 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
 
     if state.beta != prev_beta
       for _ in 1:rep_beta_flipped
-        isfixed(:lambda) || isfixed(:lambdaT) || update_lambdaT!(state, data, prior, flags)
-        isfixed(:eta) || isfixed(:etaT) || update_etaT!(state, data, prior)
-        isfixed(:gamma) || isfixed(:gammaT) || update_gammaT!(state, data, prior)
-        isfixed(:zeta) || isfixed(:zetaT) || update_zeta!('T', state, data, prior)
-        isfixed(:v) || isfixed(:vT) || update_v!('T', state, data, prior)
+        # isfixed(:lambda) || isfixed(:lambdaT) || update_lambdaT!(state, data, prior, flags)
+        # isfixed(:eta) || isfixed(:etaT) || update_etaT!(state, data, prior)
+        # isfixed(:gamma) || isfixed(:gammaT) || update_gammaT!(state, data, prior)
+        # isfixed(:zeta) || isfixed(:zetaT) || update_zeta!('T', state, data, prior)
+        # isfixed(:v) || isfixed(:vT) || update_v!('T', state, data, prior)
+        update_state!(state, data, prior, tuners, flags=flags,
+                      fix=[fix; [:p, :beta]])
       end
     else
       for _ in 1:rep_aux
