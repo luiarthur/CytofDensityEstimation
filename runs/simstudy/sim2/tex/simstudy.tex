@@ -78,11 +78,9 @@ In scenario II, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.
 In scenario III, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
 0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.45,0.05)$. Implicitly, $\beta^\true=1$.
 In scenario IV, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.48,0.02)$. Implicitly, $\beta^\true=1$.
-In scenario V, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.5,0)$. Implicitly, $\beta^\true=0$.
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.50,0.00)$. Implicitly, $\beta^\true=0$.
 %
-In each scenario, $N_i=10000$. Table~\ref{tab:sim-truth} summarizes the
+In each scenario, $N_i=1000$. Table~\ref{tab:sim-truth} summarizes the
 simulation truth for the model parameters.
 \begin{table}
   \centering
@@ -93,9 +91,8 @@ simulation truth for the model parameters.
     \hline 
     I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & 1.000 \\
     II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & 1.000 \\
-    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.45, 0.05) & 1 & 0.000 \\
-    IV  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.48, 0.02) & 1 & 0.000 \\
-    V   & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.50, 0.00) & 0 & 0.000 \\
+    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.45, 0.05) & 1 & 0.991 \\
+    IV  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.50, 0.00) & 1 & 0.002 \\
     \hline
   \end{tabular}
   \caption{Simulation truth under various scenarios. Posterior mean of
@@ -142,8 +139,6 @@ quite close. It appears that with more data, they are better recovered.}
     \includegraphics[scale=.45]{results/scenario4/img/postpred.pdf} \\
     (c) Scenario III &
     (d) Scenario IV \\
-    \includegraphics[scale=.45]{results/scenario5/img/postpred.pdf} & \\
-    (e) Scenario V &
   \end{tabular}
   \caption{Posterior density in each simulation scenario for observed data
   ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
@@ -163,8 +158,6 @@ quite close. It appears that with more data, they are better recovered.}
     \includegraphics[scale=.45]{results/scenario4/img/postpred-true-data-density.pdf} \\
     (c) Scenario III &
     (d) Scenario IV \\
-    \includegraphics[scale=.45]{results/scenario5/img/postpred-true-data-density.pdf} & \\
-    (e) Scenario V &
   \end{tabular}
   \caption{Posterior density in each simulation scenario for observed data
   ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
