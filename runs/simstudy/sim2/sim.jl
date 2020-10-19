@@ -115,7 +115,7 @@ monitors = CDE.Model.default_monitors()
 
 # Run chain.
 @time chain, laststate, summarystats = CDE.Model.fit(
-    state, data, prior, tuners, nsamps=[2000], nburn=2000, thin=1,
+    state, data, prior, tuners, nsamps=[10000], nburn=2000, thin=1,
     rep_aux=10,
     fix=fix, flags=flags, monitors=monitors, rep_beta_flipped=50)
 

@@ -15,7 +15,7 @@ function scenarios(n::Int)
   etaC = [.5, .5, 0]
   df = [7, 5, 10.]
   skew = [-5, -3, 0.]
-  Ni = 10000
+  Ni = 1000
 
   if n == 0  # TEST CASE!
     return CDE.Model.generate_samples(NC=100, NT=100, gammaC=0.3, gammaT=0.3,
@@ -34,10 +34,6 @@ function scenarios(n::Int)
                                       etaC=etaC, etaT=[.5, .45, .05],
                                       loc=loc, scale=scale, df=df, skew=skew)
   elseif n == 4
-    return CDE.Model.generate_samples(NC=Ni, NT=Ni, gammaC=0.3, gammaT=0.3,
-                                      etaC=etaC, etaT=[.5, .48, .02],
-                                      loc=loc, scale=scale, df=df, skew=skew)
-  elseif n == 5
     return CDE.Model.generate_samples(NC=Ni, NT=Ni, gammaC=0.3, gammaT=0.3,
                                       etaC=etaC, etaT=[.5, .5, .0],
                                       loc=loc, scale=scale, df=df, skew=skew)

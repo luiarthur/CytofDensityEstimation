@@ -63,22 +63,26 @@
 
 \section{Simulation Setup}\label{sec:sim-setup}
 We assessed our model through the following simulation studies. We first
-generated three data sets (I, II, III) according to our model. In each three
-scenarios, 
+generated five data sets (I, II, III, IV, V) according to our model. In each
+five scenarios,
 %
 the true mixture locations were $\bm{\mu}^\true=(-1, 1, 3)$,
 the true mixture scales were $\bm{\sigma}^\true=(0.7, 0.7, 0.7)$,
-the true mixture degrees of freedom were $\bm{\nu}^\true=(15, 30, 10)$, and
-the true mixture skews were $\bm{\phi}^\true=(-20, -5, 0)$.
+the true mixture degrees of freedom were $\bm{\nu}^\true=(7, 5, 10)$, and
+the true mixture skews were $\bm{\phi}^\true=(-5, -3, 0)$.
 %
 In scenario I, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.2$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.2,0.3)$. Implicitly, $\beta^\true=1$.
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.4,0.1)$. Implicitly, $\beta^\true=1$.
 In scenario II, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.2,0.3)$. Implicitly, $\beta^\true=1$.
-In scenario III, $\gamma_C^\true=\gamma_T^\true=0.3$, and
-$\bm\eta_C^\true=\bm\eta_T^\true=(0.5, 0.5, 0)$. Implicitly, $\beta^\true=0$.
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.4,0.1)$. Implicitly, $\beta^\true=1$.
+In scenario III, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.45,0.05)$. Implicitly, $\beta^\true=1$.
+In scenario IV, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.48,0.02)$. Implicitly, $\beta^\true=1$.
+In scenario V, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.5,0)$. Implicitly, $\beta^\true=0$.
 %
-In each scenario, $N_i=1000$. Table~\ref{tab:sim-truth} summarizes the
+In each scenario, $N_i=10000$. Table~\ref{tab:sim-truth} summarizes the
 simulation truth for the model parameters.
 \begin{table}
   \centering
@@ -87,9 +91,11 @@ simulation truth for the model parameters.
     Scenario & $\gamma_C^\true$ & $\gamma_T^\true$ & $\bm\eta_C^\true$ & 
     $\bm\eta_T^\true$ & $\beta^\true$ & $\hat\beta$ \\
     \hline 
-    I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.2, 0.3) & 1 & 0.968 \\
-    II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.2, 0.3) & 1 & 1.000 \\
-    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.5, 0.0) & 0 & 0.001 \\
+    I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & 1.000 \\
+    II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & 1.000 \\
+    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.45, 0.05) & 1 & 0.000 \\
+    IV  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.48, 0.02) & 1 & 0.000 \\
+    V   & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.50, 0.00) & 0 & 0.000 \\
     \hline
   \end{tabular}
   \caption{Simulation truth under various scenarios. Posterior mean of
@@ -99,14 +105,18 @@ simulation truth for the model parameters.
 
 \section{Simulation Results}\label{sec:sim-results}
 The following priors were used in this analysis.
-First, we set $K=6$. Then $p\sim\Beta(.1, .9)$, $\gamma_i\sim\Beta(0.5,
-0.5)$, $\bm\eta_i\sim\Dirichlet_K(1/K)$, $\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$,
-$\omega_k\sim\InvGamma(3, 2)$, $\nu_k\sim\LogNormal(4, 0.01)$,
-$\psi_k\sim\Normal(0, 3^2)$, where, respectively, $\bar{\mu}$ and $s_\mu$ are
+First, we set $K=3$ and $p=0.5$. Then $\gamma_i\sim\Beta(1, 1)$,
+$\bm\eta_i\sim\Dirichlet_K(1/K)$, $\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$,
+$\omega_k\sim\InvGamma(0.1, 0.1)$, $\nu_k\sim\LogNormal(1.6, 0.4)$,
+$\psi_k\sim\Normal(-1, 1)$, where, respectively, $\bar{\mu}$ (-0.557) and $s_\mu$ (1.276) are
 the empirical mean and standard deviation of the data for which $y_{i,n} >
-0$. Posterior inference was made via Gibbs sampling. The initial 1000 MCMC
-samples were discarded as burn-in, and the subsequent 1000 samples were kept
-for analysis. The inference speed was approximately 45 iterations per second.
+0$. Posterior inference was made via Gibbs sampling. The initial 2000 MCMC
+samples were discarded as burn-in, and the subsequent 2000 samples were kept
+for analysis. In addition, updating the parameters $\bm\zeta_i, \bm v_i,
+\bm\omega$, and $\bm\psi$, for $i\in\bc{C,T}$ multiple times for every 1
+update of the other parameters helped with the mixing. Thus, 10 updates for
+those parameters were done during each iteration of the MCMC.
+The inference speed was approximately 6 iterations per second.
 Figure~\ref{fig:sim-postdens} summarizes the posterior densities for the
 positive values of $y_{i,n}$. The dashed lines are kernel density estimates
 of the data, and the shaded regions are the 95\% credible intervals for the
@@ -115,26 +125,25 @@ III, where $\beta^true=0$, the posterior mean of $\beta$ was also 0. Thus,
 $\gamma_T$ and $\bm\eta_T$ were simply samples from the prior. Thus, the 
 posterior density for sample T was not included here.
 
-\alert{Juhee: There seems to be difficulty in estimating $\nu_k$, $v_{i,n}$,
-and $\zeta_{i,n}$. $\nu_k$ and $v_{i,n}$ related to the degrees of freedom
-and $\zeta$ and $\psi_k$ relate to the skewness. I also wasn't able to obtain
-decent results unless I used the skew-$t$ pdf in the mixture in updating
-$\beta$, and in updating $\lambda_{i,n}$. Changing $K$ does affect the
-inference. In particular, when I used a $K=3$ I did not always recover the
-simulation truth, and at times the fit was poor. Using a larger $K$ did not
-always yield the original $\bm\eta_i$, but the fit was usually good.
-Under the same setup but with $\sigma_i^\true=0.1$ in the simulation truth,
-the credible intervals were much narrower.}.
+\alert{Juhee: I found a few dumb typos in the code. After I corrected them,
+things look much better. With a large enough sample size, the parameters can
+be recovered reasonably well. The recovery isn't perfect as parameters like
+the skewness and degrees of freedom are still hard to estimate, but they are
+quite close. It appears that with more data, they are better recovered.}
 
 \begin{figure}[t!]
   \centering
-  \begin{tabular}{c}
-    \includegraphics[scale=.45]{results/scenario1/img/postpred.pdf} \\
-    (a) Scenario I \\
+  \begin{tabular}{cc}
+    \includegraphics[scale=.45]{results/scenario1/img/postpred.pdf} &
     \includegraphics[scale=.45]{results/scenario2/img/postpred.pdf} \\
+    (a) Scenario I &
     (b) Scenario II \\
-    \includegraphics[scale=.45]{results/scenario3/img/postpred.pdf} \\
-    (c) Scenario III \\
+    \includegraphics[scale=.45]{results/scenario3/img/postpred.pdf} &
+    \includegraphics[scale=.45]{results/scenario4/img/postpred.pdf} \\
+    (c) Scenario III &
+    (d) Scenario IV \\
+    \includegraphics[scale=.45]{results/scenario5/img/postpred.pdf} & \\
+    (e) Scenario V &
   \end{tabular}
   \caption{Posterior density in each simulation scenario for observed data
   ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
@@ -142,6 +151,29 @@ the credible intervals were much narrower.}.
   density. \alert{Images need to be re-formatted.}}
   \label{fig:sim-postdens}
 \end{figure}
+
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[scale=.45]{results/scenario1/img/postpred-true-data-density.pdf} &
+    \includegraphics[scale=.45]{results/scenario2/img/postpred-true-data-density.pdf} \\
+    (a) Scenario I &
+    (b) Scenario II \\
+    \includegraphics[scale=.45]{results/scenario3/img/postpred-true-data-density.pdf} &
+    \includegraphics[scale=.45]{results/scenario4/img/postpred-true-data-density.pdf} \\
+    (c) Scenario III &
+    (d) Scenario IV \\
+    \includegraphics[scale=.45]{results/scenario5/img/postpred-true-data-density.pdf} & \\
+    (e) Scenario V &
+  \end{tabular}
+  \caption{Posterior density in each simulation scenario for observed data
+  ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
+  simulated data. The shaded regions are 95\% credible intervals of the
+  density. \alert{Images need to be re-formatted.}}
+  \label{fig:sim-postdens}
+\end{figure}
+
+
 
 \alert{TODO: Discuss Kolmogorov Smirnov statistic...}
 
