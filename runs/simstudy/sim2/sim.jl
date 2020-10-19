@@ -27,6 +27,7 @@ using Distributions
 using StatsPlots
 using HypothesisTests
 import Random
+using RCall
 using BSON
 import CytofDensityEstimation.Model.default_ygrid
 
@@ -129,8 +130,11 @@ BSON.bson("$(resultsdir)/results.bson",
 out = BSON.load("$(resultsdir)/results.bson")
 
 # Print KS statistic.
-ks_fit = ApproximateTwoSampleKSTest(yC, yT)
-println(ks_fit)
+# ks_fit = ApproximateTwoSampleKSTest(yC, yT)
+# println(ks_fit)
+@rimport stats as rstats
+ks_fit = rstats.ks_test(out[:simdata][:yC], out[:simdata][:yT])
+println(ks_fit["p.value"][1])
 flush(stdout)
 
 # Print summary statistics.
