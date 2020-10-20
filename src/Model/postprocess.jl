@@ -101,7 +101,7 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
                                    showT=true, alpha=0.3,
                                    labelCppd="post. density",
                                    labelTppd="post. density", 
-                                   simdata=nothing)
+                                   simdata=nothing, density_legend_pos=:best)
 
   pdfC, pdfT = posterior_density(chain, ygrid)
   beta = group(:beta, chain)
@@ -128,7 +128,7 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
          color=:blue, ls=:dot)
   end
   plot!(ygrid, pdfC_lower, fillrange=pdfC_upper, alpha=alpha, color=:blue,
-        label=labelCppd)
+        label=labelCppd, legend=density_legend_pos)
 
   if simdata == nothing
     plot!(kde(yT[isfinite.(yT)], bandwidth=bw), lw=3, label=labelyT,
@@ -181,7 +181,7 @@ end
 function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
                          laststate=nothing, bw_postpred=0.3, simdata=nothing,
                          ygrid=default_ygrid(), xlims_=nothing,
-                         plotsize=(400,400))
+                         plotsize=(400,400), density_legend_pos=:best)
   # Loglikelihood trace
   ll = [s[:loglike] for s in summarystats]
   plot(ll, label=nothing)
@@ -192,7 +192,8 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   closeall()
 
   # Posterior density
-  plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid)
+  plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
+                            density_legend_pos=density_legend_pos)
   xlims_ == nothing || xlims!(xlims_)
   plot!(size=plotsize)
   savefig("$(imgdir)/postpred.pdf")
@@ -200,7 +201,8 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
 
   if simdata != nothing
     plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
-                              simdata=simdata)
+                              simdata=simdata,
+                              density_legend_pos=density_legend_pos)
     xlims_ == nothing || xlims!(xlims_)
     plot!(size=plotsize)
     savefig("$(imgdir)/postpred-true-data-density.pdf")

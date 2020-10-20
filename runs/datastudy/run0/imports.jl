@@ -15,7 +15,8 @@ using RCall
 
 function postprocess(chain, laststate, summarystats, yC, yT, imgdir,
                      resultsdir, awsbucket; bw_postpred=0.2,
-                     ygrid=collect(range(-8, 8, length=1000)))
+                     ygrid=collect(range(-8, 8, length=1000)),
+                     density_legend_pos=:best)
   # Print KS Statistic.
   ks_fit = rstats.ks_test(yC, yT)
   println("KS-test p-value: ", ks_fit["p.value"][1])
@@ -27,7 +28,8 @@ function postprocess(chain, laststate, summarystats, yC, yT, imgdir,
 
   # Plot results.
   @time CDE.Model.plotpostsummary(chain, summarystats, yC, yT, imgdir,
-                                  bw_postpred=bw_postpred, ygrid=ygrid)
+                                  bw_postpred=bw_postpred, ygrid=ygrid,
+                                  density_legend_pos=density_legend_pos)
   flush(stdout)
 
   # Send results
@@ -98,7 +100,8 @@ function _run(config)
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
               out[:data].yT, imgdir, resultsdir, awsbucket; bw_postpred=0.2,
-              ygrid=collect(range(-8, 8, length=1000)))
+              ygrid=collect(range(-8, 8, length=1000)),
+              density_legend_pos=:topleft)
 
   # Print done.
   println("Done!"); flush(stdout)
