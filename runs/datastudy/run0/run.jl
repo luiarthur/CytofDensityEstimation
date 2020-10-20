@@ -28,7 +28,7 @@ data = CDE.Util.subsample(DataFrame(CSV.File(path_to_data)), subsample_size,
                           seed=0)
 configs = [let
              _awsbucket = (awsbucket == nothing) ? awsbucket : "$(awsbucket)/donor$(donor)/$(marker)"
-             yC, yT = CDE.Util.partition(data, marker)
+             yC, yT = CDE.Util.partition(data, marker, log_response=true)
              (yC=yC, yT=yT, K=5, nsamps=nsamps, nburn=nburn, marker=marker,
               awsbucket=_awsbucket,
               resultsdir=joinpath(resultsdir, "donor$(donor)/$(marker)"))

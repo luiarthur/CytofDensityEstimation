@@ -26,10 +26,15 @@ Partition `data::DataFrame` into control and treatment groups according to
 `treatmentsym::Symbol` (whether missing(->control) or not(->treatment)),
 for a given marker (`markersym::Symbol`).
 """
-function partition(data, markersym::Symbol, treatmentsym::Symbol=:treatment)
+function partition(data, markersym::Symbol; treatmentsym::Symbol=:treatment,
+                   log_response=false)
   marker = data[!, markersym]
   yC = marker[ismissing.(data[!, treatmentsym])]
   yT = marker[.!ismissing.(data[!, treatmentsym])]
+  if log_response
+    yC .= log.(yC)
+    yT .= log.(yT)
+  end
   return (yC=yC, yT=yT)
 end
 
