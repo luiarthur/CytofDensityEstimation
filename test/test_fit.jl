@@ -2,7 +2,8 @@
 import Pkg; Pkg.activate("../")  # CytofDensityEstimation
 include("runtests.jl")
 =#
-# TODO: ApproximateTwoSampleKSTest(a, b)
+
+ENV["GKSwstype"] = "nul"  # For StatsPlots
 
 @testset "Test fit" begin
   K = 3
@@ -27,37 +28,12 @@ include("runtests.jl")
   tuners = CDE.Model.Tuners(K)
 
   chain, laststate, summarystats = CDE.Model.fit(state, data, prior, tuners,
-                                                 nsamps=[1000], nburn=0)
+                                                 nsamps=[500], nburn=0)
 
-  # Post processing
-  p = CDE.Model.group(:p, chain)
-  beta = CDE.Model.group(:beta, chain)
-  gammaC = CDE.Model.group(:gammaC, chain)
-  gammaT = CDE.Model.group(:gammaT, chain)
-  nu = permutedims(reduce(hcat, CDE.Model.group(:nu, chain)), (2, 1))
-  mu = permutedims(reduce(hcat, CDE.Model.group(:mu, chain)), (2, 1))
-  skew, scale = CDE.Model.fetch_skewt_stats(chain)
-  ll = [s[:loglike] for s in summarystats]
+  CDE.Model.printsummary(chain, summarystats)
 
-  # Plots
-  # println("mean p: ", mean(p))
-  # println("mean beta: ", mean(beta))
-  # println("mean etaC: ", mean(CDE.Model.group(:etaC, chain)))
-  # println("mean etaT ", mean(CDE.Model.group(:etaT, chain)))
-  # println("mean gammaC: ", mean(gammaC))
-  # println("mean gammaT: ", mean(gammaT))
-  # println("mean nu ", mean(nu, dims=1))
-  # println("mean mu ", mean(mu, dims=1))
-
-  # println("Mean skew: ", mean(skew))
-  # println("Mean scale: ", mean(scale))
-
-  # # Plots
-  # plot(ll); savefig("img/ll.pdf"); closeall();
-  # plot(p); savefig("img/p.pdf"); closeall();
-  # plot(beta); savefig("img/beta.pdf"); closeall();
-  # plot(gammaC); savefig("img/gammaC.pdf"); closeall();
-  # plot(gammaT); savefig("img/gammaT.pdf"); closeall();
-  # plot(nu); savefig("img/nu.pdf"); closeall();
-  # plot(mu); savefig("img/mu.pdf"); closeall();
+  imgdir = "img/test"; mkpath(imgdir)
+  @time CDE.Model.plotpostsummary(chain, summarystats, data.yC, data.yT,
+                                  imgdir, bw_postpred=0.2,
+                                  ygrid=CDE.Model.default_ygrid())
 end

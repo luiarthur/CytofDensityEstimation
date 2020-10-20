@@ -10,6 +10,7 @@ using Distributions
 using StatsFuns
 using Statistics
 using ProgressBars
+using StatsPlots
 
 # using StatsPlots
 # NOTE: Might need to set
