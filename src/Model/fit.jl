@@ -43,9 +43,18 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
              callback_fn::Function=default_callback_fn,
              fix::Vector{Symbol}=Symbol[],
              rep_beta_flipped::Int=0,
-             rep_aux::Int=0,
+             rep_aux::Int=0, seed=nothing,
              flags::Vector{Symbol}=default_flags(), verbose::Int=1)
-  println(flags)
+
+  seed == nothing || Random.seed!(seed)
+
+  println("seed: ", seed)
+  println("flags: ", flags)
+  println("rep_beta_flipped: ", rep_beta_flipped)
+  println("rep_aux: ", rep_aux)
+  println("fix: ", fix)
+  println("monitors: ", monitors)
+
   isfixed(sym::Symbol) = sym in fix
 
   function update!(state)
