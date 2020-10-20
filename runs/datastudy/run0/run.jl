@@ -6,6 +6,8 @@ rmprocs(workers())
 addprocs(length(markers))
 @everywhere include(joinpath(@__DIR__, "imports.jl"))
 
+postprocess_only = false
+
 # Read command line args.
 if length(ARGS) > 1
   resultsdir = ARGS[1]
@@ -18,6 +20,13 @@ else
   awsbucket = nothing
   nsamps = 10
   nburn = 20
+
+  if postprocess_only
+    SCRATCH_DIR = ENV["SCRATCH_DIR"]
+    SIMNAME = "run0"
+    resultsdir = "$(SCRATCH_DIR)/cde/datastudy/$(SIMNAME)"
+    awsbucket = "s3://cytof-density-estimation/datastudy/$(SIMNAME)"
+  end
 end
 
 # Read data.
@@ -36,7 +45,19 @@ configs = [let
 
 # Parallel run.
 println("Starting runs ...")
-res = pmap(run, configs, on_error=identity)
+if !postprocess_only  # Do run as well.
+  res = pmap(run, configs, on_error=identity)
+else
+  # Post processing only.
+  res = pmap(resdir -> let
+               out = BSON.load("$(resdir)/results.bson")
+               imgdir = joinpath(resdir, "img"); mkpath(imgdir)
+               postprocess(out[:chain], out[:laststate], out[:summarystats],
+                           out[:data].yC, out[:data].yT, imgdir; bw_postpred=0.2,
+                           ygrid=collect(range(-8, 8, length=1000)),
+                           density_legend_pos=:topleft)
+             end, getfield.(configs, :resultsdir), on_error=identity)
+end
 
 println("Status of runs:")
 foreach(z -> println(z[2], " => ", z[1]),
