@@ -1,0 +1,130 @@
+\documentclass[12pt]{article} % 12-point font
+
+\usepackage[margin=1in]{geometry} % set page to 1-inch margins
+\usepackage{bm,bbm} % for math
+\usepackage{amsmath} % for math
+\usepackage{amssymb} % like \Rightarrow
+\setlength\parindent{0pt} % Suppresses the indentation of new paragraphs.
+
+% Big display
+\newcommand{\ds}{ \displaystyle }
+% Parenthesis
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\p}[1]{\left(#1\right)}
+\newcommand{\bk}[1]{\left[#1\right]}
+\newcommand{\bc}[1]{ \left\{#1\right\} }
+\newcommand{\abs}[1]{ \left|#1\right| }
+% Derivatives
+\newcommand{\df}[2]{ \frac{d#1}{d#2} }
+\newcommand{\ddf}[2]{ \frac{d^2#1}{d{#2}^2} }
+\newcommand{\pd}[2]{ \frac{\partial#1}{\partial#2} }
+\newcommand{\pdd}[2]{\frac{\partial^2#1}{\partial{#2}^2} }
+% Distributions
+\newcommand{\Normal}{\text{Normal}}
+\newcommand{\Beta}{\text{Beta}}
+\newcommand{\G}{\text{Gamma}}
+\newcommand{\InvGamma}{\text{Inv-Gamma}}
+\newcommand{\Uniform}{\text{Uniform}}
+\newcommand{\Dirichlet}{\text{Dirichlet}}
+\newcommand{\LogNormal}{\text{LogNormal}}
+% Statistics
+\newcommand{\E}{ \text{E} }
+\newcommand{\iid}{\overset{iid}{\sim}}
+\newcommand{\ind}{\overset{ind}{\sim}}
+\newcommand{\true}{\text{TRUE}}
+
+\usepackage{color}
+\newcommand{\alert}[1]{\textcolor{red}{#1}}
+
+
+% Graphics
+\usepackage{graphicx}  % for figures
+\usepackage{float} % Put figure exactly where I want [H]
+
+% Uncomment if using bibliography
+% Bibliography
+% \usepackage{natbib}
+% \bibliographystyle{plainnat}
+
+% Adds settings for hyperlinks. (Mainly for table of contents.)
+\usepackage{hyperref}
+\hypersetup{
+  pdfborder={0 0 0} % removes red box from links
+}
+
+% Title Settings
+\title{CyTOF Density Estimation Data Analysis}
+\author{Arthur Lui}
+\date{\today} % \date{} to set date to empty
+
+% MAIN %
+\begin{document}
+\maketitle
+
+\section{Preliminary Data Analysis}
+The markers CD3z, EOMES, Perforin, and Siglec7 for one subject were studied
+in this data analysis. The number of cells in each sample are summarized in 
+Table~\ref{tab:data-counts}.
+\alert{Juhee: This data set was randomly subsampled such that only 20000
+cells total are used. That is $N_C + N_T = 20000$.}
+We set $K=5$. Beyond that, the same procedure for determining the priors for
+this analysis was the same as that in the simulation studies.
+Figures~\ref{fig:data-post-pred}~and~\ref{fig:data-post-gamma} show the posterior
+density and posterior distribution for $\gamma_i$ for each marker. Also
+included is the posterior mean for $\beta$, which is $\hat\beta$. For marker
+Siglec7, $\hat\beta=0$; and $\hat\beta=1$ for all other markers.
+
+
+\begin{table}[!t]
+  \centering
+  \begin{tabular}{|c|rrrr|}
+    \hline
+    Marker   & $N_C$ & $N_T$ & $Z_C$ & $Z_T$ \\ 
+    \hline
+    CD3z       & 9730 & 10270 & 159 &  47 \\ 
+    EOMES      & 9730 & 10270 & 939 & 806 \\ 
+    Perforin   & 9730 & 10270 &  10 & 102 \\ 
+    % Granzyme A & 9730 & 10270 &   4 &  12 \\ 
+    Siglec7    & 9730 & 10270 & 610 & 465 \\ 
+    \hline
+  \end{tabular} 
+  \caption{Counts of the number of cells in donor sample before ($N_C$) and
+  after ($N_T$) treatment. $Z_C$ and $Z_T$ respectively denote the proportion
+  of zeros in the measurements before and after treatment.}
+  \label{tab:data-counts}
+\end{table}
+
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[scale=0.5]{results/donor1/CD3z/img/postpred.pdf} &
+    \includegraphics[scale=0.5]{results/donor1/EOMES/img/postpred.pdf} \\
+    (a) CD3z ($\hat\beta=1$) & (b) EOMES ($\hat\beta=1$) \\
+    %
+    \includegraphics[scale=0.5]{results/donor1/Perforin/img/postpred.pdf} &
+    \includegraphics[scale=0.5]{results/donor1/Siglec7/img/postpred.pdf} \\
+    (c) Perforin ($\hat\beta=1$) & (d) Siglec7 ($\hat\beta=0$) \\
+  \end{tabular}
+  \caption{\alert{TODO}}
+  \label{fig:data-post-pred}
+\end{figure}
+
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[scale=0.5]{results/donor1/CD3z/img/gammas.pdf} &
+    \includegraphics[scale=0.5]{results/donor1/EOMES/img/gammas.pdf} \\
+    (a) CD3z ($\hat\beta=1$) & (b) EOMES ($\hat\beta=1$) \\
+    %
+    \includegraphics[scale=0.5]{results/donor1/Perforin/img/gammas.pdf} &
+    \includegraphics[scale=0.5]{results/donor1/Siglec7/img/gammas.pdf} \\
+    (c) Perforin ($\hat\beta=1$) & (d) Siglec7 ($\hat\beta=0$) \\
+  \end{tabular}
+  \caption{\alert{TODO}}
+  \label{fig:data-post-gamma}
+\end{figure}
+
+
+% Uncomment if using bibliography:
+% \bibliography{bib}
+\end{document}
