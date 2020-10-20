@@ -13,10 +13,9 @@ using RCall
 @rimport stats as rstats 
 
 
-function postprocess(chain, laststate, summarystats, yC, yT, imgdir,
-                     resultsdir, awsbucket; bw_postpred=0.2,
-                     ygrid=collect(range(-8, 8, length=1000)),
-                     density_legend_pos=:best)
+function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
+                     bw_postpred=0.2, density_legend_pos=:best,
+                     ygrid=collect(range(-8, 8, length=1000)))
   # Print KS Statistic.
   ks_fit = rstats.ks_test(yC, yT)
   println("KS-test p-value: ", ks_fit["p.value"][1])
@@ -31,11 +30,6 @@ function postprocess(chain, laststate, summarystats, yC, yT, imgdir,
                                   bw_postpred=bw_postpred, ygrid=ygrid,
                                   density_legend_pos=density_legend_pos)
   flush(stdout)
-
-  # Send results
-  if awsbucket != nothing
-    CDE.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
-  end
 end
 
 
@@ -99,9 +93,14 @@ function _run(config)
 
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
-              out[:data].yT, imgdir, resultsdir, awsbucket; bw_postpred=0.2,
+              out[:data].yT, imgdir; bw_postpred=0.2,
               ygrid=collect(range(-8, 8, length=1000)),
               density_legend_pos=:topleft)
+
+  # Send results
+  if awsbucket != nothing
+    CDE.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
+  end
 
   # Print done.
   println("Done!"); flush(stdout)
