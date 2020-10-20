@@ -13,8 +13,9 @@ using RCall
 @rimport stats as rstats 
 
 
-function postprocess(chain, laststate, summarystats, yC, yT, imgdir, awsbucket;
-                     ygrid=collect(range(-8, 8, length=1000)), bw_postpred=0.2)
+function postprocess(chain, laststate, summarystats, yC, yT, imgdir,
+                     resultsdir, awsbucket; bw_postpred=0.2,
+                     ygrid=collect(range(-8, 8, length=1000)))
   # Print KS Statistic.
   ks_fit = rstats.ks_test(yC, yT)
   println("KS-test p-value: ", ks_fit["p.value"][1])
@@ -96,7 +97,7 @@ function _run(config)
 
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
-              out[:data].yT, imgdir, awsbucket; bw_postpred=0.2,
+              out[:data].yT, imgdir, resultsdir, awsbucket; bw_postpred=0.2,
               ygrid=collect(range(-8, 8, length=1000)))
 
   # Print done.

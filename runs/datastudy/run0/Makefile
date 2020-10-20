@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-.PHONY: run getresults
+.PHONY: run getresults getallresults sendresults
 
 SIMNAME = run0
 RESULTS_DIR = $(SCRATCH_DIR)/cde/datastudy/$(SIMNAME)
@@ -13,4 +13,12 @@ run:
 
 
 getresults:
-	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
+	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude '*.bson'
+
+
+getallresults:
+	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude '*.bson'
+
+
+sendresults:
+	aws s3 sync $(RESULTS_DIR) $(AWS_BUCKET) --exclude '*.nfs'
