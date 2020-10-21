@@ -65,15 +65,30 @@
 The markers CD3z, EOMES, Perforin, and Siglec7 for one subject were studied
 in this data analysis. The number of cells in each sample are summarized in 
 Table~\ref{tab:data-counts}.
+%
 \alert{Juhee: This data set was randomly subsampled such that only 20000
 cells total are used. That is $N_C + N_T = 20000$.}
+%
 We set $K=5$. Beyond that, the same procedure for determining the priors for
 this analysis was the same as that in the simulation studies.
 Figures~\ref{fig:data-post-pred}~and~\ref{fig:data-post-gamma} show the posterior
 density and posterior distribution for $\gamma_i$ for each marker. Also
-included is the posterior mean for $\beta$, which is $\hat\beta$. For marker
-Siglec7, $\hat\beta=0$; and $\hat\beta=1$ for all other markers.
+included is the posterior mean for $\beta$, denoted by $\hat\beta$. Note that
+for marker Siglec7, $\hat\beta=0$; and $\hat\beta=1$ for all other markers.
+Overall, when $\beta=1$ the model fit is excellent and the posterior densities
+contain the kernel density estimates and follow them closely.
 
+\alert{Juhee: It seems there's a problem when $\beta=0$. For Siglec7,
+$\hat\beta$ is estimated to be 0. This somewhat makes sense from
+Figure~\ref{fig:data-post-pred} as the two KDEs are very similar. But in
+Figure~\ref{fig:data-post-gamma}~(d), $\gamma_C$ is combining both samples,
+but neither $\gamma_C$ nor $\gamma_T^\star$ (which in this case are the same)
+match the data well. I think part of the issue is that when $\beta=0$,
+$\gamma_T$ and $\eta_T$ are simply samples from the prior $\Beta(1,1)$. The
+chance of drawing good $\gamma_T$ and $\eta_T$ from the priors is small, so
+$\beta$ gets stuck for a long time. In essence, even though $Z_i/N_i$ is
+small for $i\in\bc{C,T}$ I think $\hat\beta$ should be non-zero, and the MCMC
+is simply stuck. What are your thoughts?}
 
 \begin{table}[!t]
   \centering
@@ -84,8 +99,8 @@ Siglec7, $\hat\beta=0$; and $\hat\beta=1$ for all other markers.
     CD3z       & 9730 & 10270 & 159 &  47 \\ 
     EOMES      & 9730 & 10270 & 939 & 806 \\ 
     Perforin   & 9730 & 10270 &  10 & 102 \\ 
-    % Granzyme A & 9730 & 10270 &   4 &  12 \\ 
     Siglec7    & 9730 & 10270 & 610 & 465 \\ 
+    % Granzyme A & 9730 & 10270 &   4 &  12 \\ 
     \hline
   \end{tabular} 
   \caption{Counts of the number of cells in donor sample before ($N_C$) and
@@ -103,9 +118,13 @@ Siglec7, $\hat\beta=0$; and $\hat\beta=1$ for all other markers.
     %
     \includegraphics[scale=0.5]{results/donor1/Perforin/img/postpred.pdf} &
     \includegraphics[scale=0.5]{results/donor1/Siglec7/img/postpred.pdf} \\
+    % \includegraphics[scale=0.5]{results/donor1/Granzyme_A/img/postpred.pdf} \\
     (c) Perforin ($\hat\beta=1$) & (d) Siglec7 ($\hat\beta=0$) \\
   \end{tabular}
-  \caption{\alert{TODO}}
+  \caption{The dashed blue and red lines are, respectively, the kernel
+  density estimates of $\bm{\tilde{y}}_C$ and $\bm{\tilde{y}}_T$. Likewise,
+  the blue and red shaded regions are the posterior density estimates for
+  $\bm{\tilde{y}}_C$ and $\bm{\tilde{y}}_T$, respectively.}
   \label{fig:data-post-pred}
 \end{figure}
 
@@ -118,9 +137,12 @@ Siglec7, $\hat\beta=0$; and $\hat\beta=1$ for all other markers.
     %
     \includegraphics[scale=0.5]{results/donor1/Perforin/img/gammas.pdf} &
     \includegraphics[scale=0.5]{results/donor1/Siglec7/img/gammas.pdf} \\
+    % \includegraphics[scale=0.5]{results/donor1/Granzyme_A/img/gammas.pdf} \\
     (c) Perforin ($\hat\beta=1$) & (d) Siglec7 ($\hat\beta=0$) \\
   \end{tabular}
-  \caption{\alert{TODO}}
+  \caption{Posterior distributions of $\gamma_C$ and $\gamma_T^\star$ in blue
+  and red respectively. The circles represent the proportion of zeros in each
+  sample.}
   \label{fig:data-post-gamma}
 \end{figure}
 
