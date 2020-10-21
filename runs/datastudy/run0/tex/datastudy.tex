@@ -70,13 +70,16 @@ Table~\ref{tab:data-counts}.
 cells total are used. That is $N_C + N_T = 20000$.}
 %
 We set $K=5$. Beyond that, the same procedure for determining the priors for
-this analysis was the same as that in the simulation studies.
-Figures~\ref{fig:data-post-pred}~and~\ref{fig:data-post-gamma} show the posterior
-density and posterior distribution for $\gamma_i$ for each marker. Also
-included is the posterior mean for $\beta$, denoted by $\hat\beta$. Note that
-for marker Siglec7, $\hat\beta=0$; and $\hat\beta=1$ for all other markers.
-Overall, when $\beta=1$ the model fit is excellent and the posterior densities
-contain the kernel density estimates and follow them closely.
+this analysis was the same as that in the simulation studies. Posterior
+samples were obtained via MCMC as previously outlined. The initial 2000
+samples were discarded as burn, and the subsequent 10000 samples were kept
+for analysis. Figures~\ref{fig:data-post-pred}~and~\ref{fig:data-post-gamma}
+show the posterior density and posterior distribution for $\gamma_i$ for each
+marker. Also included is the posterior mean for $\beta$, denoted by
+$\hat\beta$. Note that for marker Siglec7, $\hat\beta=0$; and $\hat\beta=1$
+for all other markers. Overall, when $\beta=1$ the model fit is excellent and
+the posterior densities contain the kernel density estimates and follow them
+closely.
 
 \alert{Juhee: It seems there's a problem when $\beta=0$. For Siglec7,
 $\hat\beta$ is estimated to be 0. This somewhat makes sense from
