@@ -91,3 +91,63 @@ function loglike_latent_var(state::State, data::Data)
   llT = loglike_latent_var('T', state, data, true)
   return llC + llT
 end
+
+
+### TODO: Bayes Factors (Check all below here.) ###
+
+# TODO: Marginal loglikelihood for computing Bayes factor
+# and posterior odds. Check!
+function marginal_loglike(data::Data, state::Dict{Symbol, Any})
+  llC = marginal_loglike_C(data, state)
+  llT = marginal_loglike_T(data, state)
+  return llC + llT
+end
+
+
+# TODO: Check.
+function marginal_loglike_C(data::Data, state::Dict{Symbol, Any})
+  loc = state[:mu]
+  scale = Util.scalefromaltskewt.(sqrt.(state[:omega]), state[:psi])
+  skew = Util.skewfromaltskewt.(sqrt.(state[:omega]), state[:psi])
+  df = state[:nu]
+
+  etaC = state[:etaC]
+  gammaC = state[:gammaC]
+
+  f = logsumexp(Util.skewtlogpdf.(loc', scale', df', skew', data.yC_finite) .+ 
+                log.(etaC)', dims=2)
+
+  return data.ZC * log(gammaC) + data.NC_finite * log1p(-gammaC) + sum(f)
+end
+
+
+# TODO: Check.
+function marginal_loglike_T(data::Data, state::Dict{Symbol, Any})
+  loc = state[:mu]
+  scale = Util.scalefromaltskewt.(sqrt.(state[:omega]), state[:psi])
+  skew = Util.skewfromaltskewt.(sqrt.(state[:omega]), state[:psi])
+  df = state[:nu]
+
+  etaT_star = state[:beta] ? state[:etaT] : state[:etaC]
+  gammaT_star = state[:beta] ? state[:gammaT] : state[:gammaC]
+
+  f = logsumexp(Util.skewtlogpdf.(loc', scale', df', skew', data.yT_finite) .+ 
+                log.(etaT_star)', dims=2)
+
+  return data.ZT * log(gammaT_star) + data.NT_finite * log1p(-gammaT_star) + sum(f)
+end
+
+
+# TODO: Check.
+function posterior_odds(data::Data,
+                        chain0::Vector{Dict{Symbol, Any}},
+                        chain1::Vector{Dict{Symbol, Any}};
+                        logpriorodds::Real=0)
+  ll0 = [marginal_loglike(data, state) for state in chain0]
+  ll1 = [marginal_loglike(data, state) for state in chain1]
+  B0 = length(ll0)
+  B1 = length(ll1)
+  ll0_mean = logsumexp(ll0) - log(B0)
+  ll1_mean = logsumexp(ll1) - log(B1)
+  return logistic(ll1_mean - ll0_mean + logpriorodds)
+end
