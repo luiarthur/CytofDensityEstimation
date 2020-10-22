@@ -20,10 +20,14 @@ include("Tuners.jl")
 include("Flag.jl")
 include("loglike.jl")
 include("updates/update.jl")
-include("pseudo_prior_updates/update.jl")
 include("fit.jl")
+
+include("logprior.jl")
+include("pseudo_prior_updates/update.jl")
 include("fit_via_pseudo_prior.jl")
 include("postprocess.jl")
 
 export UpdateBetaWithSkewT, UpdateLambdaWithSkewT, fit
+export fit_via_pseudo_prior, ppfit
+
 end # module
