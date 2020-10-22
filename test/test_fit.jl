@@ -27,11 +27,12 @@ ENV["GKSwstype"] = "nul"  # For StatsPlots
   state = CDE.Model.State(data, prior)
   tuners = CDE.Model.Tuners(K)
 
-  chain, laststate, summarystats = CDE.Model.fit(state, data, prior, tuners,
-                                                 nsamps=[500], nburn=0)
+  chain, laststate, summarystats = CDE.fit(state, data, prior, tuners,
+                                           nsamps=[500], nburn=0)
 
   CDE.Model.printsummary(chain, summarystats)
 
+  println("Make plots ...")
   imgdir = "img/test"; mkpath(imgdir)
   @time CDE.Model.plotpostsummary(chain, summarystats, data.yC, data.yT,
                                   imgdir, bw_postpred=0.2,

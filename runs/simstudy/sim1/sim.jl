@@ -59,9 +59,6 @@ for fn in fieldnames(CDE.Model.Prior)
   println(fn, " => ", getfield(prior, fn))
 end
 
-# Specify flags for modeling.
-flags = Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
-
 # Parameters to fix
 fix = Symbol[]
 
@@ -69,7 +66,7 @@ fix = Symbol[]
 init = deepcopy(state)
 @time chain, laststate, summarystats = CDE.Model.fit(init, data, prior, tuners,
                                                      nsamps=[1000], nburn=1000,
-                                                     fix=fix, flags=flags)
+                                                     fix=fix)
 
 # Save results
 BSON.bson("$(resultsdir)/results.bson",

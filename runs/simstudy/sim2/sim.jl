@@ -80,12 +80,6 @@ for fn in fieldnames(CDE.Model.Prior)
   println(fn, " => ", getfield(prior, fn))
 end
 
-# Specify flags for modeling.
-flags = Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
-# flags = Symbol[:update_beta_with_skewt]
-# flags = Symbol[:update_lambda_with_skewt]
-# flags = Symbol[]
-
 # Parameters to fix
 # - psi is near truth when mu, omega, nu, and eta are fixed, and n → ∞.
 # - nu can be recovered when mu, omega, psi, and eta are fixed, and n → ∞.
@@ -111,14 +105,14 @@ monitors = CDE.Model.default_monitors()
 # state.beta = 1
 # @time _, state, _ = CDE.Model.fit(
 #     state, data, prior, _tuners, nsamps=[1], nburn=200, thin=1,
-#     fix=[fix; [:beta]], flags=flags, monitors=monitors,
+#     fix=[fix; [:beta]], monitors=monitors,
 #     rep_beta_flipped=50)
 
 # Run chain.
 @time chain, laststate, summarystats = CDE.Model.fit(
     state, data, prior, tuners, nsamps=[10000], nburn=2000, thin=1,
     rep_aux=10,
-    fix=fix, flags=flags, monitors=monitors, rep_beta_flipped=50)
+    fix=fix, monitors=monitors, rep_beta_flipped=50)
 
 # Save results
 BSON.bson("$(resultsdir)/results.bson",

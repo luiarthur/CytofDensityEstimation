@@ -12,7 +12,7 @@ include("update_zeta.jl")
 
 function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners;
                        fix::Vector{Symbol}=Symbol[],
-                       flags::Vector{Symbol}=Symbol[])
+                       flags::Vector{Flag}=Flag[])
   # Returns true if a parameter is specified as fixed (to not update).
   isfixed(sym::Symbol) = sym in fix
 

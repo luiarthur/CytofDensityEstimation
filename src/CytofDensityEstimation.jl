@@ -10,4 +10,6 @@ include("Util/Util.jl")
 include("Model/Model.jl")
 include("MCMC/MCMC.jl")
 
+using .Model
+
 end # module

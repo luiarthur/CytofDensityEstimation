@@ -25,7 +25,7 @@ include("runtests.jl")
   end
 
   # Test flags
-  flags = [:update_beta_with_skewt, :update_lambda_with_skewt]
+  flags = [CDE.UpdateBetaWithSkewT(), CDE.UpdateLambdaWithSkewT()]
   mu_orig = deepcopy(state.mu)
   nu_orig = deepcopy(state.nu)
   @time for i in ProgressBar(1:100)

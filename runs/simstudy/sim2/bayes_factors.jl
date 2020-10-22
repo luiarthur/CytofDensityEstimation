@@ -81,10 +81,12 @@ for fn in fieldnames(CDE.Model.Prior)
   println(fn, " => ", getfield(prior, fn))
 end
 
-# Specify flags for modeling.
+# Specify parameters to keep constant.
 fix = Symbol[:beta, :p]
 
 # Run chain.
+state.p = 0.5
+
 state.beta = false
 @time chain0, laststate0, summarystats0 = CDE.Model.fit(
     state, data, prior, deepcopy(tuners), fix=fix,

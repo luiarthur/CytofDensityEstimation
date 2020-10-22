@@ -90,13 +90,10 @@ println("Priors:\n", prior)
 # fix=Symbol[]
 fix=Symbol[:nu]
 
-flags=Symbol[:update_beta_with_skewt, :update_lambda_with_skewt]
-# flags=Symbol[]  # TODO: Test this case.
-
 init = deepcopy(state)
 chain, laststate, summarystats = CDE.Model.fit(init, data, prior, tuners,
                                                nsamps=[1000], nburn=1000,
-                                               fix=fix, flags=flags)
+                                               fix=fix)
 
 # Save results
 BSON.bson("$(resultsdir)/results.bson",

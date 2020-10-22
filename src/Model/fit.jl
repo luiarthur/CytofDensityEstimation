@@ -7,7 +7,7 @@ default_monitors() = [[:p, :beta, :gammaC, :gammaT, :etaC, :etaT, :mu, :nu,
 complete_monitors() = [default_monitors()[1],
                       [:lambdaC, :lambdaT, :vC, :vT, :zetaC, :zetaT]]
 
-default_flags() = [:update_beta_with_skewt, :update_lambda_with_skewt]
+default_flags() = [UpdateBetaWithSkewT(), UpdateLambdaWithSkewT()]
 
 function default_callback_fn(state::State, data::Data, prior::Prior,
                              iter::Int, pbar::MCMC.ProgressBars.ProgressBar)
@@ -29,7 +29,7 @@ end
 - `monitors::Vector{Vector{Symbol}}`: Parameters to keep samples of. Defaults
    to `default_monitors()`.
 - `fix::Vector{Symbol}`: Parameters to hold constant. Defaults to `Symbol[]`.
-- `flags::Vector{Symbol}`: Available options include `:update_beta_with_skewt`
+- `flags::Vector{Flag}`: Available options include `:update_beta_with_skewt`
    and `:update_lambda_with_skewt`.
    Defaults to `default_flags()`.
 - `verbose::Int`: How much info to print. Defaults to 1.
@@ -44,7 +44,7 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
              fix::Vector{Symbol}=Symbol[],
              rep_beta_flipped::Int=0,
              rep_aux::Int=0, seed=nothing,
-             flags::Vector{Symbol}=default_flags(), verbose::Int=1)
+             flags::Vector{Flag}=default_flags(), verbose::Int=1)
 
   seed == nothing || Random.seed!(seed)
 
