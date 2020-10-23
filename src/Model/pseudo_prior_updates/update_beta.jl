@@ -6,8 +6,13 @@ end
 function update_beta_via_pseudo_prior!(state::State,
                                        state0::State, state1::State, 
                                        data::Data, prior::Prior)
-  lp0 = logprior(state0, prior)
-  lp1 = logprior(state1, prior)
+  # ll0 = loglike_latent_var(state0, data)
+  # ll1 = loglike_latent_var(state1, data)
+  # lp0 = logprior(state0, prior)
+  # lp1 = logprior(state1, prior)
+
+  lp0 = marginal_logprior(state0, prior)
+  lp1 = marginal_logprior(state1, prior)
   ll0 = marginal_loglike(data, Dict(:mu=>state0.mu, :omega=>state0.omega,
                                     :psi=>state0.psi, :nu=>state0.nu,
                                     :beta=>state0.beta,
@@ -19,8 +24,7 @@ function update_beta_via_pseudo_prior!(state::State,
                                     :etaC=>state1.etaC, :gammaC=>state1.gammaC,
                                     :etaT=>state1.etaT, :gammaT=>state1.gammaT))
 
-  priorlogodds = log(state.p) - log1p(-state.p)
-  log_acceptance_ratio_1 = lp1 + ll1 - lp0 - ll0 + priorlogodds
+  log_acceptance_ratio_1 = (lp1 + ll1) - (lp0 + ll0) + logit(state.p)
   log_acceptance_ratio = state.beta ? -log_acceptance_ratio_1 : log_acceptance_ratio_1
 
   if log_acceptance_ratio > log(rand())

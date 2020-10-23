@@ -28,3 +28,16 @@ function logprior(state::State, prior::Prior)
 
   return lp
 end
+
+
+function marginal_logprior(state::State, prior::Prior)
+  lp = sum(logpdf.(prior.mu, state.mu)) 
+  lp += sum(logpdf.(prior.omega, state.omega)) 
+  lp += sum(logpdf.(prior.psi, state.psi)) 
+  lp += sum(logpdf.(prior.nu, state.nu)) 
+  lp += logpdf(prior.gamma, state.gammaC)
+  lp += logpdf(prior.gamma, state.gammaT)
+  lp += logpdf(prior.eta, state.etaC)
+  lp += logpdf(prior.eta, state.etaT)
+  return lp
+end
