@@ -174,7 +174,7 @@ function trace_kernel_param(sym, chain; paramname="", simdata=nothing,
                             simsym=nothing)
   param = group(sym, chain)
   plot(hcat(param...)', outliers=false, labels=nothing)
-  xlabel!("MCMC Iteration", font=font(12))
+  xlabel!("MCMC iteration", font=font(12))
   ylabel!(paramname, font=font(12))
   simdata == nothing || hline!(simdata[simsym], ls=:dot, labels="truth")
   return

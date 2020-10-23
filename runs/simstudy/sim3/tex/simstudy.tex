@@ -1,0 +1,204 @@
+\documentclass[12pt]{article} % 12-point font
+
+\usepackage[margin=1in]{geometry} % set page to 1-inch margins
+\usepackage{bm,bbm} % for math
+\usepackage{amsmath} % for math
+\usepackage{amssymb} % like \Rightarrow
+\setlength\parindent{0pt} % Suppresses the indentation of new paragraphs.
+
+% Big display
+\newcommand{\ds}{ \displaystyle }
+% Parenthesis
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\p}[1]{\left(#1\right)}
+\newcommand{\bk}[1]{\left[#1\right]}
+\newcommand{\bc}[1]{ \left\{#1\right\} }
+\newcommand{\abs}[1]{ \left|#1\right| }
+% Derivatives
+\newcommand{\df}[2]{ \frac{d#1}{d#2} }
+\newcommand{\ddf}[2]{ \frac{d^2#1}{d{#2}^2} }
+\newcommand{\pd}[2]{ \frac{\partial#1}{\partial#2} }
+\newcommand{\pdd}[2]{\frac{\partial^2#1}{\partial{#2}^2} }
+% Distributions
+\newcommand{\Normal}{\text{Normal}}
+\newcommand{\Beta}{\text{Beta}}
+\newcommand{\G}{\text{Gamma}}
+\newcommand{\InvGamma}{\text{Inv-Gamma}}
+\newcommand{\Uniform}{\text{Uniform}}
+\newcommand{\Dirichlet}{\text{Dirichlet}}
+\newcommand{\LogNormal}{\text{LogNormal}}
+% Statistics
+\newcommand{\E}{ \text{E} }
+\newcommand{\iid}{\overset{iid}{\sim}}
+\newcommand{\ind}{\overset{ind}{\sim}}
+\newcommand{\true}{\text{TRUE}}
+
+\usepackage{color}
+\newcommand{\alert}[1]{\textcolor{red}{#1}}
+
+
+% Graphics
+\usepackage{graphicx}  % for figures
+\usepackage{float} % Put figure exactly where I want [H]
+
+% Uncomment if using bibliography
+% Bibliography
+% \usepackage{natbib}
+% \bibliographystyle{plainnat}
+
+% Adds settings for hyperlinks. (Mainly for table of contents.)
+\usepackage{hyperref}
+\hypersetup{
+  pdfborder={0 0 0} % removes red box from links
+}
+
+% Title Settings
+\title{Simulation Study 1}
+\author{Arthur Lui}
+\date{\today} % \date{} to set date to empty
+
+% MAIN %
+\begin{document}
+\maketitle
+
+\section{Simulation Setup}\label{sec:sim-setup}
+We assessed our model through the following simulation studies. We first
+generated four data sets (I, II, III, IV) according to our model. In each
+four scenarios,
+%
+the true mixture locations were $\bm{\mu}^\true=(-1, 1, 3)$,
+the true mixture scales were $\bm{\sigma}^\true=(0.7, 0.7, 0.7)$,
+the true mixture degrees of freedom were $\bm{\nu}^\true=(7, 5, 10)$, and
+the true mixture skews were $\bm{\phi}^\true=(-5, -3, 0)$.
+%
+In scenario I, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.2$, $\bm\eta_C^\true=(0.5,
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.4,0.1)$. Implicitly, $\beta^\true=1$.
+In scenario II, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.4,0.1)$. Implicitly, $\beta^\true=1$.
+In scenario III, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.45,0.05)$. Implicitly, $\beta^\true=1$.
+In scenario IV, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
+0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.5,0)$. Implicitly, $\beta^\true=0$.
+%
+In each scenario, $N_i=1000$. Table~\ref{tab:sim-truth} summarizes the
+simulation truth for the model parameters.
+\begin{table}
+  \centering
+  \begin{tabular}{|c|ccccccc|}
+    \hline 
+    Scenario & $\gamma_C^\true$ & $\gamma_T^\true$ & $\bm\eta_C^\true$ & 
+    $\bm\eta_T^\true$ & $\beta^\true$ & $\hat\beta$ & KS p-value \\
+    \hline 
+    I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & 1.000 & $0.000091$ \\
+    II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & 1.000 & $0.001724$ \\
+    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.45, 0.05) & 1 & 0.991 & $0.148338$ \\
+    IV  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.50, 0.00) & 1 & 0.002 & $0.500360$ \\
+    \hline
+  \end{tabular}
+  \caption{Simulation truth under various scenarios. Posterior mean of
+  $\beta$ is included before the right-most column. The right-most column
+  is the p-value of under the two-sample Kolmogorov-Smirnov test.}
+  \label{tab:sim-truth}
+\end{table}
+
+\section{Simulation Results}\label{sec:sim-results}
+The following priors were used in this analysis. First, we set $K=3$ and
+$p=0.5$. Then $\gamma_i\sim\Beta(1, 1)$, $\bm\eta_i\sim\Dirichlet_K(1/K)$,
+$\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$, $\omega_k\sim\InvGamma(0.1, 0.1)$,
+$\nu_k\sim\LogNormal(1.6, 0.4)$, $\psi_k\sim\Normal(-1, 1)$, where,
+respectively, $\bar{\mu}$ and $s_\mu$ are the empirical mean
+and standard deviation of the data for which $y_{i,n} > 0$. Posterior
+inference was made via Gibbs sampling. The initial 2000 MCMC samples were
+discarded as burn-in, and the subsequent 10000 samples were kept for
+posterior inference. In addition, updating the parameters $\bm\zeta, \bm
+v, \bm\mu, \bm\omega, \bm\nu$, and $\bm\psi$ multiple times for each
+update of the other parameters helped with mixing. Thus, 10 updates for
+those parameters were done during each iteration of the MCMC. 
+\alert{Juhee: Are multiple updates for other parameters needed when $\beta$
+switches states?}
+The inference speed was approximately 54 iterations per second.
+Figure~\ref{fig:sim-postdens-data-kde} summarizes the posterior densities for
+the positive values of $y_{i,n}$. The dashed lines are kernel density
+estimates of the data, and the shaded regions are the 95\% credible intervals
+for the densities. Note that the intervals match the data closely.
+% Also, in scenario III, where $\beta^\true=0$, the posterior mean of $\beta$
+% was also 0. Thus, $\gamma_T$ and $\bm\eta_T$ were simply samples from the
+% prior. Thus, the posterior density for sample T was not included here.
+
+\alert{Juhee: I found a few dumb typos in the code. After I corrected them,
+things look much better. With a large enough sample size, the parameters can
+be recovered reasonably well. The recovery isn't perfect as parameters like
+the skewness and degrees of freedom are still hard to estimate, but they are
+quite close. It appears that with more data, they are better recovered.}
+
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[scale=.45]{results/scenario1/img/postpred.pdf} &
+    \includegraphics[scale=.45]{results/scenario2/img/postpred.pdf} \\
+    (a) Scenario I &
+    (b) Scenario II \\
+    \includegraphics[scale=.45]{results/scenario3/img/postpred.pdf} &
+    \includegraphics[scale=.45]{results/scenario4/img/postpred.pdf} \\
+    (c) Scenario III &
+    (d) Scenario IV
+  \end{tabular}
+  \caption{Posterior density in each simulation scenario for observed data
+  ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
+  simulated data. The shaded regions are 95\% credible intervals of the
+  density.}
+  \label{fig:sim-postdens-data-kde}
+\end{figure}
+
+Since the KDE is only an approximation for the density of the observed data,
+we have included Figure~\ref{fig:sim-postdens-data-true-den}, which replaces
+the KDE of the observed portion of the simulated data with the actual pdf of
+the data-generating mechanism. The graphs more clearly show that the simulation
+truth is well captured by this model. 
+
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{cc}
+    \includegraphics[scale=.45]{results/scenario1/img/postpred-true-data-density.pdf} &
+    \includegraphics[scale=.45]{results/scenario2/img/postpred-true-data-density.pdf} \\
+    (a) Scenario I &
+    (b) Scenario II \\
+    \includegraphics[scale=.45]{results/scenario3/img/postpred-true-data-density.pdf} &
+    \includegraphics[scale=.45]{results/scenario4/img/postpred-true-data-density.pdf} \\
+    (c) Scenario III &
+    (d) Scenario IV
+  \end{tabular}
+  \caption{Posterior density in each simulation scenario for observed data
+  ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
+  simulated data. The shaded regions are 95\% credible intervals of the
+  density.}
+  \label{fig:sim-postdens-data-true-den}
+\end{figure}
+
+Figure~\ref{fig:sim-gammas} shows box plots of the posterior distribution of
+$\gamma_i$ for the different scenarios. The circles represent the proportion
+of zeros in the simulated data. The posterior distributions easily capture the
+true values of $\gamma_i$. Note that in Scenario IV, since $\beta=0$ with high probability,
+$\gamma_T$ is simply being sampled from the prior.
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{cc}
+    (a) Scenario I &
+    (b) Scenario II \\
+    \includegraphics[scale=.45]{results/scenario1/img/gammas.pdf} &
+    \includegraphics[scale=.45]{results/scenario2/img/gammas.pdf} \\
+    (c) Scenario III &
+    (d) Scenario IV \\
+    \includegraphics[scale=.45]{results/scenario3/img/gammas.pdf} &
+    \includegraphics[scale=.45]{results/scenario4/img/gammas.pdf}
+  \end{tabular}
+  \caption{Box plots of posterior distribution of $\gamma_i$ for different
+  simulated datasets. Circles represent the proportion of zeros in each
+  dataset. Blue for sample C, and red for sample T.}
+  \label{fig:sim-gammas}
+\end{figure}
+
+
+% Uncomment if using bibliography:
+% \bibliography{bib}
+\end{document}

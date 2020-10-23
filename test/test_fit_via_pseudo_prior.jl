@@ -26,9 +26,8 @@ ENV["GKSwstype"] = "nul"  # For StatsPlots
   state = CDE.Model.State(data, prior)
   tuners = CDE.Model.Tuners(K)
 
-  chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners, 0.5,
-                                             nsamps=[10], nburn=0,
-                                             rep0=10, rep1=10, rep_aux=10)
+  chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners, p=0.5,
+                                             nsamps=[10], nburn=0, rep_aux=10)
 
   CDE.Model.printsummary(chain, summarystats)
 
