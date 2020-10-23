@@ -82,7 +82,7 @@ end
 
 # Run chain.
 @time chain, laststate, summarystats = CDE.ppfit(
-    state, data, prior, tuners, p=0.5, nsamps=[2000], nburn=2000, thin=1,
+    state, data, prior, tuners, p=0.5, nsamps=[5000], nburn=2000, thin=1,
     rep_aux=10)
     
 

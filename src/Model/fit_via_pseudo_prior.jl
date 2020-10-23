@@ -64,7 +64,7 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
   tuners1 = deepcopy(tuners)
 
   function update!(state)
-    update_state_via_pseudo_prior!(state, state0, state1, data, prior,
+    update_state_via_pseudo_prior!(state, state0, state1, data, prior, tuners,
                                    tuners0, tuners1, rep_aux=rep_aux, fix=fix,
                                    flags=flags)
   end
