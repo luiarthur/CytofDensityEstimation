@@ -33,7 +33,7 @@ function update_state_via_pseudo_prior!(state::State,
   # Update beta.
   update_beta_via_pseudo_prior!(state, state0, state1, data, prior)
 
-  # Update theta_beta
+  # Update theta_beta.
   _update_state!(state, data, prior, tuners, rep_aux=rep_aux, fix=fix,
                  flags=flags)
 end
