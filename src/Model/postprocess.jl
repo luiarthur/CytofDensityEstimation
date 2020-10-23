@@ -149,11 +149,11 @@ function plot_gamma(yC, yT, chain)
   gammaT = group(:gammaT, chain)
   beta = group(:beta, chain)
 
-  gammaT_star = any(beta) ? gammaT[beta] : gammaC
+  gammaT = any(beta) ? gammaT[beta] : gammaC
 
   boxplot(gammaC, outliers=false, color=:blue, label="", alpha=.5)
-  boxplot!(gammaT_star, outliers=false, color=:red, label="", alpha=.5)
-  xticks!([1,2], [L"\gamma_C", L"\gamma_T^\star"],
+  boxplot!(gammaT, outliers=false, color=:red, label="", alpha=.5)
+  xticks!([1,2], [L"\gamma_C", L"\gamma_T"],
           xtickfont=font(20), ytickfont=font(16))
   scatter!([1, 2], [mean(isinf.(yC)), mean(isinf.(yT))], markersize=[10, 10], 
            color=[:blue, :red], label=nothing)
