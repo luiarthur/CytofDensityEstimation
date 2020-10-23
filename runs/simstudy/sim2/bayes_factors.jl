@@ -10,7 +10,7 @@ if length(ARGS) > 1
 else
   resultsdir = "results/test/"
   awsbucket = nothing
-  snum = 3
+  snum = 4
 end
 flush(stdout)
 
@@ -107,4 +107,4 @@ mkpath(imgdir0)
 
 imgdir1 = "$(resultsdir)/bf1/img"
 mkpath(imgdir1)
-@time CDE.Model.plotpostsummary(chain1, summarystats0, data.yC, data.yT, imgdir1)
+@time CDE.Model.plotpostsummary(chain1, summarystats1, data.yC, data.yT, imgdir1)
