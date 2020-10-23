@@ -17,7 +17,7 @@ getresults:
 
 
 getallresults:
-	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude '*.bson'
+	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
 
 
 sendresults:

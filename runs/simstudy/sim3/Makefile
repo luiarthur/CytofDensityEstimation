@@ -19,4 +19,8 @@ compile_and_run: compile run
 
 
 getresults:
+	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR) --exclude '*.bson'
+
+
+getallresults:
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
