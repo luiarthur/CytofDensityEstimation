@@ -27,6 +27,7 @@ function update_state_via_pseudo_prior!(state::State,
                                 tuners, tuners0, tuners1, rep_aux=rep_aux,
                                 fix=fix, flags=flags)
 
+  # FIXME: `|| 0.01 > rand()` is a hack. Any fix?
   # Update θᵦ. And occasionally update θ_{1-beta} anyway.
   if state.beta || 0.01 > rand()
     update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
