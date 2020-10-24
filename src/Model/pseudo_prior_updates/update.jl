@@ -27,16 +27,24 @@ function update_state_via_pseudo_prior!(state::State,
                                 tuners, tuners0, tuners1, rep_aux=rep_aux,
                                 fix=fix, flags=flags)
 
-  # FIXME: `|| 0.01 > rand()` is a hack. Any fix?
-  # Update θᵦ. And occasionally update θ_{1-beta} anyway.
-  if state.beta || 0.01 > rand()
+  # Update θᵦ.
+  if state.beta
     update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
                   flags=flags)
     assumefields!(state, deepcopy(state1))
-  end
-  if !state.beta || 0.01 > rand()
+  else
     update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
                   flags=flags)
     assumefields!(state, deepcopy(state0))
+  end
+
+  # FIXME: This `|| 0.01 > rand()` is a hack to occassionaly update
+  # theta_{1-beta}. Any fix?
+  if state.beta && 0.01 > rand()
+    update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
+  else
+    update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
   end
 end
