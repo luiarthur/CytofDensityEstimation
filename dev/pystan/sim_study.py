@@ -30,8 +30,8 @@ def generate_scenarios(N, etaTK, beta):
     eta_T = np.clip(eta_T, 1e-16, 0.5)
     return simulate_data.gen_data(  # TODO: Juhee simulation.
         n_C=N, n_T=N, beta=beta, gamma_C=.3, gamma_T=.2, K=3,
-        loc=np.array([-1, 1, 3]), scale=np.array([0.7, 1.3, 1.0]), 
-        nu=np.array([15, 30, 10]), phi=np.array([-2, -5, 0]),
+        loc=np.array([-1, 1, 3]), scale=np.array([0.7, 0.7, .7]), 
+        nu=np.array([7, 5, 10]), phi=np.array([-5, -3, 0]),
         # TODO: 
         #     - Loop through these, run multiple chains.
         #     - Select best run (seed). Report results.
@@ -52,7 +52,7 @@ def simulation(data, method, results_dir, stan_seed=1):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
                                              K=5, m_phi=-1, s_mu=2, s_phi=3,
-                                             a_p=1, b_p=1, m_nu=3, s_nu=0.05)
+                                             a_p=100, b_p=100, m_nu=1.6, s_nu=0.4)
                                              # a_p=.1, b_p=.9)
 
     # Plot prior predictive.
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     print(datetime.now())
     if len(sys.argv) <= 1:
         results_dir = 'results/test/quick'
-        etaTK = 0.2  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5
+        etaTK = 0.05  # 0.0, 0.1, 0.2, 0.3, 0.4, 0.5
         method = "nuts" # advi,nuts
         stanseed = 5  # 1,2,3,4,5
     else:

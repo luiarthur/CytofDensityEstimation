@@ -40,10 +40,10 @@ def vb_extract(results):
 
 
 def create_stan_data(y_C, y_T, K, a_gamma=1, b_gamma=1, a_eta=None,
-                     m_nu=3.5, s_nu=0.5,
+                     m_nu=1.6, s_nu=0.4,
                      mu_bar=None, s_mu=1,
-                     a_sigma=3, b_sigma=2,
-                     m_phi=0, s_phi=3,
+                     a_sigma=.1, b_sigma=.1,
+                     m_phi=-1, s_phi=3,
                      a_p=1, b_p=1):
     if a_eta is None:
         a_eta = np.ones(K) / K

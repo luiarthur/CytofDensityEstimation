@@ -75,7 +75,7 @@ functions {
     int K = rows(loc);
     matrix[N_finite, K] F;
     vector[K] omega_root = scale ./ sqrt(1 + phi .* phi);
-    vector[K] psi = phi .* omega_root .* omega_root;
+    vector[K] psi = phi .* omega_root;
     real loc_nk;
     real scale_nk;
 
