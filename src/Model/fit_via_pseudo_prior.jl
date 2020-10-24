@@ -63,13 +63,17 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
   tuners0 = deepcopy(tuners)
   tuners1 = deepcopy(tuners)
 
+  # Define update function.
   function update!(state)
     update_state_via_pseudo_prior!(state, state0, state1, data, prior, tuners,
                                    tuners0, tuners1, rep_aux=rep_aux, fix=fix,
                                    flags=flags)
   end
 
+  # Initialize beta_hat tracker.
   beta_hat = [0.0]
+
+  # Define callback.
   function _callback_fn(state::State, iter::Int,
                         pbar::MCMC.ProgressBars.ProgressBar)
     update_running_mean!(beta_hat, [state.beta], iter, nburn)
@@ -79,13 +83,16 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
     return cb_out
   end
 
+  # Warmup phase for state0, state1.
   for _ in MCMC.ProgressBars.ProgressBar(1:warmup)
     update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
                   flags=flags)
     update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
                   flags=flags)
+    flush(stdout)
   end
 
+  # Run Gibbs sampler.
   chain, laststate, summarystats = MCMC.gibbs(
       init, update!, nsamps=nsamps, nburn=nburn, thin=thin, monitors=monitors,
       callback_fn=_callback_fn)
