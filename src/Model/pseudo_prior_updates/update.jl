@@ -27,12 +27,13 @@ function update_state_via_pseudo_prior!(state::State,
                                 tuners, tuners0, tuners1, rep_aux=rep_aux,
                                 fix=fix, flags=flags)
 
-  # Update θᵦ 
-  if state.beta
+  # Update θᵦ. And occasionally update θ_{1-beta} anyway.
+  if state.beta || 0.01 > rand()
     update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
                   flags=flags)
     assumefields!(state, deepcopy(state1))
-  else
+  end
+  if !state.beta || 0.01 > rand()
     update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
                   flags=flags)
     assumefields!(state, deepcopy(state0))
