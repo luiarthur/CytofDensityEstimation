@@ -134,3 +134,4 @@ else
     println("M0 is preferred.")
   end
 end
+flush(stdout)
