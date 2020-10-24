@@ -138,16 +138,29 @@ function marginal_loglike_T(data::Data, state::Dict{Symbol, Any})
 end
 
 
-# TODO: Check.
-function posterior_odds(data::Data,
-                        chain0::Vector{Dict{Symbol, Any}},
-                        chain1::Vector{Dict{Symbol, Any}};
-                        logpriorodds::Real=0)
+function bayes_factor(data::Data,
+                      chain0::Vector{Dict{Symbol, Any}},
+                      chain1::Vector{Dict{Symbol, Any}})
   ll0 = [marginal_loglike(data, state) for state in chain0]
   ll1 = [marginal_loglike(data, state) for state in chain1]
   B0 = length(ll0)
   B1 = length(ll1)
   ll0_mean = logsumexp(ll0) - log(B0)
   ll1_mean = logsumexp(ll1) - log(B1)
-  return logistic(ll1_mean - ll0_mean + logpriorodds)
+  return ll1_mean - ll0_mean
+end
+
+
+# TODO: Check.
+function posterior_prob1(data::Data,
+                         chain0::Vector{Dict{Symbol, Any}},
+                         chain1::Vector{Dict{Symbol, Any}};
+                         logpriorodds::Real=0)
+  bf = bayes_factor(data, chain0, chain1)
+  return logistic(bf + logpriorodds)
+end
+
+
+function posterior_prob1(bf::Real; logpriorodds::Real=0)
+  return logistic(bf + logpriorodds)
 end

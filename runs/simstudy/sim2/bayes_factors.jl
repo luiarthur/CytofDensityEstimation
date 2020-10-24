@@ -99,12 +99,14 @@ state.beta = true
 
 # Posterior Odds (in favor of treatment effect).
 @time post_odds = CDE.Model.posterior_odds(data, chain0[1], chain1[1])
-println("Posterior Odds: ", post_odds)
+println("Posterior Odds: ", post_odds); flush(stdout)
 
 imgdir0 = "$(resultsdir)/bf0/img"
 mkpath(imgdir0)
 @time CDE.Model.plotpostsummary(chain0, summarystats0, data.yC, data.yT, imgdir0)
+flush(stdout)
 
 imgdir1 = "$(resultsdir)/bf1/img"
 mkpath(imgdir1)
 @time CDE.Model.plotpostsummary(chain1, summarystats1, data.yC, data.yT, imgdir1)
+flush(stdout)
