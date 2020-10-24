@@ -81,10 +81,11 @@ for fn in fieldnames(CDE.Model.Prior)
 end
 
 # Run chain.
+state.beta = 0
 @time chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners,
                                                  p=0.5, nsamps=[5000],
-                                                 nburn=2000, thin=1,
-    rep_aux=10)
+                                                 nburn=1000, thin=1,
+                                                 rep_aux=10, warmup=1000)
     
 
 # Save results
@@ -122,6 +123,14 @@ flush(stdout)
 VD = Vector{Dict{Symbol, Any}}
 chain1 = filter(s -> s[:beta] == 1, out[:chain][1])
 chain0 = filter(s -> s[:beta] == 0, out[:chain][1])
-@time bf = CDE.Model.bayes_factor(data, VD(chain0), VD(chain1))
-pp1 = CDE.Model.posterior_prob1(bf)
-println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
+if length(chain1) > 0 && length(chain0) > 0
+  @time bf = CDE.Model.bayes_factor(data, VD(chain0), VD(chain1))
+  pp1 = CDE.Model.posterior_prob1(bf)
+  println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
+else
+  if length(chain1) > 0
+    println("M1 is preferred.")
+  else
+    println("M0 is preferred.")
+  end
+end

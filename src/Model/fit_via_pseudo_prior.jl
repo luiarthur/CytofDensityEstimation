@@ -39,7 +39,7 @@ end
 function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
                               tuners::Tuners; p::Real,
                               nsamps::Vector{Int}=[1000], nburn::Int=1000,
-                              thin::Int=1,
+                              thin::Int=1, warmup::Integer=10,
                               monitors::Vector{Vector{Symbol}}=default_monitors(),
                               callback_fn::Function=default_callback_fn,
                               fix::Vector{Symbol}=Symbol[],
@@ -77,6 +77,13 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
     MCMC.ProgressBars.set_postfix(pbar, beta_hat=round(beta_hat[1], digits=3),
                                   loglike=cb_out[:loglike])
     return cb_out
+  end
+
+  for _ in MCMC.ProgressBars.ProgressBar(1:warmup)
+    update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
+    update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
   end
 
   chain, laststate, summarystats = MCMC.gibbs(

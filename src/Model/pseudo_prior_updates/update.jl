@@ -2,7 +2,7 @@
 
 include("update_beta.jl")
 
-function _update_state!(state::State, data::Data, prior::Prior,
+function update_theta!(state::State, data::Data, prior::Prior,
                         tuners::Tuners; rep_aux::Integer=1, 
                         fix::Vector{Symbol}=Symbol[],
                         flags::Vector{Flag}=Flag[])
@@ -22,18 +22,19 @@ function update_state_via_pseudo_prior!(state::State,
                                         rep_aux::Integer=1,
                                         fix::Vector{Symbol}=Symbol[],
                                         flags::Vector{Flag}=Flag[])
-  # State: beta = 0
-  _update_state!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
-                 flags=flags)
+  # Update β
+  update_beta_via_pseudo_prior!(state, state0, state1, data, prior,
+                                tuners, tuners0, tuners1, rep_aux=rep_aux,
+                                fix=fix, flags=flags)
 
-  # State: beta = 1
-  _update_state!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
-                 flags=flags)
-
-  # Update beta.
-  update_beta_via_pseudo_prior!(state, state0, state1, data, prior)
-
-  # Update theta_beta.
-  _update_state!(state, data, prior, tuners, rep_aux=rep_aux, fix=fix,
-                 flags=flags)
+  # Update θᵦ 
+  if state.beta
+    update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
+    assumefields!(state, deepcopy(state1))
+  else
+    update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
+    assumefields!(state, deepcopy(state0))
+  end
 end
