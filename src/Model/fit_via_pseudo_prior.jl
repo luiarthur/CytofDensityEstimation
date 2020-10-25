@@ -78,8 +78,7 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
                         pbar::MCMC.ProgressBars.ProgressBar)
     update_running_mean!(beta_hat, [state.beta], iter, nburn)
     cb_out = callback_fn(state, data, prior, iter, pbar)
-    MCMC.ProgressBars.set_postfix(pbar, beta_hat=round(beta_hat[1], digits=3),
-                                  loglike=cb_out[:loglike])
+    pbar.postfix = (beta_hat=round(beta_hat[1], digits=3), pbar.postfix...)
     return cb_out
   end
 
