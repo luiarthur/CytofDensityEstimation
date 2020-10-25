@@ -121,6 +121,12 @@ VD = Vector{Dict{Symbol, Any}}
 pp1 = CDE.Model.posterior_prob1(bf)
 println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
 
+# DIC
+dic0 = CDE.dic(VD(out0[:chain][1]), data)
+dic1 = CDE.dic(VD(out1[:chain][1]), data)
+println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")
+println("Model ", Int(dic0 > dic1), " is preferred.")
+
 # Save figures 0
 @time CDE.Model.plotpostsummary(out0[:chain], out0[:summarystats],
                                 data.yC, data.yT, imgdir0,
