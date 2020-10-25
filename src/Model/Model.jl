@@ -28,6 +28,6 @@ include("fit_via_pseudo_prior.jl")
 include("postprocess.jl")
 
 export UpdateBetaWithSkewT, UpdateLambdaWithSkewT, fit
-export fit_via_pseudo_prior, ppfit
+export fit_via_pseudo_prior, ppfit, posterior_prob1, bayes_factor, dic
 
 end # module

@@ -170,3 +170,11 @@ end
 function posterior_prob1(bf::Real; logpriorodds::Real=0)
   return logistic(bf + logpriorodds)
 end
+
+
+# DIC.
+function dic(chain, data)
+  ll = [marginal_loglike(data, s) for s in chain]
+  D = -2 * ll
+  return mean(D) + 0.5 * var(D)
+end
