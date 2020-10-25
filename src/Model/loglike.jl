@@ -158,6 +158,11 @@ end
 
 
 # TODO: Check.
+"""
+Posterior model probability of model where β=1.  To compute the posterior model
+probability of the model where β=0, simply compute `1 - P(β=1 | y)`, where
+`P(β=1 | y)` is the output to this function.
+"""
 function posterior_prob1(data::Data,
                          chain0::Vector{Dict{Symbol, Any}},
                          chain1::Vector{Dict{Symbol, Any}};

@@ -10,7 +10,7 @@ if length(ARGS) > 1
 else
   resultsdir = "results/test/"
   awsbucket = nothing
-  snum = 4
+  snum = 3
 end
 flush(stdout)
 
@@ -83,8 +83,8 @@ end
 # Run chain.
 state.beta = 0
 @time chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners,
-                                                 p=0.5, nsamps=[5000],
-                                                 nburn=1000, thin=1,
+                                                 p=0.5, nsamps=[2500],
+                                                 nburn=1000, thin=2,
                                                  rep_aux=10, warmup=1000)
     
 
@@ -127,6 +127,10 @@ chain0 = filter(s -> s[:beta] == 0, out[:chain][1])
   @time bf = CDE.Model.bayes_factor(data, VD(chain0), VD(chain1))
   pp1 = CDE.Model.posterior_prob1(bf)
   println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
+
+  # DIC
+  dic0, dic1 = CDE.dic(VD(chain0), data), CDE.dic(VD(chain1), data)
+  println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")
 else
   if length(chain1) > 0
     println("M1 is preferred.")
@@ -135,7 +139,3 @@ else
   end
 end
 flush(stdout)
-
-# DIC
-@time dic0, dic1 = CDE.dic(VD(chain0), data), CDE.dic(VD(chain1), data)
-println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")

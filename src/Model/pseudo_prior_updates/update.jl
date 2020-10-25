@@ -22,29 +22,25 @@ function update_state_via_pseudo_prior!(state::State,
                                         rep_aux::Integer=1,
                                         fix::Vector{Symbol}=Symbol[],
                                         flags::Vector{Flag}=Flag[])
-  # Update β
+  # Update (β, θᵦ)
   update_beta_via_pseudo_prior!(state, state0, state1, data, prior,
                                 tuners, tuners0, tuners1, rep_aux=rep_aux,
                                 fix=fix, flags=flags)
 
   # Update θᵦ.
-  if state.beta
-    update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-    assumefields!(state, deepcopy(state1))
-  else
-    update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-    assumefields!(state, deepcopy(state0))
-  end
+  statej = state.beta ? state1 : state0
+  tunersj = state.beta ? tuners1 : tuners0
+  update_theta!(statej, data, prior, tunersj, rep_aux=rep_aux, fix=fix,
+                flags=flags)
+  assumefields!(state, deepcopy(statej))
 
-  # FIXME: This `|| 0.01 > rand()` is a hack to occassionaly update
-  # theta_{1-beta}. Any fix?
-  if state.beta && 0.01 > rand()
-    update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-  else
-    update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-  end
+  # # FIXME: This `|| 0.01 > rand()` is a hack to occassionaly update
+  # # theta_{1-beta}. Any fix?
+  # if state.beta && 0.01 > rand()
+  #   update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
+  #                 flags=flags)
+  # else
+  #   update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
+  #                 flags=flags)
+  # end
 end
