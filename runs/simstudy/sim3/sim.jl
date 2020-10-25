@@ -123,7 +123,7 @@ flush(stdout)
 VD = Vector{Dict{Symbol, Any}}
 chain1 = filter(s -> s[:beta] == 1, out[:chain][1])
 chain0 = filter(s -> s[:beta] == 0, out[:chain][1])
-if length(chain1) > 0 && length(chain0) > 0
+@time if length(chain1) > 0 && length(chain0) > 0
   @time bf = CDE.Model.bayes_factor(data, VD(chain0), VD(chain1))
   pp1 = CDE.Model.posterior_prob1(bf)
   println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
@@ -135,3 +135,12 @@ else
   end
 end
 flush(stdout)
+
+# DIC
+function dic(chain, data)
+  ll = [CDE.Model.marginal_loglike(data, s) for s in chain]
+  D = -2 * ll
+  return mean(D) + 0.5 * var(D)
+end
+@time dic0, dic1 = dic(VD(chain0), data), dic(VD(chain1), data)
+println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")

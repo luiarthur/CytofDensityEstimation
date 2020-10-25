@@ -138,6 +138,10 @@ function marginal_loglike_T(data::Data, state::Dict{Symbol, Any})
 end
 
 
+"""
+Bayes factor in favor of model where β=1.
+See: https://projecteuclid.org/download/pdfview_1/euclid.ba/1346158782
+"""
 function bayes_factor(data::Data,
                       chain0::Vector{Dict{Symbol, Any}},
                       chain1::Vector{Dict{Symbol, Any}})
@@ -145,9 +149,11 @@ function bayes_factor(data::Data,
   ll1 = [marginal_loglike(data, state) for state in chain1]
   B0 = length(ll0)
   B1 = length(ll1)
-  ll0_mean = logsumexp(ll0) - log(B0)
-  ll1_mean = logsumexp(ll1) - log(B1)
-  return ll1_mean - ll0_mean
+  ll0_mean = logsumexp(-ll0) - log(B0)
+  ll1_mean = logsumexp(-ll1) - log(B1)
+
+  # Ratio of harmonic means.
+  return ll0_mean - ll1_mean
 end
 
 
