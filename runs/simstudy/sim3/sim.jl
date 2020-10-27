@@ -112,13 +112,6 @@ flush(stdout)
                                 xlims_=(-6, 6))
 flush(stdout)
 
-if awsbucket != nothing
-  CDE.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
-end
-
-println("Done!")
-flush(stdout)
-
 # Bayes Factor
 VD = Vector{Dict{Symbol, Any}}
 chain1 = filter(s -> s[:beta] == 1, out[:chain][1])
@@ -138,4 +131,11 @@ else
     println("M0 is preferred.")
   end
 end
+flush(stdout)
+
+if awsbucket != nothing
+  CDE.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
+end
+
+println("Done!")
 flush(stdout)
