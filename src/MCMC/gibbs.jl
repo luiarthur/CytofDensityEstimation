@@ -1,8 +1,3 @@
-# TODO:
-# - Refactor:
-#     - `Vector{Symbol}` in many instances should be replaced with the more
-#       appropriate `Set{Symbol}`.
-
 monitors_default() = Vector{Vector{Symbol}}([])
 
 
@@ -96,6 +91,9 @@ function gibbs(init::T, update!::Function;
     append!(monitors, [fnames])
     num_monitors = 1
   end
+
+  # Ensure parameters unique in each monitor.
+  monitors = unique.(monitors)
 
   verbose > 0 && println("Preallocating memory...")
 
