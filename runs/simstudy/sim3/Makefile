@@ -1,6 +1,6 @@
 SHELL = /bin/bash
 
-.PHONY: run compile compile_and_run getresults
+.PHONY: run compile compile_and_run getresults sendresults
 
 SIMNAME = sim3
 RESULTS_DIR = $(SCRATCH_DIR)/cde/simstudy/$(SIMNAME)/results
@@ -24,3 +24,7 @@ getresults:
 
 getallresults:
 	aws s3 sync $(AWS_BUCKET) $(RESULTS_DIR)
+
+
+sendresults:
+	aws s3 sync $(RESULTS_DIR) $(AWS_BUCKET) --exclude '*.nfs*'
