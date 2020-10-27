@@ -37,7 +37,7 @@ end
    summary statistics. Enables one to add metrics to progress bar.
 """
 function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
-                              tuners::Tuners; p::Real=0.05,
+                              tuners::Tuners;
                               nsamps::Vector{Int}=[1000], nburn::Int=1000,
                               thin::Int=1, warmup::Integer=10,
                               monitors::Vector{Vector{Symbol}}=default_monitors(),
@@ -47,7 +47,6 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
                               flags::Vector{Flag}=default_flags(),
                               verbose::Int=1)
 
-  @assert 0 <= p <= 1
   seed == nothing || Random.seed!(seed)
 
   fix = unique(fix)
@@ -60,7 +59,6 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
 
   isfixed(sym::Symbol) = sym in fix
 
-  init.p = p
   state0 = deepcopy(init); state0.beta = false
   state1 = deepcopy(init); state1.beta = true
   tuners0 = deepcopy(tuners)
@@ -68,9 +66,12 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
 
   # Define update function.
   function update!(state)
+    isfixed(:p) || update_p!(state, data, prior)
+    curr_p = state.p
     update_state_via_pseudo_prior!(state, state0, state1, data, prior, tuners,
                                    tuners0, tuners1, rep_aux=rep_aux, fix=fix,
                                    flags=flags)
+    state.p = curr_p
   end
 
   # Initialize beta_hat tracker.
