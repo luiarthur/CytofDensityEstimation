@@ -3,11 +3,11 @@
 include("update_beta.jl")
 
 function update_theta!(state::State, data::Data, prior::Prior,
-                        tuners::Tuners; rep_aux::Integer=1, 
-                        fix::Vector{Symbol}=Symbol[],
-                        flags::Vector{Flag}=Flag[])
-  update_state!(state, data, prior, tuners, fix=[fix; [:p, :beta]],
-                flags=flags)
+                       tuners::Tuners; rep_aux::Integer=1,
+                       fix::Vector{Symbol}=Symbol[],
+                       flags::Vector{Flag}=Flag[])
+  update_state!(state, data, prior, tuners,
+                fix=[fix; [:p, :beta]], flags=flags)
   for _ in 1:rep_aux
     update_state!(state, data, prior, tuners, flags=flags,
                   fix=[fix; [:p, :beta, :lambda, :gamma, :eta]])
@@ -34,4 +34,11 @@ function update_state_via_pseudo_prior!(state::State,
                 flags=flags)
   update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
                 flags=flags)
+
+  # Save θᵦ
+  if state.beta
+    assumefields!(state, deepcopy(state1))
+  else
+    assumefields!(state, deepcopy(state0))
+  end
 end
