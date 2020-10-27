@@ -10,7 +10,7 @@ if length(ARGS) > 1
 else
   resultsdir = "results/test/"
   awsbucket = nothing
-  snum = 3
+  snum = 4
 end
 flush(stdout)
 
@@ -81,9 +81,9 @@ for fn in fieldnames(CDE.Model.Prior)
 end
 
 # Run chain.
-state.beta = 0
+state.beta = 1
 @time chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners,
-                                                 p=0.5, nsamps=[2500],
+                                                 p=0.01, nsamps=[3000],
                                                  nburn=1000, thin=2,
                                                  rep_aux=10, warmup=1000)
     
