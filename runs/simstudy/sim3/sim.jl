@@ -99,7 +99,7 @@ out = BSON.load("$(resultsdir)/results.bson")
 # Print KS statistic.
 @rimport stats as rstats
 ks_fit = rstats.ks_test(out[:simdata][:yC], out[:simdata][:yT])
-println(ks_fit["p.value"][1])
+println("KS p-value:", ks_fit["p.value"][1])
 flush(stdout)
 
 # Print summary statistics.
