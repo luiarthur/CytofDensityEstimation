@@ -70,8 +70,9 @@ prior_mu = let
   yfinite = [data.yC_finite; data.yT_finite]
   Normal(mean(yfinite), std(yfinite))
 end
-prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(1.6, 0.4), p=Beta(100, 100),
-                        omega=InverseGamma(.1, .1), psi=Normal(-1, 1))
+prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(1.6, 0.4), 
+                        p=Beta(1, 99), omega=InverseGamma(.1, .1),
+                        psi=Normal(-1, 1))
 state = CDE.Model.State(data, prior)
 tuners = CDE.Model.Tuners(K, 0.1)
 
@@ -83,8 +84,8 @@ end
 # Run chain.
 state.beta = 1
 @time chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners,
-                                                 p=0.01, nsamps=[2000],
-                                                 nburn=10, thin=2,
+                                                 nsamps=[2000],
+                                                 nburn=500, thin=2,
                                                  rep_aux=10, warmup=4000)
     
 
@@ -98,8 +99,8 @@ out = BSON.load("$(resultsdir)/results.bson")
 
 # Print KS statistic.
 @rimport stats as rstats
-ks_fit = rstats.ks_test(out[:simdata][:yC], out[:simdata][:yT])
-println("KS p-value:", ks_fit["p.value"][1])
+ks_fit = rstats.ks_test(yC, yT)
+println("KS p-value: ", ks_fit["p.value"][1])
 flush(stdout)
 
 # Print summary statistics.
