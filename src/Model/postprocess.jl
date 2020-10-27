@@ -232,7 +232,7 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   savefig("$(imgdir)/beta-trace.pdf"); closeall()
   trace_kernel_mean(:beta, chain, paramname="β")
   plot!(size=plotsize)
-  hline!([0.5], ls=:dot)
+  hline!([0.5], ls=:dot, labels=nothing)
   savefig("$(imgdir)/beta-mean-trace.pdf"); closeall()
   trace_kernel_mean(:p, chain, paramname="p")
   plot!(size=plotsize)

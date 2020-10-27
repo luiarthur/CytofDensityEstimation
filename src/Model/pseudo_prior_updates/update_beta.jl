@@ -1,8 +1,3 @@
-function assumefields!(to::T, from::T) where T
-  foreach(fn -> setfield!(to, fn, getfield(from, fn)), fieldnames(T))
-end
-
-# TODO. Check.
 function update_beta_via_pseudo_prior!(state::State,
                                        state0::State, state1::State, 
                                        data::Data, prior::Prior)
@@ -22,11 +17,6 @@ function update_beta_via_pseudo_prior!(state::State,
   log_acceptance_ratio_1 = (lp1 + ll1) - (lp0 + ll0) + logit(state.p)
   log_acceptance_ratio = state.beta ? -log_acceptance_ratio_1 : log_acceptance_ratio_1
 
-  if log_acceptance_ratio > log(rand())
-    if state.beta
-      assumefields!(state, deepcopy(state0))
-    else
-      assumefields!(state, deepcopy(state1))
-    end
-  end
+  accept = log_acceptance_ratio > log(rand())
+  state.beta = accept ? !state.beta : state.beta
 end

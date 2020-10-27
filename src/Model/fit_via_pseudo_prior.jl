@@ -1,5 +1,4 @@
 # TODO: Check. Document.
-
 """
 x: the running means
 y: the new values
@@ -13,6 +12,7 @@ function update_running_mean!(x::AbstractVector{<:Real}, y::AbstractVector{<:Rea
     update_running_mean!(x, y, iter - nburn, Inf)
   end
 end
+
 
 """
 - `init::State`: Initial state.
@@ -46,7 +46,6 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
                               rep_aux::Integer=1, seed=nothing,
                               flags::Vector{Flag}=default_flags(),
                               verbose::Int=1)
-
   seed == nothing || Random.seed!(seed)
 
   fix = unique(fix)
@@ -63,6 +62,15 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
   state1 = deepcopy(init); state1.beta = true
   tuners0 = deepcopy(tuners)
   tuners1 = deepcopy(tuners)
+
+  # Warmup phase for state0, state1.
+  for _ in MCMC.ProgressBars.ProgressBar(1:warmup)
+    update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
+    update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
+                  flags=flags)
+    flush(stdout)
+  end
 
   # Define update function.
   function update!(state)
@@ -84,15 +92,6 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
     cb_out = callback_fn(state, data, prior, iter, pbar)
     pbar.postfix = (beta_hat=round(beta_hat[1], digits=3), pbar.postfix...)
     return cb_out
-  end
-
-  # Warmup phase for state0, state1.
-  for _ in MCMC.ProgressBars.ProgressBar(1:warmup)
-    update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-    update_theta!(state0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-    flush(stdout)
   end
 
   # Run Gibbs sampler.

@@ -36,8 +36,10 @@ function marginal_logprior(state::State, prior::Prior)
   lp += sum(logpdf.(prior.psi, state.psi)) 
   lp += sum(logpdf.(prior.nu, state.nu)) 
   lp += logpdf(prior.gamma, state.gammaC)
-  state.beta && (lp += logpdf(prior.gamma, state.gammaT))
   lp += logpdf(prior.eta, state.etaC)
-  state.beta && (lp += logpdf(prior.eta, state.etaT))
+  if state.beta
+    lp += logpdf(prior.gamma, state.gammaT)
+    lp += logpdf(prior.eta, state.etaT)
+  end
   return lp
 end

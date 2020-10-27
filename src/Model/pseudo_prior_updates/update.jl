@@ -1,6 +1,10 @@
-# TODO: Check.
-
 include("update_beta.jl")
+
+
+function assumefields!(to::T, from::T) where T
+  foreach(fn -> setfield!(to, fn, getfield(from, fn)), fieldnames(T))
+end
+
 
 function update_theta!(state::State, data::Data, prior::Prior,
                        tuners::Tuners; rep_aux::Integer=1,
@@ -14,6 +18,7 @@ function update_theta!(state::State, data::Data, prior::Prior,
   end
 end
 
+
 function update_state_via_pseudo_prior!(state::State,
                                         state0::State, state1::State,
                                         data::Data, prior::Prior,
@@ -22,10 +27,6 @@ function update_state_via_pseudo_prior!(state::State,
                                         rep_aux::Integer=1,
                                         fix::Vector{Symbol}=Symbol[],
                                         flags::Vector{Flag}=Flag[])
-  # NOTE:
-  # This is not how it's written in the paper as of 26 October, but it 
-  # is actually the same thing.
-
   # Update (β, θᵦ). Though it technically updates β only.
   update_beta_via_pseudo_prior!(state, state0, state1, data, prior)
 
@@ -35,7 +36,7 @@ function update_state_via_pseudo_prior!(state::State,
   update_theta!(state1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
                 flags=flags)
 
-  # Save θᵦ
+  # Save θᵦ.
   if state.beta
     assumefields!(state, deepcopy(state1))
   else
