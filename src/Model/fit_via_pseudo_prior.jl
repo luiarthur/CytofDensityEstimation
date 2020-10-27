@@ -37,7 +37,7 @@ end
    summary statistics. Enables one to add metrics to progress bar.
 """
 function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
-                              tuners::Tuners; p::Real,
+                              tuners::Tuners; p::Real=0.05,
                               nsamps::Vector{Int}=[1000], nburn::Int=1000,
                               thin::Int=1, warmup::Integer=10,
                               monitors::Vector{Vector{Symbol}}=default_monitors(),

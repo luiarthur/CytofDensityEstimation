@@ -5,47 +5,28 @@ end
 # TODO. Check.
 function update_beta_via_pseudo_prior!(state::State,
                                        state0::State, state1::State, 
-                                       data::Data, prior::Prior,
-                                       tuners::Tuners,
-                                       tuners0::Tuners, tuners1::Tuners;
-                                       rep_aux::Integer=1,
-                                       fix::Vector{Symbol}=Symbol[],
-                                       flags::Vector{Flag}=Flag[])
-  # Create proposed state.
-  pstate0 = deepcopy(state0)
-  pstate1 = deepcopy(state1)
-  if state.beta
-    update_theta!(pstate1, data, prior, tuners1, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-  else
-    update_theta!(pstate0, data, prior, tuners0, rep_aux=rep_aux, fix=fix,
-                  flags=flags)
-  end
-
-
-  lp0 = marginal_logprior(pstate0, prior)
-  lp1 = marginal_logprior(pstate1, prior)
-  ll0 = marginal_loglike(data, Dict(:mu=>pstate0.mu, :omega=>pstate0.omega,
-                                    :psi=>pstate0.psi, :nu=>pstate0.nu,
-                                    :beta=>pstate0.beta,
-                                    :etaC=>pstate0.etaC, :gammaC=>pstate0.gammaC,
-                                    :etaT=>pstate0.etaT, :gammaT=>pstate0.gammaT))
-  ll1 = marginal_loglike(data, Dict(:mu=>pstate1.mu, :omega=>pstate1.omega,
-                                    :psi=>pstate1.psi, :nu=>pstate1.nu,
-                                    :beta=>pstate1.beta,
-                                    :etaC=>pstate1.etaC, :gammaC=>pstate1.gammaC,
-                                    :etaT=>pstate1.etaT, :gammaT=>pstate1.gammaT))
+                                       data::Data, prior::Prior)
+  lp0 = marginal_logprior(state0, prior)
+  lp1 = marginal_logprior(state1, prior)
+  ll0 = marginal_loglike(data, Dict(:mu=>state0.mu, :omega=>state0.omega,
+                                    :psi=>state0.psi, :nu=>state0.nu,
+                                    :beta=>state0.beta,
+                                    :etaC=>state0.etaC, :gammaC=>state0.gammaC,
+                                    :etaT=>state0.etaT, :gammaT=>state0.gammaT))
+  ll1 = marginal_loglike(data, Dict(:mu=>state1.mu, :omega=>state1.omega,
+                                    :psi=>state1.psi, :nu=>state1.nu,
+                                    :beta=>state1.beta,
+                                    :etaC=>state1.etaC, :gammaC=>state1.gammaC,
+                                    :etaT=>state1.etaT, :gammaT=>state1.gammaT))
 
   log_acceptance_ratio_1 = (lp1 + ll1) - (lp0 + ll0) + logit(state.p)
   log_acceptance_ratio = state.beta ? -log_acceptance_ratio_1 : log_acceptance_ratio_1
 
   if log_acceptance_ratio > log(rand())
     if state.beta
-      assumefields!(state, deepcopy(pstate0))
-      assumefields!(state0, deepcopy(pstate0))
+      assumefields!(state, deepcopy(state0))
     else
-      assumefields!(state, deepcopy(pstate1))
-      assumefields!(state1, deepcopy(pstate1))
+      assumefields!(state, deepcopy(state1))
     end
   end
 end
