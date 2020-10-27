@@ -50,6 +50,9 @@ function fit_via_pseudo_prior(init::State, data::Data, prior::Prior,
   @assert 0 <= p <= 1
   seed == nothing || Random.seed!(seed)
 
+  fix = unique(fix)
+  flags = unique(flags)
+
   println("seed: ", seed)
   println("flags: ", flags)
   println("fix: ", fix)

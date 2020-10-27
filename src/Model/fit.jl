@@ -46,14 +46,22 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
              rep_aux::Int=0, seed=nothing,
              flags::Vector{Flag}=default_flags(), verbose::Int=1)
 
+  # Set random seed.
   seed == nothing || Random.seed!(seed)
 
-  println("seed: ", seed)
-  println("flags: ", flags)
-  println("rep_beta_flipped: ", rep_beta_flipped)
-  println("rep_aux: ", rep_aux)
-  println("fix: ", fix)
-  println("monitors: ", monitors)
+  # `fix` and `flags` should be unique.
+  fix = unique(fix)
+  flags = unique(flags)
+
+  # Print settings for sanity check.
+  if verbose > 0
+    println("seed: ", seed)
+    println("flags: ", flags)
+    println("rep_beta_flipped: ", rep_beta_flipped)
+    println("rep_aux: ", rep_aux)
+    println("fix: ", fix)
+    println("monitors: ", monitors)
+  end
 
   isfixed(sym::Symbol) = sym in fix
 
