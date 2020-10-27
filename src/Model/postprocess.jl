@@ -170,6 +170,17 @@ function boxplot_kernel_param(sym, chain; paramname="", simdata=nothing,
 end
 
 
+function trace_kernel_mean(sym, chain; paramname="", simdata=nothing,
+                           simsym=nothing)
+  param = group(sym, chain)
+  nsamps = length(param)
+  plot(cumsum(param) ./ collect(1:nsamps), outliers=false, labels=nothing)
+  xlabel!("MCMC iteration", font=font(12))
+  ylabel!("Posterior Expectation of $(paramname)", font=font(12))
+  simdata == nothing || hline!(simdata[simsym], ls=:dot, labels="truth")
+  return
+end
+
 function trace_kernel_param(sym, chain; paramname="", simdata=nothing,
                             simsym=nothing)
   param = group(sym, chain)
@@ -219,6 +230,9 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   trace_kernel_param(:beta, chain, paramname="β")
   plot!(size=plotsize)
   savefig("$(imgdir)/beta-trace.pdf"); closeall()
+  trace_kernel_mean(:beta, chain, paramname="β")
+  plot!(size=plotsize)
+  savefig("$(imgdir)/beta-mean-trace.pdf"); closeall()
 
   # Proportion of gammas.
   plot_gamma(yC, yT, chain)
