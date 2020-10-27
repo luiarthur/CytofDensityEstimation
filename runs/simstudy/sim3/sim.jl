@@ -84,8 +84,8 @@ end
 state.beta = 1
 @time chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners,
                                                  p=0.01, nsamps=[2000],
-                                                 nburn=3000, thin=2,
-                                                 rep_aux=10, warmup=1000)
+                                                 nburn=10, thin=2,
+                                                 rep_aux=10, warmup=4000)
     
 
 # Save results
