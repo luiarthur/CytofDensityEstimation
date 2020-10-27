@@ -1,3 +1,8 @@
+# TODO:
+# - Refactor:
+#     - `Vector{Symbol}` in many instances should be replaced with the more
+#       appropriate `Set{Symbol}`.
+
 monitors_default() = Vector{Vector{Symbol}}([])
 
 
