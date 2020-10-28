@@ -25,7 +25,6 @@ function logprior(state::State, prior::Prior)
             for n in eachindex(state.zetaC))
   lp += sum(logpdf(truncated(Normal(0, 1/sqrt(state.vT[n])), 0, Inf), state.zetaT[n])
             for n in eachindex(state.zetaT))
-
   return lp
 end
 

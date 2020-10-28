@@ -124,9 +124,9 @@ VD = Vector{Dict{Symbol, Any}}
 chain1 = filter(s -> s[:beta] == 1, out[:chain][1])
 chain0 = filter(s -> s[:beta] == 0, out[:chain][1])
 @time if length(chain1) > 0 && length(chain0) > 0
-  @time bf = CDE.Model.bayes_factor(data, VD(chain0), VD(chain1))
-  pp1 = CDE.Model.posterior_prob1(bf)
-  println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
+  @time lbf = CDE.Model.log_bayes_factor(data, VD(chain0), VD(chain1))
+  pp1 = CDE.Model.posterior_prob1(lbf)
+  println("Log Bayes Factor: $(lbf) | Post. prob. for model 1: $(pp1)")
 
   # DIC
   dic0, dic1 = CDE.dic(VD(chain0), data), CDE.dic(VD(chain1), data)

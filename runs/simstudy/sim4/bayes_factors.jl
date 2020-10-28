@@ -116,10 +116,10 @@ out1 = BSON.load("$(resultsdir)/bf1/results.bson")
 
 # Bayes Factor.
 VD = Vector{Dict{Symbol, Any}}
-@time bf = CDE.Model.bayes_factor(data,
-                                  VD(out0[:chain][1]), VD(out1[:chain][1]))
-pp1 = CDE.Model.posterior_prob1(bf)
-println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
+@time lbf = CDE.Model.log_bayes_factor(data,
+                                       VD(out0[:chain][1]), VD(out1[:chain][1]))
+pp1 = CDE.Model.posterior_prob1(lbf)
+println("Log Bayes Factor: $(lbf) | Post. prob. for model 1: $(pp1)")
 
 # DIC
 dic0 = CDE.dic(VD(out0[:chain][1]), data)

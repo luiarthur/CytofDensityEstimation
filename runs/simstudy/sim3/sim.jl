@@ -63,8 +63,8 @@ savefig(joinpath(imgdir, "data-kde.pdf"))
 closeall()
 
 # Define data, prior, and initial state.
-Random.seed!(7)
-K = 3
+Random.seed!(4) # 7
+K = 7 # 3
 data = CDE.Model.Data(yC, yT)
 prior_mu = let 
   yfinite = [data.yC_finite; data.yT_finite]
@@ -72,7 +72,7 @@ prior_mu = let
 end
 prior = CDE.Model.Prior(K, mu=prior_mu, nu=LogNormal(1.6, 0.4), 
                         p=Beta(1, 99), omega=InverseGamma(.1, .1),
-                        psi=Normal(-1, 1))
+                        eta=Dirichlet(K, 1 / K), psi=Normal(-1, 1))
 state = CDE.Model.State(data, prior)
 tuners = CDE.Model.Tuners(K, 0.1)
 
@@ -82,10 +82,11 @@ for fn in fieldnames(CDE.Model.Prior)
 end
 
 # Run chain.
-state.beta = 1
+state.beta = 0
+state.p = 0.01
 @time chain, laststate, summarystats = CDE.ppfit(state, data, prior, tuners,
                                                  nsamps=[2000],
-                                                 nburn=500, thin=2,
+                                                 nburn=500, thin=2, fix=[:p],
                                                  rep_aux=10, warmup=4000)
     
 
@@ -118,9 +119,9 @@ VD = Vector{Dict{Symbol, Any}}
 chain1 = filter(s -> s[:beta] == 1, out[:chain][1])
 chain0 = filter(s -> s[:beta] == 0, out[:chain][1])
 @time if length(chain1) > 0 && length(chain0) > 0
-  @time bf = CDE.Model.bayes_factor(data, VD(chain0), VD(chain1))
-  pp1 = CDE.Model.posterior_prob1(bf)
-  println("Bayes Factor: $(bf) | Post. prob. for model 1: $(pp1)")
+  @time lbf = CDE.Model.log_bayes_factor(data, VD(chain0), VD(chain1))
+  pp1 = CDE.Model.posterior_prob1(bf, logpriorodds=logit(state.p))
+  println("Log Bayes Factor: $(lbf) | Post. prob. for model 1: $(pp1)")
 
   # DIC
   dic0, dic1 = CDE.dic(VD(chain0), data), CDE.dic(VD(chain1), data)
