@@ -142,9 +142,9 @@ end
 Bayes factor in favor of model where β=1.
 See: https://projecteuclid.org/download/pdfview_1/euclid.ba/1346158782
 """
-function bayes_factor(data::Data,
-                      chain0::Vector{Dict{Symbol, Any}},
-                      chain1::Vector{Dict{Symbol, Any}})
+function log_bayes_factor(data::Data,
+                          chain0::Vector{Dict{Symbol, Any}},
+                          chain1::Vector{Dict{Symbol, Any}})
   ll0 = [marginal_loglike(data, state) for state in chain0]
   ll1 = [marginal_loglike(data, state) for state in chain1]
   B0 = length(ll0)
@@ -154,6 +154,13 @@ function bayes_factor(data::Data,
 
   # Ratio of harmonic means.
   return ll0_mean - ll1_mean
+end
+
+
+function bayes_factor(data::Data,
+                      chain0::Vector{Dict{Symbol, Any}},
+                      chain1::Vector{Dict{Symbol, Any}})
+  return exp(log_bayes_factor(data, chain0, chain1))
 end
 
 
@@ -167,13 +174,13 @@ function posterior_prob1(data::Data,
                          chain0::Vector{Dict{Symbol, Any}},
                          chain1::Vector{Dict{Symbol, Any}};
                          logpriorodds::Real=0)
-  bf = bayes_factor(data, chain0, chain1)
-  return logistic(bf + logpriorodds)
+  lbf = log_bayes_factor(data, chain0, chain1)
+  return logistic(lbf + logpriorodds)
 end
 
 
-function posterior_prob1(bf::Real; logpriorodds::Real=0)
-  return logistic(bf + logpriorodds)
+function posterior_prob1(lbf::Real; logpriorodds::Real=0)
+  return logistic(lbf + logpriorodds)
 end
 
 
