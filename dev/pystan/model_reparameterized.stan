@@ -82,7 +82,7 @@ functions {
     for (n in 1:N_finite) for (k in 1:K) {
       loc_nk = loc[k] + psi[k] * zeta[n];
       scale_nk = omega_root[k] / sqrt(v[n]);
-      F[n, k] = normal_lpdf(y_finite[n] | loc_nk, scale_nk);
+      F[n, k] = std_normal_lpdf((y_finite[n] - loc_nk) / scale_nk);
       F[n, k] += gamma_lpdf(v[n] | nu[k]/2, nu[k]/2);
     }
 
