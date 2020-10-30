@@ -192,6 +192,40 @@ function trace_kernel_param(sym, chain; paramname="", simdata=nothing,
 end
 
 
+function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
+                                   bw_postpred=0.3, simdata=nothing,
+                                   ygrid=default_ygrid(), xlims_=nothing,
+                                   plotsize=(400,400), 
+                                   density_legend_pos=:best, showpm1=true,
+                                   digits=3, fontsize=12)
+  @assert length(chain0[1]) == length(chain1[1])
+  B = length(chain0[1])
+  chain = [[pm1 > rand() && b > 1 ? chain1[1][b] : chain0[1][b] for b in 1:B]]
+
+  pm1 = round(pm1, digits=digits)
+
+  # Posterior density
+  plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
+                            density_legend_pos=density_legend_pos)
+  xlims_ == nothing || xlims!(xlims_)
+  plot!(size=plotsize)
+  showpm1 && plot!(legendtitle="P(M₁|y) = $pm1", legendtitlefont=font(fontsize))
+  savefig("$(imgdir)/postpred.pdf")
+  closeall()
+
+  if simdata != nothing
+    plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
+                              simdata=simdata,
+                              density_legend_pos=density_legend_pos)
+    xlims_ == nothing || xlims!(xlims_)
+    plot!(size=plotsize)
+    showpm1 && plot!(legendtitle="P(M₁|y) = $pm1", legendtitlefont=font(fontsize))
+    savefig("$(imgdir)/postpred-true-data-density.pdf")
+    closeall()
+  end
+end
+
+
 function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
                          laststate=nothing, bw_postpred=0.3, simdata=nothing,
                          ygrid=default_ygrid(), xlims_=nothing,
