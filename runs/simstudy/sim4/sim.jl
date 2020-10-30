@@ -92,7 +92,7 @@ function run(p, beta)
 
   # Run chain.
   @time chain, laststate, summarystats = CDE.fit(
-      state, data, prior, deepcopy(tuners), nsamps=[2000], nburn=2000, thin=1,
+      state, data, prior, deepcopy(tuners), nsamps=[3000], nburn=4000, thin=1,
       fix=[:p, :beta], rep_aux=10)
 
   # Make directoary for results if needed.
