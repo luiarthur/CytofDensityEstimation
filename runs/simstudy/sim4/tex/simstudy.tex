@@ -53,7 +53,7 @@
 }
 
 % Title Settings
-\title{Simulation Study 1}
+\title{Simulation Study 4}
 \author{Arthur Lui}
 \date{\today} % \date{} to set date to empty
 
@@ -92,7 +92,7 @@ simulation truth for the model parameters.
     I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & $\approx 1$ & $0.00003$ \\
     II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & $\approx 1$ & $0.01123$ \\
     III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.45, 0.05) & 1 & $\approx 1$ & $0.28775$ \\
-    IV  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.50, 0.00) & 0 &     0.05465 & $0.64755$ \\
+    IV  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.50, 0.00) & 0 &      0.3921 & $0.64755$ \\
     \hline
   \end{tabular}
   \caption{Simulation truth under various scenarios. Posterior mean of
@@ -102,29 +102,37 @@ simulation truth for the model parameters.
 \end{table}
 
 \section{Simulation Results}\label{sec:sim-results}
-The following priors were used in this analysis. First, we set $K=7$ and
+The following priors were used in this analysis. First, we set $K=5$ and
 $p=0.5$. Then $\gamma_i\sim\Beta(1, 1)$, $\bm\eta_i\sim\Dirichlet_K(1/K)$,
 $\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$, $\omega_k\sim\InvGamma(0.1, 0.1)$,
 $\nu_k\sim\LogNormal(1.6, 0.4)$, $\psi_k\sim\Normal(-1, 1)$, where,
-respectively, $\bar{\mu}$ and $s_\mu$ are the empirical mean
-and standard deviation of the data for which $y_{i,n} > 0$. Posterior
-inference was made via Gibbs sampling. The initial 4000 MCMC samples were
-discarded as burn-in, and the subsequent 3000 samples were kept for
-posterior inference.
+respectively, $\bar{\mu}$ and $s_\mu$ are the empirical mean and standard
+deviation of the data for which $y_{i,n} > 0$.
+%
+\alert{
+We fit two models -- $\mathcal{M}_0$, with $\beta$ fixed at 0; and
+$\mathcal{M}_1$, with $\beta$ fixed at 1. For each model, posterior inference
+was made via Gibbs sampling. The initial 3000 MCMC samples were discarded as
+burn-in, and the subsequent 3000 samples were kept for posterior inference.
+For each model, the inference speed was approximately 32 iterations per
+second. We recover the posterior probability of $\mathcal{M}_1$ by computing
+the product of the Bayes factor and prior odds in favor of $\mathcal{M}_1$.
+That is $\Pr(\beta=1 \mid \bm y) = \text{BF}_{1,0} \cdot p/(1-p)$.
+}
 %
 % In addition, updating the parameters $\bm\zeta, \bm v, \bm\mu, \bm\omega,
 % \bm\nu$, and $\bm\psi$ multiple times for each update of the other parameters
 % helped with mixing. Thus, 10 updates for those parameters were done during
 % each iteration of the MCMC.
 %
-The inference speed was approximately 11 iterations per second.
-Figure~\ref{fig:sim-postdens-data-kde} summarizes the posterior densities for
-the positive values of $y_{i,n}$. The dashed lines are kernel density
-estimates of the data, and the shaded regions are the 95\% credible intervals
-for the densities. Note that the intervals match the data closely.
+Figure~\ref{fig:sim-postdens-data-kde} summarizes the posterior predictive
+densities for the positive values of $y_{i,n}$. The dashed lines are kernel
+density estimates of the data, and the shaded regions are the 95\% credible
+intervals for the densities. Note that the intervals match the data closely.
 % Also, in scenario III, where $\beta^\true=0$, the posterior mean of $\beta$
 % was also 0. Thus, $\gamma_T$ and $\bm\eta_T$ were simply samples from the
-% prior. Thus, the posterior density for sample T was not included here.
+% prior. Thus, the posterior predictive density for sample T was not included
+% here.
 %
 Since the KDE is only an approximation for the density of the observed data,
 we have included Figure~\ref{fig:sim-postdens-data-true-den}, which replaces
@@ -138,10 +146,13 @@ of zeros in the simulated data. The posterior distributions easily capture the
 true values of $\gamma_i$.
 %
 Note that Table~\ref{tab:sim-truth} also includes the posterior mean of
-$\beta$, denoted $\hat\beta$. Note that when $\beta^\true=0$,
-$\hat\beta=0.5$. As the distributions of the two samples become increasingly
-different, $\hat\beta$ increases.
-
+$\beta$, denoted $\hat\beta$. Note that when $\beta^\true=0$, $\hat\beta<
+0.5$ as the Bayes factor marginalizes over model parameters and prefers
+simpler models. By setting $p < 0.5$, to prefer simpler models
+\emph{apriori}, the Bayes factor, and thus the posterior odds, in favor of
+$\mathcal{M}_1$ decreases. For example, if $p=0.1$, then the $\Pr(\beta=1\mid
+\bm y) \approx 0.06691$. As the distributions of the two samples become
+increasingly different, $\hat\beta$ increases.
 \begin{figure}[t!]
   \centering
   \begin{tabular}{cc}
@@ -154,10 +165,10 @@ different, $\hat\beta$ increases.
     (c) Scenario III &
     (d) Scenario IV
   \end{tabular}
-  \caption{Posterior density in each simulation scenario for observed data
-  ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
-  simulated data. The shaded regions are 95\% credible intervals of the
-  density.}
+  \caption{Posterior predictive density in each simulation scenario for
+  observed data ($y_{i,n}>0$). Dashed lines are the kernel density estimates
+  of the simulated data. The shaded regions are 95\% credible intervals of
+  the density.}
   \label{fig:sim-postdens-data-kde}
 \end{figure}
 
@@ -173,10 +184,10 @@ different, $\hat\beta$ increases.
     (c) Scenario III &
     (d) Scenario IV
   \end{tabular}
-  \caption{Posterior density in each simulation scenario for observed data
-  ($y_{i,n}>0$). Dashed lines are the kernel density estimates of the
-  simulated data. The shaded regions are 95\% credible intervals of the
-  density.}
+  \caption{Posterior predictive density in each simulation scenario for
+  observed data ($y_{i,n}>0$). Dashed lines are the kernel density estimates
+  of the simulated data. The shaded regions are 95\% credible intervals of
+  the density.}
   \label{fig:sim-postdens-data-true-den}
 \end{figure}
 
