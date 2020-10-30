@@ -209,7 +209,7 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
                             density_legend_pos=density_legend_pos)
   xlims_ == nothing || xlims!(xlims_)
   plot!(size=plotsize)
-  showpm1 && plot!(legendtitle="P(M₁|y) = $pm1", legendtitlefont=font(fontsize))
+  showpm1 && plot!(legendtitle="P(M₁|y) ≈ $pm1", legendtitlefont=font(fontsize))
   savefig("$(imgdir)/postpred.pdf")
   closeall()
 
@@ -219,7 +219,7 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
                               density_legend_pos=density_legend_pos)
     xlims_ == nothing || xlims!(xlims_)
     plot!(size=plotsize)
-    showpm1 && plot!(legendtitle="P(M₁|y) = $pm1", legendtitlefont=font(fontsize))
+    showpm1 && plot!(legendtitle="P(M₁|y) ≈ $pm1", legendtitlefont=font(fontsize))
     savefig("$(imgdir)/postpred-true-data-density.pdf")
     closeall()
   end
