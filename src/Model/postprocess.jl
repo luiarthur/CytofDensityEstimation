@@ -38,6 +38,7 @@ function posterior_density(chain, ygrid)
   beta = group(:beta, chain)
   K = length(mu[1])
   B = length(beta)
+  etaT_star = [beta[b] ? etaT[b] : etaC[b] for b in 1:B]
 
   function compute_pdf(b, eta)
     comps = [SkewT(mu[b][k], sigma[b][k], nu[b][k], phi[b][k]) for k in 1:K]
@@ -45,12 +46,13 @@ function posterior_density(chain, ygrid)
   end
 
   pdfC = [compute_pdf(b, etaC) for b in 1:B]
+  pdfT = [compute_pdf(b, etaT_star) for b in 1:B]
 
-  if any(beta)
-    pdfT = [compute_pdf(b, etaT) for b in 1:B if beta[b]]
-  else
-    pdfT = nothing
-  end
+  # if any(beta)
+  #   pdfT = [compute_pdf(b, etaT) for b in 1:B if beta[b]]
+  # else
+  #   pdfT = nothing
+  # end
 
   return (pdfC=pdfC, pdfT=pdfT)
 end
@@ -110,11 +112,11 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
   pdfC_upper = MCMC.quantiles(hcat(pdfC...), .975, dims=2)
   pdfC_mean = mean(pdfC)
 
-  if any(beta)
-    pdfT_lower = MCMC.quantiles(hcat(pdfT...), .025, dims=2)
-    pdfT_upper = MCMC.quantiles(hcat(pdfT...), .975, dims=2)
-    pdfT_mean = mean(pdfT)
-  end
+  # if any(beta)
+  pdfT_lower = MCMC.quantiles(hcat(pdfT...), .025, dims=2)
+  pdfT_upper = MCMC.quantiles(hcat(pdfT...), .975, dims=2)
+  pdfT_mean = mean(pdfT)
+  # end
 
   # Plot density
   legendfont = font(12)
@@ -137,10 +139,10 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
     plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=3, label=labelyT,
           color=:red, ls=:dot)
   end
-  if any(beta)
-    plot!(ygrid, pdfT_lower, fillrange=pdfT_upper, alpha=alpha, color=:red,
-          label=labelTppd)
-  end
+  # if any(beta)
+  plot!(ygrid, pdfT_lower, fillrange=pdfT_upper, alpha=alpha, color=:red,
+        label=labelTppd)
+  # end
 end
 
 function plot_gamma(yC, yT, chain)
@@ -148,11 +150,12 @@ function plot_gamma(yC, yT, chain)
   gammaT = group(:gammaT, chain)
   beta = group(:beta, chain)
 
-  gammaT = any(beta) ? gammaT[beta] : gammaC
+  # gammaT = any(beta) ? gammaT[beta] : gammaC
+  gammaT_star = [beta[b] ? gammaT[b] : gammaC[b] for b in eachindex(beta)]
 
   boxplot(gammaC, outliers=false, color=:blue, label="", alpha=.5)
-  boxplot!(gammaT, outliers=false, color=:red, label="", alpha=.5)
-  xticks!([1,2], [L"\gamma_C", L"\gamma_T"],
+  boxplot!(gammaT_star, outliers=false, color=:red, label="", alpha=.5)
+  xticks!([1,2], [L"\gamma_C", L"\gamma_T^\star"],
           xtickfont=font(20), ytickfont=font(16))
   scatter!([1, 2], [mean(isinf.(yC)), mean(isinf.(yT))], markersize=[10, 10], 
            color=[:blue, :red], label=nothing)
@@ -193,7 +196,7 @@ end
 function plot_gamma(yC, yT, chain0, chain1, pm1, imgdir; plotsize=(400, 400))
   @assert length(chain0[1]) == length(chain1[1])
   B = length(chain0[1])
-  chain = [[pm1 > rand() && b > 10 ? chain1[1][b] : chain0[1][b] for b in 1:B]]
+  chain = [[pm1 > rand() ? chain1[1][b] : chain0[1][b] for b in 1:B]]
   plot_gamma(yC, yT, chain)
 
   plot!(size=plotsize)
@@ -210,7 +213,7 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
                                    digits=3, fontsize=12)
   @assert length(chain0[1]) == length(chain1[1])
   B = length(chain0[1])
-  chain = [[pm1 > rand() && b > 1 ? chain1[1][b] : chain0[1][b] for b in 1:B]]
+  chain = [[pm1 > rand() ? chain1[1][b] : chain0[1][b] for b in 1:B]]
 
   pm1 = round(pm1, digits=digits)
 
