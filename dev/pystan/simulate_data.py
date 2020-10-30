@@ -146,9 +146,11 @@ def prior_samples(B, stan_data):
     gamma_T_star = np.where(beta == 1, gamma_T, gamma_C)
     eta_T_star = np.where(beta[:, None] == 1, eta_T, eta_C)
     mu = np.random.normal(stan_data['mu_bar'], stan_data['s_mu'], (B, K))
-    sigma = 1 / np.random.gamma(stan_data['a_sigma'], 1/stan_data['b_sigma'], (B, K))
+    psi = np.random.normal(stan_data['m_psi'], stan_data['s_psi'], (B, K))
+    omega = 1/np.random.gamma(stan_data['a_omega'], 1/stan_data['b_omega'], (B, K))
+    phi = psi / np.sqrt(omega)
+    sigma = np.sqrt(psi * psi + omega)
     nu = np.random.lognormal(stan_data['m_nu'], stan_data['s_nu'], (B, K))
-    phi = np.random.normal(stan_data['m_phi'], stan_data['s_phi'], (B, K))
     return dict(p=p, K=K, beta=beta,
                 gamma_C=gamma_C, gamma_T=gamma_T, gamma_T_star=gamma_T_star,
                 eta_C=eta_C, eta_T=eta_T, eta_T_star=eta_T_star,

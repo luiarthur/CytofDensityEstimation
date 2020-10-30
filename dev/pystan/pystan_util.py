@@ -42,8 +42,8 @@ def vb_extract(results):
 def create_stan_data(y_C, y_T, K, a_gamma=1, b_gamma=1, a_eta=None,
                      m_nu=1.6, s_nu=0.4,
                      mu_bar=None, s_mu=1,
-                     a_sigma=.1, b_sigma=.1,
-                     m_phi=-1, s_phi=3,
+                     a_omega=.1, b_omega=.1,
+                     m_psi=-1, s_psi=3,
                      a_p=1, b_p=1):
     if a_eta is None:
         a_eta = np.ones(K) / K
@@ -58,9 +58,9 @@ def create_stan_data(y_C, y_T, K, a_gamma=1, b_gamma=1, a_eta=None,
                 y_T=y_T,
                 y_C=y_C,
                 K=K,
-                a_gamma=a_gamma, b_gamma=b_gamma, m_phi=m_phi,
-                a_eta=a_eta, mu_bar=mu_bar, s_mu=s_mu, s_phi=s_phi,
-                a_sigma=a_sigma, b_sigma=b_sigma,
+                a_gamma=a_gamma, b_gamma=b_gamma, m_psi=m_psi,
+                a_eta=a_eta, mu_bar=mu_bar, s_mu=s_mu, s_psi=s_psi,
+                a_omega=a_omega, b_omega=b_omega,
                 m_nu=m_nu, s_nu=s_nu)
 
 def group_vectors(d, key):

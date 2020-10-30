@@ -51,7 +51,8 @@ def generate_scenarios(N, etaTK, beta):
 def simulation(data, method, results_dir, stan_seed=1):
     # Stan data
     stan_data = pystan_util.create_stan_data(y_T=data['y_T'], y_C=data['y_C'],
-                                             K=5, m_phi=-1, s_mu=2, s_phi=3,
+                                             K=5, m_psi=-1, s_psi=3, s_mu=3,
+                                             a_omega=3, b_omega=2,
                                              a_p=100, b_p=100, m_nu=1.6, s_nu=0.4)
                                              # a_p=.1, b_p=.9)
 
@@ -86,12 +87,12 @@ def simulation(data, method, results_dir, stan_seed=1):
     else:
         # Optimization.
         # NOTE: Needs to be run several times with different initial values.
-        opt_fit = sm.optimizing(data=stan_data, tol_obj=0.5, seed=stan_seed)
-        get_val = lambda k: opt_fit[k].item() if opt_fit[k].size == 1 else opt_fit[k]
-        init = dict([(k, get_val(k)) for k in opt_fit])
-        print('Using initial values from penalized mle:')
-        print(init)
-        fit = sm.sampling(data=stan_data, iter=2000, init=[init],
+        # opt_fit = sm.optimizing(data=stan_data, tol_obj=0.5, seed=stan_seed)
+        # get_val = lambda k: opt_fit[k].item() if opt_fit[k].size == 1 else opt_fit[k]
+        # init = dict([(k, get_val(k)) for k in opt_fit])
+        # print('Using initial values from penalized mle:')
+        # print(init)
+        fit = sm.sampling(data=stan_data, iter=2000, # init=[init],
                           sample_file=f'{results_dir}/samples.csv',
                           warmup=1000, pars=pars, thin=1, chains=1,
                           control=dict(max_treedepth=5),
