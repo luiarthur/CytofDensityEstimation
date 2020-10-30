@@ -100,7 +100,7 @@ end
 function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"y_C",
                                    ygrid=default_ygrid(), ls=:solid,
                                    labelyT=L"y_T", legendfontsize=12,
-                                   showT=true, alpha=0.3,
+                                   alpha=0.3,
                                    labelCppd="post. density",
                                    labelTppd="post. density", 
                                    simdata=nothing, density_legend_pos=:best)
@@ -123,8 +123,7 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"y_C",
 
   if simdata == nothing
     plot(kde(yC[isfinite.(yC)], bandwidth=bw), lw=lw, label=labelyC,
-         # legendfont=legendfont,
-         color=:blue, ls=ls)
+         color=:blue, ls=ls) # legendfont=legendfont,
   else
     plot(ygrid, pdf.(simdata[:mmC], ygrid), lw=lw, label=labelyC,
          color=:blue, ls=ls)
