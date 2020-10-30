@@ -13,7 +13,7 @@ if length(ARGS) > 1
 else
   resultsdir = "results/test/"
   awsbucket = nothing
-  snum = 4
+  snum = 3
 end
 flush(stdout)
 
@@ -67,8 +67,8 @@ savefig(joinpath(imgdir, "data-kde.pdf"))
 closeall()
 
 # Define data, prior, and initial state.
-Random.seed!(4) # 7
-K = 7 # 3
+Random.seed!(7)
+K = 5 # 3
 data = CDE.Model.Data(yC, yT)
 prior_mu = let 
   yfinite = [data.yC_finite; data.yT_finite]
@@ -86,13 +86,14 @@ for fn in fieldnames(CDE.Model.Prior)
 end
 
 
-function run(p, beta)
-  state.p = 0.5
+function run(; p, beta)
+  # Fix these parameters.
+  state.p = p
   state.beta = beta
 
   # Run chain.
   @time chain, laststate, summarystats = CDE.fit(
-      state, data, prior, deepcopy(tuners), nsamps=[3000], nburn=4000, thin=1,
+      state, data, prior, deepcopy(tuners), nsamps=[3000], nburn=3000, thin=1,
       fix=[:p, :beta], rep_aux=10)
 
   # Make directoary for results if needed.
@@ -125,14 +126,14 @@ function postprocess(beta)
 
   # Plot results.
   @time CDE.Model.plotpostsummary(out[:chain], out[:summarystats], yC, yT,
-                                  _imgdir, simdata=out[:simdata], bw_postpred=.2,
-                                  xlims_=(-6, 6))
+                                  _imgdir, simdata=out[:simdata],
+                                  bw_postpred=.15, xlims_=(-6, 6))
   flush(stdout)
 end
 
 # Run chains.
-chain0, laststate0, summarystats0 = run(0.5, 0)
-chain1, laststate1, summarystats1 = run(0.5, 1)
+chain0, laststate0, summarystats0 = run(p=0.5, beta=0)
+chain1, laststate1, summarystats1 = run(p=0.5, beta=1)
 
 # Post process.
 postprocess(0)
@@ -150,8 +151,9 @@ println("Log Bayes Factor: $(lbf) | P(M1|y): $(pm1)")
 
 # Plot marginal posterior density
 CDE.Model.plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir,
-                                    bw_postpred=0.2, simdata=simdata,
-                                    xlims_=(-6, 6), digits=5, fontsize=7)
+                                    bw_postpred=0.15, simdata=simdata, lw=.5,
+                                    ls=:solid, xlims_=(-6, 6), digits=5,
+                                    fontsize=7)
 CDE.Model.plot_gamma(yC, yT, chain0, chain1, pm1, imgdir)
 
 # DIC
