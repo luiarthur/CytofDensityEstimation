@@ -152,7 +152,7 @@ println("Log Bayes Factor: $(lbf) | P(M1|y): $(pm1)")
 CDE.Model.plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir,
                                     bw_postpred=0.2, simdata=simdata,
                                     xlims_=(-6, 6), digits=5, fontsize=7)
-CDE.plot_gamma(yC, yT, chain0, chain1, pm1, imgdir)
+CDE.plot_gammas(yC, yT, chain0, chain1, pm1, imgdir)
 
 # DIC
 dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
