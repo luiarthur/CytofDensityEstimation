@@ -143,7 +143,6 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=3, labelyC=L"y_C",
   end
 end
 
-
 function plot_gamma(yC, yT, chain)
   gammaC = group(:gammaC, chain)
   gammaT = group(:gammaT, chain)
@@ -189,6 +188,17 @@ function trace_kernel_param(sym, chain; paramname="", simdata=nothing,
   ylabel!(paramname, font=font(12))
   simdata == nothing || hline!(simdata[simsym], ls=:dot, labels="truth")
   return
+end
+
+function plot_gamma(yC, yT, chain0, chain1, pm1, imgdir; plotsize=(400, 400))
+  @assert length(chain0[1]) == length(chain1[1])
+  B = length(chain0[1])
+  chain = [[pm1 > rand() && b > 10 ? chain1[1][b] : chain0[1][b] for b in 1:B]]
+  plot_gamma(yC, yT, chain)
+
+  plot!(size=plotsize)
+  savefig("$(imgdir)/gammas.pdf")
+  closeall()
 end
 
 

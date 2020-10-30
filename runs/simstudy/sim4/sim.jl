@@ -146,14 +146,13 @@ flush(stdout)
 # Bayes Factor
 @time lbf = CDE.Model.log_bayes_factor(data, chain0[1], chain1[1])
 pm1 = CDE.Model.posterior_prob1(lbf, logpriorodds=logit(state.p))
-println("Log Bayes Factor: $(lbf) | Post. prob. for model 1: $(pm1)")
-
+println("Log Bayes Factor: $(lbf) | P(M1|y): $(pm1)")
 
 # Plot marginal posterior density
 CDE.Model.plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir,
                                     bw_postpred=0.2, simdata=simdata,
                                     xlims_=(-6, 6), digits=5, fontsize=7)
-
+CDE.plot_gamma(yC, yT, chain0, chain1, pm1, imgdir)
 
 # DIC
 dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
