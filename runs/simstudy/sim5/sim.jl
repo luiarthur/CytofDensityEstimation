@@ -79,7 +79,7 @@ res = pmap(c -> let
   out1 = BSON.load("$(resd1)/results.bson")
   imgdir = "$(resultsdir)/K$(K)/scenario$(snum)/img"
   mkpath(imgdir)
-  bucket = awsbucket == nothing ? awsbucket : "$(awsbucket)/K$(K)/scenario$(snum)"
+  bucket = awsbucket == nothing ? awsbucket : "$(awsbucket)/K$(K)/scenario$(snum)/img"
   postprocess(out0[:chain], out1[:chain], out0[:data], 
               imgdir, bucket, simdata=c[1][:simdata],
               density_legend_pos=:topleft, bw_postpred=.3, binsC=50, binsT=100)
