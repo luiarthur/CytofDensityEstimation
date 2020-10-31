@@ -1,5 +1,7 @@
+println("Compile libraries on main processor..."); flush(stdout)
 include("imports.jl")
 include("scenarios.jl")
+println("Finished loading libraries."); flush(stdout)
 
 flatten = Iterators.flatten
 
@@ -24,11 +26,13 @@ mkpath(imgdir)
 flush(stdout)
 
 using Distributed
+println("Load libraries on workers ..."); flush(stdout)
 if !istest
   rmprocs(workers())
   addprocs(8)
   @everywhere include("imports.jl")
 end
+println("Finished loading libraries on workers."); flush(stdout)
 
 # Helpers.
 simname(snum, beta) = "scenario$(snum)/m$(beta)"
@@ -55,14 +59,15 @@ end for beta in 0:1] for snum in 1:4]
 
 
 # Parallel run.
-println("Starting runs ...")
+println("Starting runs ..."); flush(stdout)
 res = pmap(run, istest ? configs[1] : flatten(configs), on_error=identity)
 
-println("Status of runs:")
+println("Status of runs:"); flush(stdout)
 foreach(z -> println(z[2], " => ", z[1]),
         zip(res, getfield.(istest ? configs[1] : flatten(configs), :resultsdir)))
 
 # Bayes factor
+println("Compute BF:"); flush(stdout)
 res = map(c -> let
   # NOTE
   @assert length(unique(getfield.(c, :snum))) == 1
@@ -76,7 +81,7 @@ res = map(c -> let
               density_legend_pos=:topleft)
 end, istest ? [configs[1]] : configs) #, on_error=identity)
 
-println("Status of BF computation:")
+println("Status of BF computation:"); flush(stdout)
 foreach(z -> println(z[2], " => ", z[1]),
         zip(res, [c[1][:snum] for c in (istest ? [configs[1]] : configs)]))
 
