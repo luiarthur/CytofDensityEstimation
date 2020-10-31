@@ -68,7 +68,7 @@ foreach(z -> println(z[2], " => ", z[1]),
 
 # Bayes factor
 println("Compute BF:"); flush(stdout)
-res = map(c -> let
+res = pmap(c -> let
   # NOTE
   @assert length(unique(getfield.(c, :snum))) == 1
   snum = c[1][:snum]
@@ -79,7 +79,7 @@ res = map(c -> let
   postprocess(out0[:chain], out1[:chain], out0[:data], 
               imdir, bucket, simdata=c[1][:simdata],
               density_legend_pos=:topleft)
-end, istest ? [configs[1]] : configs) #, on_error=identity)
+end, istest ? [configs[1]] : configs, on_error=identity)
 
 println("Status of BF computation:"); flush(stdout)
 foreach(z -> println(z[2], " => ", z[1]),
