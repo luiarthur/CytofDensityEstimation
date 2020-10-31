@@ -71,8 +71,8 @@ function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
 end
 
 function postprocess(chain0, chain1, data, imgdir, awsbucket;
-                     simdata=nothing, bw_postpred=0.15,
-                     density_legend_pos=:best,
+                     simdata=nothing, bw_postpred=0.20,
+                     density_legend_pos=:best, binsC=nothing, binsT=nothing,
                      ygrid=collect(range(-8, 8, length=1000)))
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
@@ -93,8 +93,10 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
     CDE.Model.plot_posterior_predictive(data.yC, data.yT, chain0, chain1, pm1,
                                         imgdir, bw_postpred=bw_postpred,
                                         density_legend_pos=density_legend_pos,
-                                        simdata=simdata, lw=.5, ls=:solid,
+                                        simdata=simdata, lw=.5, ls=:solid, 
+                                        binsC=binsC, binsT=binsT,
                                         xlims_=(-6, 6), digits=5, fontsize=7)
+
     CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir)
   end
 
@@ -149,7 +151,12 @@ function _run(config)
   println("Priors:")
   foreach(fn -> println(fn, " => ", getfield(prior, fn)),
           fieldnames(CDE.Model.Prior))
-  
+
+  # Plot data.
+  plot_observed_hist(yC, yT, imgdir, bins=50, binsT=50*2,
+                     alpha=0.3, digits=5, legendpos=:topleft)
+  plot_true_data_density(simdata, imgdir, lw=1, legendpos=:topleft)
+ 
   # Run analysis.
   println("Run Chain ..."); flush(stdout)
   @time chain, laststate, summarystats = CDE.fit(
@@ -168,7 +175,7 @@ function _run(config)
 
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
-              out[:data].yT, imgdir; bw_postpred=0.2,
+              out[:data].yT, imgdir; bw_postpred=0.3,
               ygrid=collect(range(-8, 8, length=1000)),
               density_legend_pos=:topleft)
 

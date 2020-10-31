@@ -18,7 +18,7 @@ else
   resultsdir = "results/test/"
   awsbucket = nothing
   istest = true
-  Ni = 100
+  Ni = 1000
   nburn = 300
   nsamps = 300
   K = 2
@@ -80,7 +80,7 @@ res = pmap(c -> let
   bucket = awsbucket == nothing ? awsbucket : "$(awsbucket)/scenario$(snum)"
   postprocess(out0[:chain], out1[:chain], out0[:data], 
               imdir, bucket, simdata=c[1][:simdata],
-              density_legend_pos=:topleft)
+              density_legend_pos=:topleft, bw_postpred=.3, binsC=50, binsT=100)
 end, istest ? [configs[1]] : configs, on_error=identity)
 
 println("Status of BF computation:"); flush(stdout)

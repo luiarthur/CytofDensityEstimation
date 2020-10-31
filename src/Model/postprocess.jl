@@ -97,14 +97,39 @@ function printsummary(chain, summarystats; laststate=nothing, digits=3)
 end
 
 
+function plot_posterior_predictive_only(chain; ygrid=default_ygrid(), lw=0,
+                                        ls=:solid, labelCppd="post. pred. (C)",
+                                        labelTppd="post. pred. (T)", alpha=0.3,
+                                        density_legend_pos=:best,
+                                        legendfont=font(12))
+  pdfC, pdfT = posterior_density(chain, ygrid)
+
+  pdfC_lower = MCMC.quantiles(hcat(pdfC...), .025, dims=2)
+  pdfC_upper = MCMC.quantiles(hcat(pdfC...), .975, dims=2)
+  pdfC_mean = mean(pdfC)
+
+  pdfT_lower = MCMC.quantiles(hcat(pdfT...), .025, dims=2)
+  pdfT_upper = MCMC.quantiles(hcat(pdfT...), .975, dims=2)
+  pdfT_mean = mean(pdfT)
+
+  # Plot density
+  plot(ygrid, pdfC_lower, fillrange=pdfC_upper, alpha=alpha, color=:blue,
+       label=labelCppd, legend=density_legend_pos)
+  plot!(ygrid, pdfT_lower, fillrange=pdfT_upper, alpha=alpha, color=:red,
+        label=labelTppd)
+  if lw > 0
+    plot!(ygrid, pdfC_mean, lw=lw, labels=nothing, color=:blue)
+    plot!(ygrid, pdfT_mean, lw=lw, labels=nothing, color=:red)
+  end
+end
+
 function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"y_C",
                                    ygrid=default_ygrid(), ls=:solid,
                                    labelyT=L"y_T", legendfontsize=12,
-                                   alpha=0.3,
+                                   alpha=0.3, 
                                    labelCppd="post. density",
                                    labelTppd="post. density", 
                                    simdata=nothing, density_legend_pos=:best)
-
   pdfC, pdfT = posterior_density(chain, ygrid)
   beta = group(:beta, chain)
 
@@ -209,14 +234,15 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
                                    ygrid=default_ygrid(), xlims_=nothing,
                                    plotsize=(400,400), lw=.5, ls=:solid,
                                    density_legend_pos=:best, showpm1=true,
-                                   digits=3, fontsize=12)
+                                   digits=3, fontsize=12,
+                                   binsC=nothing, binsT=nothing)
   @assert length(chain0[1]) == length(chain1[1])
   B = length(chain0[1])
   chain = [[pm1 > rand() ? chain1[1][b] : chain0[1][b] for b in 1:B]]
 
   pm1 = round(pm1, digits=digits)
 
-  # Posterior density
+  # Posterior predictive density
   plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid, ls=ls,
                             density_legend_pos=density_legend_pos, lw=lw)
   xlims_ == nothing || xlims!(xlims_)
@@ -225,6 +251,27 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
   savefig("$(imgdir)/postpred.pdf")
   closeall()
 
+  # Posterior predictive density and data histogram
+  plot_posterior_predictive_only(chain, ygrid=ygrid, lw=.5,
+                                 density_legend_pos=density_legend_pos)
+  if binsC == nothing
+    histogram!(yC, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
+               color=:blue)
+  else
+    histogram!(yC, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
+               color=:blue, bins=binsC)
+  end
+  if binsT == nothing
+    histogram!(yT, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
+               color=:red)
+  else
+    histogram!(yT, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
+               color=:red, bins=binsT)
+  end
+  savefig("$(imgdir)/postpred-data-hist.pdf")
+  closeall()
+
+  # Posterior predictive density with true data density
   if simdata != nothing
     plot_posterior_predictive(yC, yT, chain, bw_postpred, ygrid=ygrid,
                               simdata=simdata, lw=lw, ls=ls,
