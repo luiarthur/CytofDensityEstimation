@@ -73,13 +73,13 @@ res = pmap(c -> let
   @assert length(unique(getfield.(c, :snum))) == 1
   snum = c[1][:snum]
   K = c[1][:K]
-  resd0 = make_resdir(K, snum, 0)
-  resd1 = make_resdir(K, snum, 1)
+  resd0 = c[1][:resultsdir]
+  resd1 = c[2][:resultsdir]
   out0 = BSON.load("$(resd0)/results.bson")
   out1 = BSON.load("$(resd1)/results.bson")
-  imgdir = "$(resultsdir)/K$(K)/scenario$(snum)/img"
-  mkpath(imgdir)
-  bucket = awsbucket == nothing ? awsbucket : "$(awsbucket)/K$(K)/scenario$(snum)/img"
+  imgdir = "$(c[1][:imgdir])../../img"; mkpath(imgdir)
+  bucket = "$(c[1][:awsbucket])../../img"
+  # bucket = awsbucket == nothing ? awsbucket : "$(awsbucket)/K$(K)/scenario$(snum)/img"
   postprocess(out0[:chain], out1[:chain], out0[:data], 
               imgdir, bucket, simdata=c[1][:simdata],
               density_legend_pos=:topleft, bw_postpred=.3, binsC=50, binsT=100)
