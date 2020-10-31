@@ -13,6 +13,7 @@ if length(ARGS) > 1
   Ni = 1000
   nburn = 3000
   nsamps = 3000
+  K = 6
 else
   resultsdir = "results/test/"
   awsbucket = nothing
@@ -20,6 +21,7 @@ else
   Ni = 100
   nburn = 300
   nsamps = 300
+  K = 2
 end
 imgdir = joinpath(resultsdir, "img")
 mkpath(imgdir)
@@ -54,7 +56,7 @@ configs = [[let
   resdir = make_resdir(snum, beta)
   _imgdir = make_imgdir(snum, beta)
   (awsbucket=_awsbucket, simdata=simdata, resultsdir=resdir, imgdir=_imgdir,
-   snum=snum, beta=beta, K=6, nsamps=nsamps, nburn=nburn, p=0.5)
+   snum=snum, beta=beta, K=K, nsamps=nsamps, nburn=nburn, p=0.5)
 end for beta in 0:1] for snum in 1:4]
 
 
