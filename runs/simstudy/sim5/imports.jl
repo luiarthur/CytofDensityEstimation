@@ -76,6 +76,8 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
                      ygrid=collect(range(-8, 8, length=1000)))
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
+    println("Start merging results...")
+
     # Compute Bayes factor in favor of M1.
     p = CDE.Model.group(:p, chain0)[1]
     @time lbf = CDE.Model.log_bayes_factor(data, VD(chain0[1]), VD(chain1[1]))
