@@ -11,8 +11,9 @@ if length(ARGS) > 1
   println("ARGS: ", ARGS)
   istest = false
   Ni = 1000
-  nburn = 5000
+  nburn = 10000
   nsamps = 5000
+  thin=2,
   Ks = [2,4,6]
 else
   resultsdir = "results/test/"
@@ -21,6 +22,7 @@ else
   Ni = 1000
   nburn = 300
   nsamps = 300
+  thin=1,
   Ks = [2]
 end
 flush(stdout)
@@ -54,7 +56,7 @@ configs = [[let
   resdir = make_resdir(K, snum, beta)
   imgdir = make_imgdir(K, snum, beta)
   (awsbucket=bucket, simdata=simdata, resultsdir=resdir, imgdir=imgdir,
-   snum=snum, beta=beta, K=K, nsamps=nsamps, nburn=nburn, p=0.5)
+   snum=snum, beta=beta, K=K, nsamps=nsamps, thin=thin, nburn=nburn, p=0.1)
 end for beta in 0:1] for K in Ks for snum in 1:4]
 
 

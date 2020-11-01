@@ -139,6 +139,7 @@ function _run(config)
   K = config[:K]
   nsamps = config[:nsamps]
   nburn = config[:nburn]
+  thin = config[:thin]
 
   # Make image path id needed.
   imgdir = joinpath(resultsdir, "img")
@@ -161,7 +162,7 @@ function _run(config)
   println("Run Chain ..."); flush(stdout)
   @time chain, laststate, summarystats = CDE.fit(
       state, data, prior, tuners, nsamps=[nsamps], fix=[:p, :beta],
-      nburn=nburn, thin=1, rep_aux=10)
+      nburn=nburn, thin=thin, rep_aux=10)
   flush(stdout)
 
   # Save results
