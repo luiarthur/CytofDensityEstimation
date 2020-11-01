@@ -13,7 +13,7 @@ if length(ARGS) > 1
   Ni = 1000
   nburn = 10000
   nsamps = 5000
-  thin=2,
+  thin=2
   Ks = [2,4,6]
 else
   resultsdir = "results/test/"
@@ -22,7 +22,7 @@ else
   Ni = 1000
   nburn = 300
   nsamps = 300
-  thin=1,
+  thin=1
   Ks = [2]
 end
 flush(stdout)
