@@ -11,8 +11,8 @@ if length(ARGS) > 1
   println("ARGS: ", ARGS)
   istest = false
   Ni = 1000
-  nburn = 3000
-  nsamps = 3000
+  nburn = 5000
+  nsamps = 5000
   Ks = [2,4,6]
 else
   resultsdir = "results/test/"
