@@ -51,22 +51,27 @@ function plot_observed_hist(yC, yT, imgdir; bins, binsT=nothing,
 end
 
 
-function plot_simdata_with_hist(yC, yT, simdata, imgdir; bins, binsT=nothing,
+function plot_simdata_with_hist(simdata, imgdir; bins, binsT=nothing,
                                 lw=1, alpha=0.3, digits=5,
                                 plotsize=default_plotsize, legendpos=:topleft)
   plot(ygrid, pdf.(simdata[:mmC], ygrid), lw=lw,
-       label=L"y_C", color=:blue)
+       label=nothing, color=:blue)
   plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=lw,
-        label=L"y_T", color=:red)
-  plot!(size=plotsize, legend=:topleft)
+        label=nothing, color=:red)
+
   binsC = bins
   binsT == nothing && (binsT = bins)
-  histogram(yC[isfinite.(yC)], bins=binsC, label=L"y_C", alpha=alpha,
-            color=:blue, linealpha=0, normalize=true)
+  yC = simdata[:yC]
+  yT = simdata[:yT]
+  histogram!(yC[isfinite.(yC)], bins=binsC, label=L"y_C", alpha=alpha,
+             color=:blue, linealpha=0, normalize=true)
   histogram!(yT[isfinite.(yT)], bins=binsT, label=L"y_T", alpha=alpha,
              color=:red, linealpha=0, normalize=true)
+
   p0C, p0T = simdata[:gammaC], simdata[:gammaT]
   title!("prop. -∞ in C: $(p0C) | prop. -∞ in T: $(p0T)", titlefont=font(10))
+  plot!(size=plotsize, legend=:topleft)
+
   savefig(joinpath(imgdir, "simdata.pdf"))
   closeall()
 end
@@ -184,6 +189,7 @@ function _run(config)
   plot_observed_hist(yC, yT, imgdir, bins=50, binsT=50*2,
                      alpha=0.3, digits=5, legendpos=:topleft)
   plot_true_data_density(simdata, imgdir, lw=1, legendpos=:topleft)
+  plot_simdata_with_hist(simdata, imgdir, bins=50, binsT=100)
  
   # Run analysis.
   println("Run Chain ..."); flush(stdout)
