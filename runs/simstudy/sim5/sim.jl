@@ -6,6 +6,14 @@ println("Finished loading libraries."); flush(stdout)
 flatten = Iterators.flatten
 
 if length(ARGS) > 1
+  #=
+  SCRATCH_DIR = ENV["SCRATCH_DIR"]
+  SIMNAME = "sim5"
+  RESULTS_DIR = "$(SCRATCH_DIR)/cde/simstudy/$(SIMNAME)/results"
+  AWS_BUCKET = "s3://cytof-density-estimation/simstudy/$(SIMNAME)"
+  resultsdir = RESULTS_DIR
+  awsbucket = AWS_BUCKET
+  =#
   resultsdir = ARGS[1]
   awsbucket = ARGS[2]
   println("ARGS: ", ARGS)
@@ -15,6 +23,7 @@ if length(ARGS) > 1
   nsamps = 5000
   thin=2
   Ks = [2,4,6]
+  p=0.5
 else
   resultsdir = "results/test/"
   awsbucket = nothing
@@ -24,6 +33,7 @@ else
   nsamps = 300
   thin=1
   Ks = [2]
+  p=0.5
 end
 flush(stdout)
 
@@ -56,7 +66,7 @@ configs = [[let
   resdir = make_resdir(K, snum, beta)
   imgdir = make_imgdir(K, snum, beta)
   (awsbucket=bucket, simdata=simdata, resultsdir=resdir, imgdir=imgdir,
-   snum=snum, beta=beta, K=K, nsamps=nsamps, thin=thin, nburn=nburn, p=0.1)
+   snum=snum, beta=beta, K=K, nsamps=nsamps, thin=thin, nburn=nburn, p=p)
 end for beta in 0:1] for K in Ks for snum in 1:4]
 
 
@@ -73,18 +83,16 @@ println("Compute BF:"); flush(stdout)
 res = pmap(c -> let
   # NOTE
   @assert length(unique(getfield.(c, :snum))) == 1
-  snum = c[1][:snum]
-  K = c[1][:K]
   resd0 = c[1][:resultsdir]
   resd1 = c[2][:resultsdir]
   out0 = BSON.load("$(resd0)/results.bson")
   out1 = BSON.load("$(resd1)/results.bson")
   imgdir = "$(c[1][:imgdir])/../../img"; mkpath(imgdir)
   bucket = "$(c[1][:awsbucket])/../img"
-  # bucket = awsbucket == nothing ? awsbucket : "$(awsbucket)/K$(K)/scenario$(snum)/img"
   postprocess(out0[:chain], out1[:chain], out0[:data], 
               imgdir, bucket, simdata=c[1][:simdata],
-              density_legend_pos=:topleft, bw_postpred=.3, binsC=50, binsT=100)
+              density_legend_pos=:topleft, bw_postpred=.3, binsC=50, binsT=100,
+              p=c[1][:p])
 end, istest ? [configs[1]] : configs, on_error=identity)
 
 println("Status of BF computation:"); flush(stdout)

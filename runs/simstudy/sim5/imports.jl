@@ -73,15 +73,16 @@ end
 function postprocess(chain0, chain1, data, imgdir, awsbucket;
                      simdata=nothing, bw_postpred=0.20,
                      density_legend_pos=:best, binsC=nothing, binsT=nothing,
-                     ygrid=collect(range(-8, 8, length=1000)))
+                     ygrid=collect(range(-8, 8, length=1000)), p=nothing)
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
     println("Start merging results...")
 
     # Compute Bayes factor in favor of M1.
-    p = CDE.Model.group(:p, chain0)[1]
+    _p = CDE.Model.group(:p, chain0)[1]
+    p == nothing || (_p = p)
     @time lbf = CDE.Model.log_bayes_factor(data, VD(chain0[1]), VD(chain1[1]))
-    pm1 = CDE.Model.posterior_prob1(lbf, logpriorodds=logit(p))
+    pm1 = CDE.Model.posterior_prob1(lbf, logpriorodds=logit(_p))
     println("Log Bayes Factor: $(lbf) | P(M1|y): $(pm1)")
 
     # Print KS Statistic.
