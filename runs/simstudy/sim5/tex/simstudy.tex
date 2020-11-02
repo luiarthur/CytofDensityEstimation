@@ -64,9 +64,17 @@
 \section{Simulation Setup}\label{sec:sim-setup}
 We assessed our model through the following simulation studies. We first
 generated four data sets (I, II, III, IV) according to our model.
-Table~\ref{tab:sim-truth} contains the simulation truth of the model parameters
-under the four scenarios. Figure~\ref{fig:sim-truth-density}
-Note that scenario I and II 
+Table~\ref{tab:sim-truth} contains the simulation truth of the model
+parameters under the four scenarios. Figure~\ref{fig:sim-truth-density}
+contains the histogram of the observed data and the true density of the data
+in each scenario. The figures also list the observed proportion of zeros in
+the datasets. Note that scenario I and II, the densities of the simulation
+truths are visibly different, while the true proportions of zeros are the
+same in both samples. In scenario III, the densities of the two samples are
+the same, but the true proportions of zeros differ. In scenario IV, the
+densities and proportions of zeros are identical in the simulation truth. In
+each scenario, $N_i=1000$, and $K^\true=4$. These scenarios were created to 
+imitate real data we will analyze.
 \begin{table}
   \centering
   \begin{tabular}{|c|cccc|}
@@ -81,7 +89,7 @@ Note that scenario I and II
     $\bm\mu$    & (-1.5,3.5,5.1,5) & (-1.5,3.5,1.5,4.3) & (-1.5,3.5,5.1,4.3) & (-1.5,3.5,5.1,4.3) \\
     $\bm\sigma$ & (1.6,1.76,1.76,1.6) & (1.6,1.76,1.76,1.6) & (1.6,1.76,1.76,1.6) & (1.6,1.76,1.76,1.6) \\
     $\bm\nu$    & (12,10,10,15) & (12,10,10,15) & (12,10,10,15) & (12,10,10,15) \\
-    $\bm\psi$   & (0,-10,-10,0) & (12,10,10,-11) & (0,-10,-10,-11) & (0,-10,-10,-11) \\
+    $\bm\phi$   & (0,-10,-10,0) & (12,10,10,-11) & (0,-10,-10,-11) & (0,-10,-10,-11) \\
     \hline
   \end{tabular}
   \caption{Simulation truth of model parameters under the four scenarios.}
@@ -94,7 +102,7 @@ Note that scenario I and II
     (a) Scenario I & (b) Scenario II \\
     \includegraphics[scale=0.5]{results/K6/scenario1/m0/img/simdata.pdf} &
     \includegraphics[scale=0.5]{results/K6/scenario2/m0/img/simdata.pdf} \\
-    (c) Scenario I & (d) Scenario II \\
+    (c) Scenario III & (d) Scenario IV \\
     \includegraphics[scale=0.5]{results/K6/scenario3/m0/img/simdata.pdf} &
     \includegraphics[scale=0.5]{results/K6/scenario4/m0/img/simdata.pdf}
   \end{tabular}
@@ -102,22 +110,6 @@ Note that scenario I and II
   \label{fig:sim-truth-density}
 \end{figure}
 %
-the true mixture locations were $\bm{\mu}^\true=(-1, 1, 3)$,
-the true mixture scales were $\bm{\sigma}^\true=(0.7, 0.7, 0.7)$,
-the true mixture degrees of freedom were $\bm{\nu}^\true=(7, 5, 10)$, and
-the true mixture skews were $\bm{\phi}^\true=(-5, -3, 0)$.
-%
-In scenario I, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.2$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.4,0.1)$. Implicitly, $\beta^\true=1$.
-In scenario II, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.4,0.1)$. Implicitly, $\beta^\true=1$.
-In scenario III, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.45,0.05)$. Implicitly, $\beta^\true=1$.
-In scenario IV, $\gamma_C^\true=0.3$, $\gamma_T^\true=0.3$, $\bm\eta_C^\true=(0.5,
-0.5, 0)$, and $\bm\eta_T^\true=(0.5,0.5,0)$. Implicitly, $\beta^\true=0$.
-%
-In each scenario, $N_i=1000$. Table~\ref{tab:sim-truth} summarizes the
-simulation truth for the model parameters.
 \begin{table}
   \centering
   \begin{tabular}{|c|crccc|}
@@ -128,10 +120,12 @@ simulation truth for the model parameters.
     I   & 1 & 437.0691 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
     II  & 1 &  14.8797 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
     III & 1 &  23.3303 & 0.5 & $\approx 1$ & $0.06919 $ \\
-    IV  & 0 &   0.1007 & 0.5 &      0.5249 & $0.57265 $ \\
+    IV  & 0 &   0.1007 & 0.5 &      0.5252 & $0.57265 $ \\
     \hline
-    IV  & 0 &   0.10 & 0.3 &      0.3214 & $0.57265 $ \\
-    IV  & 0 &   0.10 & 0.1 &      0.1094 & $0.57265 $ \\
+    IV  & 0 &   0.1007 & 0.4 &      0.4242 & $0.57265 $ \\
+    IV  & 0 &   0.1007 & 0.3 &      0.3216 & $0.57265 $ \\
+    IV  & 0 &   0.1007 & 0.2 &      0.2166 & $0.57265 $ \\
+    IV  & 0 &   0.1007 & 0.1 &      0.1094 & $0.57265 $ \\
     \hline
   \end{tabular}
   \caption{Simulation truth of $\beta$ under various scenarios in second
@@ -152,50 +146,51 @@ $\nu_k\sim\LogNormal(1.6, 0.4)$, $\psi_k\sim\Normal(-1, 1)$, where,
 respectively, $\bar{\mu}$ and $s_\mu$ are the empirical mean and standard
 deviation of the data for which $y_{i,n} > 0$.
 %
-\alert{
 We fit two models -- $\mathcal{M}_0$, with $\beta$ fixed at 0; and
 $\mathcal{M}_1$, with $\beta$ fixed at 1. For each model, posterior inference
-was made via Gibbs sampling. The initial 3000 MCMC samples were discarded as
-burn-in, and the subsequent 3000 samples were kept for posterior inference.
-For each model, the inference speed was approximately 32 iterations per
-second. We recover the posterior probability of $\mathcal{M}_1$ by computing
-the product of the Bayes factor and prior odds in favor of $\mathcal{M}_1$.
-That is $\Pr(\beta=1 \mid \bm y) = \text{BF}_{1,0} \cdot p/(1-p)$.
-}
+was made via Gibbs sampling. The initial 10000 MCMC samples were discarded as
+burn-in, and every other subsequent sample in the next MCMC 10000 iterations
+was kept for posterior inference. For each model, the inference speed was
+approximately 32 iterations per second. We recovered the posterior probability
+of $\mathcal{M}_1$ by computing the product of the Bayes factor and prior
+odds in favor of $\mathcal{M}_1$. That is $\Pr(\beta=1 \mid \bm y) =
+\text{BF}_{1,0} \cdot p/(1-p)$.
 %
 % In addition, updating the parameters $\bm\zeta, \bm v, \bm\mu, \bm\omega,
 % \bm\nu$, and $\bm\psi$ multiple times for each update of the other parameters
 % helped with mixing. Thus, 10 updates for those parameters were done during
 % each iteration of the MCMC.
 %
+Table~\ref{tab:sim-results} contains the posterior inference for $\beta$
+under the different scenarios. Included are the simulation truth of $\beta$,
+the Bayes factor in favor of $\mathcal{M}_1$, the prior and posterior mean of
+$\beta$, and p-value in an approximate two-sided Kolmogorov-Smirnov test. In
+the first three scenarios, the posterior mean of $\beta$ matches the
+simulation truth very well, and the prior mean of $\beta$ contributes little.
+In scenario IV, a prior mean of 0.5 is insufficient to decisively conclude
+whether the two distributions are different. Thus, we recommend setting
+$p<0.5$ (e.g. $p=0.1$). When the two distributions are different, the prior mean
+for $\beta$ does not influence the posterior substantially.
+%
 Figure~\ref{fig:sim-postdens-data-kde} summarizes the posterior predictive
-densities for the positive values of $y_{i,n}$. The dashed lines are kernel
-density estimates of the data, and the shaded regions are the 95\% credible
-intervals for the densities. Note that the intervals match the data closely.
+densities for the positive values of $y_{i,n}$. Histograms of the observed
+data are included, and the shaded curves are the 95\% credible intervals for
+the densities. The posterior mean of the densities are included as solid
+lines. Note that the intervals match the data closely.
 % Also, in scenario III, where $\beta^\true=0$, the posterior mean of $\beta$
 % was also 0. Thus, $\gamma_T$ and $\bm\eta_T$ were simply samples from the
 % prior. Thus, the posterior predictive density for sample T was not included
 % here.
 %
-Since the KDE is only an approximation for the density of the observed data,
-we have included Figure~\ref{fig:sim-postdens-data-true-den}, which replaces
-the KDE of the observed portion of the simulated data with the actual pdf of
-the data-generating mechanism. The graphs more clearly show that the simulation
-truth is well captured by this model. 
+We have also included Figure~\ref{fig:sim-postdens-data-true-den}, where the
+solid lines represent the true density of the data. The graphs more clearly
+show that the simulation truth is well captured by this model.
 %
 Figure~\ref{fig:sim-gammas} shows box plots of the posterior distribution of
 $\gamma_i$ for the different scenarios. The circles represent the proportion
 of zeros in the simulated data. The posterior distributions easily capture the
 true values of $\gamma_i$.
 %
-Note that Table~\ref{tab:sim-truth} also includes the posterior mean of
-$\beta$, denoted $\hat\beta$. Note that when $\beta^\true=0$, $\hat\beta<
-0.5$ as the Bayes factor marginalizes over model parameters and prefers
-simpler models. By setting $p < 0.5$, to prefer simpler models
-\emph{apriori}, the Bayes factor, and thus the posterior odds, in favor of
-$\mathcal{M}_1$ decreases. For example, if $p=0.1$, then the $\Pr(\beta=1\mid
-\bm y) \approx 0.06691$. As the distributions of the two samples become
-increasingly different, $\hat\beta$ increases. 
 \begin{figure}[t!]
   \centering
   \begin{tabular}{cc}
@@ -209,8 +204,8 @@ increasingly different, $\hat\beta$ increases.
     (d) Scenario IV
   \end{tabular}
   \caption{Posterior predictive density in each simulation scenario for
-  observed data ($y_{i,n}>0$) overlaid with histogram of data. The shaded
-  regions are 95\% credible intervals of the estimated density.}
+  observed data ($y_{i,n}>0$), for $p=0.5$, overlaid with histogram of data.
+  The shaded regions are 95\% credible intervals of the estimated density.}
   \label{fig:sim-postdens-data-kde}
 \end{figure}
 
@@ -227,9 +222,9 @@ increasingly different, $\hat\beta$ increases.
     (d) Scenario IV
   \end{tabular}
   \caption{Posterior predictive density in each simulation scenario for
-  observed data ($y_{i,n}>0$). Solid lines are the true density of the
-  simulated data. The shaded regions are 95\% credible intervals of the
-  density.}
+  observed data ($y_{i,n}>0$), for $p=0.5$. Solid lines are the true density
+  of the simulated data. The shaded regions are 95\% credible intervals of
+  the density.}
   \label{fig:sim-postdens-data-true-den}
 \end{figure}
 
