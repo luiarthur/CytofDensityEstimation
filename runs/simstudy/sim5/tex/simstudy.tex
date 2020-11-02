@@ -63,8 +63,41 @@
 
 \section{Simulation Setup}\label{sec:sim-setup}
 We assessed our model through the following simulation studies. We first
-generated four data sets (I, II, III, IV) according to our model. In each
-four scenarios,
+generated four data sets (I, II, III, IV) according to our model.
+Table~\ref{tab:sim-truth} contains the simulation truth of the model parameters
+under the four scenarios. Note that scenario I and II 
+\begin{table}
+  \centering
+  \begin{tabular}{|c|cccc|}
+    \hline 
+    & Scenario I & Scenario II & Scenario III & Scenario IV \\
+    \hline 
+    $\beta$     & 1 & 1 & 1 & 0 \\
+    $\gamma_C$  & 0.1 & 0.1 & 0.1 & 0.1 \\
+    $\gamma_T$  & 0.1 & 0.1 & 0.05 & 0.1 \\
+    $\bm\eta_C$ & (0.25,0.75,0,0) & (0.05,0.05,0.5,0.4) & (0.05,0.05,0.5,0.4) & (0.05,0.05,0.5,0.4) \\
+    $\bm\eta_T$ & (0.05,0.05,0.9,0.5) & (0.05,0.05,0.9,0) & (0.05,0.05,0.5,0.4) & (0.05,0.05,0.5,0.4) \\
+    $\bm\mu$    & (-1.5,3.5,5.1,5) & (-1.5,3.5,1.5,4.3) & (-1.5,3.5,5.1,4.3) & (-1.5,3.5,5.1,4.3) \\
+    $\bm\sigma$ & (1.6,1.76,1.76,1.6) & (1.6,1.76,1.76,1.6) & (1.6,1.76,1.76,1.6) & (1.6,1.76,1.76,1.6) \\
+    $\bm\nu$    & (12,10,10,15) & (12,10,10,15) & (12,10,10,15) & (12,10,10,15) \\
+    $\bm\psi$   & (0,-10,-10,0) & (12,10,10,-11) & (0,-10,-10,-11) & (0,-10,-10,-11) \\
+    \hline
+  \end{tabular}
+  \caption{Simulation truth of model parameters under the four scenarios.}
+  \label{tab:sim-truth}
+\end{table}
+
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{cc}
+    (a) Scenario I & (b) Scenario II \\
+    \includegraphics[scale=0.5]{results/K6/scenario1/m0/img/data-hist.pdf} &
+    \includegraphics[scale=0.5]{results/K6/scenario2/m0/img/data-hist.pdf} \\
+    (c) Scenario I & (d) Scenario II \\
+    \includegraphics[scale=0.5]{results/K6/scenario3/m0/img/data-hist.pdf} &
+    \includegraphics[scale=0.5]{results/K6/scenario4/m0/img/data-hist.pdf}
+  \end{tabular}
+\end{figure}
 %
 the true mixture locations were $\bm{\mu}^\true=(-1, 1, 3)$,
 the true mixture scales were $\bm{\sigma}^\true=(0.7, 0.7, 0.7)$,
@@ -84,25 +117,32 @@ In each scenario, $N_i=1000$. Table~\ref{tab:sim-truth} summarizes the
 simulation truth for the model parameters.
 \begin{table}
   \centering
-  \begin{tabular}{|c|ccccccc|}
+  \begin{tabular}{|c|crccc|}
     \hline 
-    Scenario & $\gamma_C^\true$ & $\gamma_T^\true$ & $\bm\eta_C^\true$ & 
-    $\bm\eta_T^\true$ & $\beta^\true$ & $\hat\beta$ & KS p-value \\
+    Scenario & $\beta^\true$ & Bayes Factor & $\Pr(\beta=1)$ &
+    $\Pr(\beta=1\mid \bm y)$ & KS p-value \\
     \hline 
-    I   & 0.3 & 0.2 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & $\approx 1$ & $0.00003$ \\
-    II  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.40, 0.10) & 1 & $\approx 1$ & $0.01123$ \\
-    III & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.45, 0.05) & 1 & $\approx 1$ & $0.28775$ \\
-    IV  & 0.3 & 0.3 & (0.5, 0.5, 0) & (0.5, 0.50, 0.00) & 0 &      0.3921 & $0.64755$ \\
+    I   & 1 & 437.0691 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    II  & 1 &  14.8797 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    III & 1 &  23.3303 & 0.5 & $\approx 1$ & $0.06919 $ \\
+    IV  & 0 &   0.1007 & 0.5 &      0.5249 & $0.57265 $ \\
+    \hline
+    IV  & 0 &   0.10 & 0.3 &      0.3214 & $0.57265 $ \\
+    IV  & 0 &   0.10 & 0.1 &      0.1094 & $0.57265 $ \\
     \hline
   \end{tabular}
-  \caption{Simulation truth under various scenarios. Posterior mean of
-  $\beta$ is included before the right-most column. The right-most column
-  is the p-value of under the two-sample Kolmogorov-Smirnov test.}
-  \label{tab:sim-truth}
+  \caption{Simulation truth of $\beta$ under various scenarios in second
+  column. Third column contains the Bayes factor in favor of $\beta=1$.
+  Fourth column contains the prior mean of $\beta$. Fifth column includes the
+  posterior mean of $\beta$ under the prior for $\beta$ in the previous
+  column. Sixth column includes the p-value of under the two-sample
+  Kolmogorov-Smirnov test. In the first three scenarios, the posterior for
+  $\beta$ in highly insensitive to the prior for $\beta$.}
+  \label{tab:sim-results}
 \end{table}
 
 \section{Simulation Results}\label{sec:sim-results}
-The following priors were used in this analysis. First, we set $K=5$ and
+The following priors were used in this analysis. First, we set $K=6$ and
 $p=0.5$. Then $\gamma_i\sim\Beta(1, 1)$, $\bm\eta_i\sim\Dirichlet_K(1/K)$,
 $\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$, $\omega_k\sim\InvGamma(0.1, 0.1)$,
 $\nu_k\sim\LogNormal(1.6, 0.4)$, $\psi_k\sim\Normal(-1, 1)$, where,
@@ -152,42 +192,41 @@ simpler models. By setting $p < 0.5$, to prefer simpler models
 \emph{apriori}, the Bayes factor, and thus the posterior odds, in favor of
 $\mathcal{M}_1$ decreases. For example, if $p=0.1$, then the $\Pr(\beta=1\mid
 \bm y) \approx 0.06691$. As the distributions of the two samples become
-increasingly different, $\hat\beta$ increases.
+increasingly different, $\hat\beta$ increases. 
 \begin{figure}[t!]
   \centering
   \begin{tabular}{cc}
-    \includegraphics[scale=.45]{results/K4/scenario1/img/postpred.pdf} &
-    \includegraphics[scale=.45]{results/K4/scenario2/img/postpred.pdf} \\
+    \includegraphics[scale=.38]{results/K6/scenario1/img/postpred-data-hist.pdf} &
+    \includegraphics[scale=.38]{results/K6/scenario2/img/postpred-data-hist.pdf} \\
     (a) Scenario I &
     (b) Scenario II \\
-    \includegraphics[scale=.45]{results/K4/scenario3/img/postpred.pdf} &
-    \includegraphics[scale=.45]{results/K4/scenario4/img/postpred.pdf} \\
+    \includegraphics[scale=.38]{results/K6/scenario3/img/postpred-data-hist.pdf} &
+    \includegraphics[scale=.38]{results/K6/scenario4/img/postpred-data-hist.pdf} \\
     (c) Scenario III &
     (d) Scenario IV
   \end{tabular}
   \caption{Posterior predictive density in each simulation scenario for
-  observed data ($y_{i,n}>0$). Dashed lines are the kernel density estimates
-  of the simulated data. The shaded regions are 95\% credible intervals of
-  the density.}
+  observed data ($y_{i,n}>0$) overlaid with histogram of data. The shaded
+  regions are 95\% credible intervals of the estimated density.}
   \label{fig:sim-postdens-data-kde}
 \end{figure}
 
 \begin{figure}[t!]
   \centering
   \begin{tabular}{cc}
-    \includegraphics[scale=.45]{results/K4/scenario1/img/postpred-true-data-density.pdf} &
-    \includegraphics[scale=.45]{results/K4/scenario2/img/postpred-true-data-density.pdf} \\
+    \includegraphics[scale=.45]{results/K6/scenario1/img/postpred-true-data-density.pdf} &
+    \includegraphics[scale=.45]{results/K6/scenario2/img/postpred-true-data-density.pdf} \\
     (a) Scenario I &
     (b) Scenario II \\
-    \includegraphics[scale=.45]{results/K4/scenario3/img/postpred-true-data-density.pdf} &
-    \includegraphics[scale=.45]{results/K4/scenario4/img/postpred-true-data-density.pdf} \\
+    \includegraphics[scale=.45]{results/K6/scenario3/img/postpred-true-data-density.pdf} &
+    \includegraphics[scale=.45]{results/K6/scenario4/img/postpred-true-data-density.pdf} \\
     (c) Scenario III &
     (d) Scenario IV
   \end{tabular}
   \caption{Posterior predictive density in each simulation scenario for
-  observed data ($y_{i,n}>0$). Dashed lines are the kernel density estimates
-  of the simulated data. The shaded regions are 95\% credible intervals of
-  the density.}
+  observed data ($y_{i,n}>0$). Solid lines are the true density of the
+  simulated data. The shaded regions are 95\% credible intervals of the
+  density.}
   \label{fig:sim-postdens-data-true-den}
 \end{figure}
 
@@ -196,12 +235,12 @@ increasingly different, $\hat\beta$ increases.
   \begin{tabular}{cc}
     (a) Scenario I &
     (b) Scenario II \\
-    \includegraphics[scale=.45]{results/K4/scenario1/img/gammas.pdf} &
-    \includegraphics[scale=.45]{results/K4/scenario2/img/gammas.pdf} \\
+    \includegraphics[scale=.45]{results/K6/scenario1/img/gammas.pdf} &
+    \includegraphics[scale=.45]{results/K6/scenario2/img/gammas.pdf} \\
     (c) Scenario III &
     (d) Scenario IV \\
-    \includegraphics[scale=.45]{results/K4/scenario3/img/gammas.pdf} &
-    \includegraphics[scale=.45]{results/K4/scenario4/img/gammas.pdf}
+    \includegraphics[scale=.45]{results/K6/scenario3/img/gammas.pdf} &
+    \includegraphics[scale=.45]{results/K6/scenario4/img/gammas.pdf}
   \end{tabular}
   \caption{Box plots of posterior distribution of $\gamma_C$ and
   $\gamma_T^\star$ for different simulated datasets. Circles represent
