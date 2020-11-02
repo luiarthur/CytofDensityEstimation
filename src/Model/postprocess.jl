@@ -254,6 +254,7 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
   # Posterior predictive density and data histogram
   plot_posterior_predictive_only(chain, ygrid=ygrid, lw=.5,
                                  density_legend_pos=density_legend_pos)
+  plot!(size=plotsize)
   if binsC == nothing
     histogram!(yC, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
                color=:blue)
