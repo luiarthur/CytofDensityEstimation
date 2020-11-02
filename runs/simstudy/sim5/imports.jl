@@ -99,6 +99,12 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
                                         xlims_=(-6, 6), digits=5, fontsize=7)
 
     CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir)
+
+    # DIC
+    dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
+    println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")
+    flush(stdout)
+
   end
 
   # Send results
