@@ -151,10 +151,11 @@ $\mathcal{M}_1$, with $\beta$ fixed at 1. For each model, posterior inference
 was made via Gibbs sampling. The initial 10000 MCMC samples were discarded as
 burn-in, and every other subsequent sample in the next MCMC 10000 iterations
 was kept for posterior inference. For each model, the inference speed was
-approximately 32 iterations per second. We recovered the posterior probability
+approximately 32 iterations per second. We recovered the posterior odds
 of $\mathcal{M}_1$ by computing the product of the Bayes factor and prior
-odds in favor of $\mathcal{M}_1$. That is $\Pr(\beta=1 \mid \bm y) =
-\text{BF}_{1,0} \cdot p/(1-p)$.
+odds in favor of $\mathcal{M}_1$. That is $\text{Odds}(\beta=1 \mid \bm y) =
+\text{BF}_{1,0} \cdot p/(1-p)$. Thus, $\Pr(\beta=1\mid\bm y) =
+\frac{\text{Odds}(\beta=1 \mid \bm y)}{1 + \text{Odds}(\beta=1 \mid \bm y)}$.
 %
 % In addition, updating the parameters $\bm\zeta, \bm v, \bm\mu, \bm\omega,
 % \bm\nu$, and $\bm\psi$ multiple times for each update of the other parameters
