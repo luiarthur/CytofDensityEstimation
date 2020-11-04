@@ -1,10 +1,15 @@
 import Pkg; Pkg.activate("../")
 
+using CytofDensityEstimation
+const CDE = CytofDensityEstimation
 using StatsPlots
 using Turing
 using Distributions
 using StatsFuns
+import LinearAlgebra
 import Random
+
+eye(n::Integer) = Matrix(LinearAlgebra.I(n)) * 1.0
 
 function marginal_loglike(mu, sigma, etaC, etaT, gammaC, gammaT,
                           p, yC_finite, yT_finite, ZC, ZT)
@@ -38,10 +43,22 @@ end
 
     Turing.acclogp!(_varinfo, log_target)
 
-    return (mu=mu, sigma=sigma, eta=eta)
+    return (mu=mu, sigma=sigma, etaC=etaC, etaT=etaT,
+            gammaC=gammaC, gammaT=gammaT)
 end;
 
 # SLOW.
 Random.seed!(1);
-m = GMM_mixture(randn(900), randn(900) .+ 1, 100, 100, 5, 0.5)
-@time chain = sample(m, NUTS(500, 0.65), 1000)
+K = 5
+m = GMM_mixture(randn(9000), randn(9000) .+ 1, 1000, 1000, K, 0.5)
+@time chain = sample(m, MH(eye(2 + K*4) * .001), 10000)
+
+return_values = generated_quantities(m, chain)
+mu = hcat(getfield.(return_values, :mu)...)
+sigma = hcat(getfield.(return_values, :sigma)...)
+etaC = hcat(getfield.(return_values, :etaC)...)
+etaT = hcat(getfield.(return_values, :etaT)...)
+gammaC = hcat(getfield.(return_values, :gammaC)...)
+gammaT = hcat(getfield.(return_values, :gammaT)...)
+
+plot(gammaT')
