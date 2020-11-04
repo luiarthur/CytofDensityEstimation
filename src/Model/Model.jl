@@ -22,12 +22,18 @@ include("loglike.jl")
 include("updates/update.jl")
 include("fit.jl")
 
+include("PriorAM.jl")
+include("StateAM.jl")
+include("logprioram.jl")
+include("loglikeam.jl")
+include("amfit.jl")
+
 include("logprior.jl")
 include("pseudo_prior_updates/update.jl")
 include("fit_via_pseudo_prior.jl")
 include("postprocess.jl")
 
-export UpdateBetaWithSkewT, UpdateLambdaWithSkewT, fit
+export UpdateBetaWithSkewT, UpdateLambdaWithSkewT, fit, amfit
 export fit_via_pseudo_prior, ppfit, posterior_prob1, bayes_factor, dic
 
 end # module

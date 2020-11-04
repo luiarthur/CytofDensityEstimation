@@ -103,3 +103,42 @@ cov(x)
 current_cov
 current_mean, mean(x)
 =#
+
+"""
+x: real vector of dim K - 1
+return: simplex of dim K
+"""
+function simplex_invtransform(x::AbstractVector{<:Real})
+  K = length(x) + 1
+  z = logistic.(x - log.(K .- collect(1:K-1)))
+  p = zeros(K)
+  p[1] = z[1]
+  for k in 2:K-1
+    p[k] = (1 - sum(p[1:k-1])) * z[k]
+  end
+  p[K] = 1 - sum(p)
+  return p  # simplex
+end
+
+
+"""
+Given simplex p (length K), return real vector of length K-1.
+"""
+function simplex_transform(p::AbstractVector{<:Real})
+  K = length(p)
+  ks = collect(1:K-1)
+  return logit.(p[ks]) + log.(K .- ks)
+end
+
+
+"""
+x: real vector of dim K - 1
+return: log abs value of determinant of x
+"""
+function simplex_logabsdet(x::AbstractVector{<:Real})
+  K = length(x) + 1
+  ks = collect(1:K-1)
+  z = logistic.(x - log.(K .- ks))
+  p = simplex_invtransform(x)
+  return sum(log1p.(-z) + log.(p[ks]))
+end

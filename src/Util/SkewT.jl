@@ -74,3 +74,8 @@ end
 
 toaltscale(scale, skew) = scale / sqrt(skew^2 + 1)
 toaltskew(scale, skew) = skew * toaltscale(scale, skew)
+
+
+function mixskewtlogpdf(loc, scale, df, skew, w, x; dims)
+  return logsumexp(skewtlogpdf.(loc, scale, df, skew, x) .+ log.(w), dims=dims)
+end
