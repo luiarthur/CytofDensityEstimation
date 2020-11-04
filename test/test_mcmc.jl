@@ -8,7 +8,7 @@ include("runtests.jl")
 
 
 @testset "metropolis adaptive" begin
-  easy = true
+  easy = false
   if easy 
     K = 3
     S = CDE.MCMC.eye(K) * 1.0
@@ -26,13 +26,14 @@ include("runtests.jl")
   mvn = MvNormal(S)
 
   tuner = CDE.MCMC.MvTuner(K)
-  out = [randn(K)]
-  for _ in 1:20000
-    xnew = CDE.MCMC.metropolisAdaptive(last(out), log_prob, tuner)
-    append!(out, [xnew])
+  xnew = randn(K)
+  out = Vector{Float64}[]
+  @time for i in 1:100000
+    xnew = CDE.MCMC.metropolisAdaptive(xnew, log_prob, tuner)
+    i > 50000 && append!(out, [xnew])
   end
-  cov(out[10000:end])[1:5, 1:5]
-  S[1:5, 1:5]
+  println("$((cov(out)[1], S[1]))")
+  println("$((cov(out)[2], S[2]))")
   # plot([getindex.(out, 1) getindex.(out, 2)])
   # plot(getindex.(out, 1), getindex.(out, 4))
 end

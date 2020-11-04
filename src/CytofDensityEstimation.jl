@@ -7,8 +7,8 @@ It has a mean of scale / (shape - 1) for shape > 1.
 =#
 
 include("Util/Util.jl")
-include("Model/Model.jl")
 include("MCMC/MCMC.jl")
+include("Model/Model.jl")
 
 using .Model
 
