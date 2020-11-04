@@ -23,6 +23,33 @@ function metropolis(curr::AbstractVector{<:Real}, log_prob::Function,
 end
 
 
+# TODO: Check.
+# See section 2 of http://probability.ca/jeff/ftpdir/adaptex.pdf 
+function metropolisAdaptive(curr::AbstractVector{<:Real}, log_prob::Function,
+                            tuner::MvTuner; eps::Real=1e-6)
+  # Update summary stats.
+  update!(curr, tuner)
+
+  # Proposal distribution.
+  proposal = if tuner.iter <= 2*tuner.d
+    MvNormal(curr, 0.01 * eye(tuner.d)/tuner.d)
+  else
+    MixtureModel(
+      [MvNormal(curr, 5.6644 * tuner.current_cov/tuner.d),
+       MvNormal(curr, 0.01 * eye(tuner.d)/tuner.d)],
+      [1 - tuner.beta, tuner.beta])
+  end
+
+  # Proposal
+  cand = rand(proposal)
+
+  # Acceptance probability
+  accept_logprob = log_prob(cand) - log_prob(curr)
+
+  return accept_logprob > log(rand()) ? cand : curr
+end
+
+
 """
 Adaptive metropolis (within Gibbs). See section 3 of the paper below:
   http://probability.ca/jeff/ftpdir/adaptex.pdf

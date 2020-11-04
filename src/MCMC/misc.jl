@@ -1,3 +1,7 @@
+eye(T::Type, n::Integer) = Matrix{T}(LinearAlgebra.I(n))
+eye(n::Integer) = eye(Float64, n)
+
+
 """
 weighted sampling: takes (unnormalized) log probs and returns index
 """
@@ -71,3 +75,31 @@ function quantiles(X, q; dims, drop=false)
   out = drop ? dropdims(Q, dims=dims) : Q
   return out
 end
+
+
+function update_mean!(current_mean, x, iter)
+  current_mean .+= (x - current_mean) / iter
+end
+
+
+function update_cov!(current_cov, current_mean, x, iter)
+  d = x - current_mean
+  current_cov .= current_cov * (iter - 1)/iter + (d*d') * (iter - 1)/iter^2
+  current_cov .= Matrix(LinearAlgebra.Symmetric(current_cov))
+end
+
+
+#= Test
+using Statistics
+n = 300000
+x = [randn(4) for i in 1:n]
+current_mean = mean(x[1:2])
+current_cov = cov(x[1:2])
+for i in 2:n
+  update_mean!(current_mean, x[i], i) 
+  update_cov!(current_cov, current_mean, x[i], i) 
+end
+cov(x)
+current_cov
+current_mean, mean(x)
+=#
