@@ -129,8 +129,11 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
     # DIC
     dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
     println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")
-    flush(stdout)
 
+    dic_average = CDE.dic(chain0[1], chain1[1], pm1, data)
+    println("DIC average: $(round(dic_average, digits=3))")
+
+    flush(stdout)
   end
 
   # Send results

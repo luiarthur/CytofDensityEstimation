@@ -190,3 +190,11 @@ function dic(chain, data)
   D = -2 * ll
   return mean(D) + 0.5 * var(D)
 end
+
+
+function dic(chain0, chain1, pm1, data)
+  @assert length(chain0) == length(chain1)
+  B = length(chain0)
+  chain = [pm1 > rand() ? chain1[b] : chain0[b] for b in 1:B]
+  return dic(chain, data)
+end
