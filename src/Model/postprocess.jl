@@ -48,12 +48,6 @@ function posterior_density(chain, ygrid)
   pdfC = [compute_pdf(b, etaC) for b in 1:B]
   pdfT = [compute_pdf(b, etaT_star) for b in 1:B]
 
-  # if any(beta)
-  #   pdfT = [compute_pdf(b, etaT) for b in 1:B if beta[b]]
-  # else
-  #   pdfT = nothing
-  # end
-
   return (pdfC=pdfC, pdfT=pdfT)
 end
 
