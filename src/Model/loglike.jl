@@ -24,13 +24,6 @@ function marginal_loglike_beta(i::Char, state::State, data::Data)
 end
 
 
-function marginal_loglike(state::State, data::Data)
-  llC = marginal_loglike('C', state, data)
-  llT = marginal_loglike('T', state, data)
-  return log(state.p) * llC + log1p(-state.p) * llT
-end
-
-
 """
 Marginal loglikelihood for sample i. Marginalizes over lambda and uses Normal
 likelihood using latent variable representation of skew-t.  Used for updating
