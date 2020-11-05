@@ -10,6 +10,11 @@ end
 MvTuner(d::Integer, T::Type=Float64) = MvTuner(zeros(T, d), eye(T, d)*0.01/d,
                                                T(.05), 1, d)
 
+function MvTuner(v::AbstractVector{<:Real})
+  d = length(v)
+  return MvTuner(v, eye(d)*0.01/d, .05, 1, d)
+end
+
 
 function update!(x::AbstractVector{<:Real}, tuner::MvTuner{<:Real})
   tuner.iter += 1

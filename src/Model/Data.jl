@@ -30,3 +30,12 @@ ref_yfinite(data::Data, i::Char) = (i == 'C') ? data.yC_finite : data.yT_finite
 ref_N(data::Data, i::Char) = (i == 'C') ? data.NC : data.NT
 ref_Nfinite(data::Data, i::Char) = (i == 'C') ? data.NC_finite : data.NT_finite
 ref_Z(data::Data, i::Char) = (i == 'C') ? data.ZC : data.ZT
+
+function subsample_data(data::Data, nc::Int, nt::Int)
+  if nc > 0 && nt >0
+    return Data(sample(data.yC, nc, replace=false),
+                sample(data.yT, nt, replace=false))
+  else
+    return data
+  end
+end

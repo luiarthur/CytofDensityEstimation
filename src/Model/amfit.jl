@@ -9,9 +9,10 @@ end
 function amfit(init::StateAM, data::Data, prior::PriorAM;
                tuner::Union{Nothing, MCMC.MvTuner}=nothing,
                nsamps::Vector{Int}=[1000], nburn::Int=1000, thin::Int=1,
-               seed=nothing, verbose::Int=1, temper::Real=1)
+               seed=nothing, verbose::Int=1, temper::Real=1, propcov=nothing,
+               nc::Int=0, nt::Int=0)
   seed == nothing || Random.seed!(seed)
-  tuner == nothing && (tuner = MCMC.MvTuner(6 * prior.K))
+  tuner == nothing && (tuner = MCMC.MvTuner(tovec(init)))
 
   # Print settings for sanity check.
   if verbose > 0
@@ -19,16 +20,21 @@ function amfit(init::StateAM, data::Data, prior::PriorAM;
   end
 
   function update!(state::StateAM)
+    _data = subsample_data(data, nc, nt)
     v = tovec(state)
     function logprob(v::Vector{Float64})
       s = deepcopy(state)
       fromvec!(s, v)
-      ll = loglike(s, data, prior.p) / temper
+      ll = loglike(s, _data, prior.p) * (data.NC + data.NT) / (_data.NC + _data.NT) / temper
       lp = logprior(s, prior)
       lj = logabsjacobian(v, prior)
       return ll + lp + lj
     end
-    newv = MCMC.metropolisAdaptive(v, logprob, tuner)
+    if propcov == nothing
+      newv = MCMC.metropolisAdaptive(v, logprob, tuner)
+    else
+      newv = MCMC.metropolis(v, logprob, propcov)
+    end
     newv != v && fromvec!(state, newv)
   end
 

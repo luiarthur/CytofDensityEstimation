@@ -14,39 +14,29 @@ end
 
 
 function metropolis(curr::AbstractVector{<:Real}, log_prob::Function,
-                    stepSD::AbstractMatrix{<:Real})
-  cand = rand(MvNormal(curr, stepSD))
-  logU = log(rand())
+                    propCov::AbstractMatrix{<:Real})
+  cand = rand(MvNormal(curr, propCov))
   p = log_prob(cand) - log_prob(curr)
-  out = p > logU ? cand : curr
-  return out
+  return p > log(rand()) ? cand : curr
 end
 
 
 # TODO: Check.
 # See section 2 of http://probability.ca/jeff/ftpdir/adaptex.pdf 
 function metropolisAdaptive(curr::AbstractVector{<:Real}, log_prob::Function,
-                            tuner::MvTuner; eps::Real=1e-6)
+                            tuner::MvTuner)
   # Update summary stats.
   update!(curr, tuner)
 
-  # Proposal distribution.
-  proposal = if tuner.iter <= 2*tuner.d
-    MvNormal(curr, 0.01 * eye(tuner.d)/tuner.d)
+  # Proposal covariance.
+  propCov = if tuner.iter <= 2*tuner.d || tuner.beta > rand()
+    0.01 * eye(tuner.d) / tuner.d
   else
-    MixtureModel(
-      [MvNormal(curr, 5.6644 * tuner.current_cov/tuner.d),
-       MvNormal(curr, 0.01 * eye(tuner.d)/tuner.d)],
-      [1 - tuner.beta, tuner.beta])
+    5.6644 * tuner.current_cov / tuner.d
   end
 
-  # Proposal
-  cand = rand(proposal)
-
-  # Acceptance probability
-  accept_logprob = log_prob(cand) - log_prob(curr)
-
-  return accept_logprob > log(rand()) ? cand : curr
+  # Metropolis step
+  return metropolis(curr, log_prob, propCov)
 end
 
 
