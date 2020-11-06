@@ -149,14 +149,7 @@ function defaults(yC, yT, K; seed=nothing)
   data = CDE.Model.Data(yC, yT)
   prior = CDE.Model.Prior(K, mu=CDE.Model.compute_prior_mu(data),
                           nu=LogNormal(1.6, 0.4), p=Beta(100, 100),
-                          psi=Normal(-1, 1), a_omega=2.5, tau=Gamma(.1, 1))
-                          # NOTE: Better prior?
-                          # Look at the implied prior for (σ, ϕ)
-                          # omega=InverseGamma(2.5, 1), psi=Normal(0, 100))  # test
-                          # omega=InverseGamma(.1, 1e-8), psi=Normal(0, 1))  # bad
-                          # omega=InverseGamma(2, 1e-3), psi=Normal(0, 100))  # bad
-                          # omega=InverseGamma(2, 1e-3), psi=Normal(-1, 1))  # bad
-                          # omega=InverseGamma(.1, .1), psi=Normal(-1, 10))  # original
+                          psi=Normal(-2, 1), a_omega=2.5, tau=Gamma(.1, 1))
   state = CDE.Model.State(data, prior)
   tuners = CDE.Model.Tuners(K, 0.1)
   return (state=state, data=data, prior=prior, tuners=tuners)
