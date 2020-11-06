@@ -222,7 +222,7 @@ function _run(config)
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
               out[:data].yT, imgdir, bw_postpred=0.3, # simdata=out[:simdata],
-              ygrid=collect(range(-8, 8, length=1000)),
+              ygrid=collect(range(-8, 8, length=200)),
               density_legend_pos=:topleft)
 
   # Send results
