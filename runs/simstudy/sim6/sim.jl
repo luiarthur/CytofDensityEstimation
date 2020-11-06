@@ -29,11 +29,11 @@ else
   awsbucket = nothing
   istest = true
   Ni = 2000
-  nburn = 1000
-  nsamps = 1000
+  nburn = 2000
+  nsamps = 300
   thin = 1
-  Ks = [6]
-  p=0.5
+  Ks = [2]
+  p = 0.5
 end
 flush(stdout)
 
@@ -73,7 +73,7 @@ configs = [[let
   imgdir = make_imgdir(K, snum, beta)
   (awsbucket=bucket, simdata=simdata, resultsdir=resdir, imgdir=imgdir,
    snum=snum, beta=beta, K=K, nsamps=nsamps, thin=thin, nburn=nburn, p=p)
-end for beta in 0:1] for K in Ks for snum in 1:4]
+end for beta in 0:1] for K in Ks for snum in [5]]
 
 
 # Parallel run.

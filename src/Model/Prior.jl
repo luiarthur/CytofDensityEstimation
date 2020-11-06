@@ -17,7 +17,8 @@ end
 
 function Prior(K; p=Beta(100, 100), gamma=Beta(1,1), eta=nothing,
                mu=Normal(0, 3), a_omega=2.5, tau=Gamma(0.5, 1),
-               nu=LogNormal(1.6, 0.4), psi=Normal(-1, 1), data=nothing)
+               nu=LogNormal(0.5, 0.1), # nu=LogNormal(1.6, 0.4),
+               psi=Normal(-1, 1), data=nothing)
   eta == nothing && (eta = Dirichlet(K, 1/K))
   data == nothing || (mu = compute_prior_mu(data))
   return Prior(K, p, gamma, eta, mu, a_omega, nu, psi, tau)

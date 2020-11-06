@@ -311,6 +311,11 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
     closeall()
   end
 
+  plot(group(:tau, chain), label=nothing, size=plotsize)
+  xlabel!("MCMC iteration", font=font(12))
+  ylabel!("τ", font=font(12))
+  savefig("$(imgdir)/tau-trace.pdf"); closeall()
+
   # Trace of p, beta.
   if haskey(chain[1][1], :p)
     trace_kernel_param(:p, chain, paramname="p")

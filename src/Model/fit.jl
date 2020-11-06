@@ -2,7 +2,7 @@
 # - [ ] add documentation.
 
 default_monitors() = [[:p, :beta, :gammaC, :gammaT, :etaC, :etaT, :mu, :nu,
-                      :omega, :psi, :tau]]
+                       :omega, :psi, :tau]]
 
 complete_monitors() = [default_monitors()[1],
                       [:lambdaC, :lambdaT, :vC, :vT, :zetaC, :zetaT]]
@@ -82,7 +82,7 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
     else
       for _ in 1:rep_aux
         update_state!(state, data, prior, tuners, flags=flags,
-                      fix=[fix; [:p, :beta, :lambda, :gamma, :eta]])
+                      fix=[fix; [:p, :beta, :lambda, :gamma, :eta, :mu]])
       end
     end
   end

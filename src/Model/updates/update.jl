@@ -32,13 +32,14 @@ function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners;
   isfixed(:etaC) || isfixed(:eta) ||  update_etaC!(state, data, prior)
   isfixed(:etaT) || isfixed(:eta) || update_etaT!(state, data, prior)
 
+  isfixed(:mu) || update_mu!(state, data, prior)
+  isfixed(:psi) || update_psi!(state, data, prior)
+  isfixed(:tau) || update_tau!(state, data, prior)
+  isfixed(:omega) || update_omega!(state, data, prior)
+
+  isfixed(:nu) || update_nu!(state, data, prior, tuners)
   isfixed(:vC) || isfixed(:v) || update_v!('C', state, data, prior)
   isfixed(:vT) || isfixed(:v) || update_v!('T', state, data, prior)
   isfixed(:zetaC) || isfixed(:zeta) || update_zeta!('C', state, data, prior)
   isfixed(:zetaT) || isfixed(:zeta) || update_zeta!('T', state, data, prior)
-
-  isfixed(:mu) || update_mu!(state, data, prior)
-  isfixed(:nu) || update_nu!(state, data, prior, tuners)
-  isfixed(:psi) || update_psi!(state, data, prior)
-  isfixed(:omega) || update_omega!(state, data, prior)
 end
