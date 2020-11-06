@@ -149,7 +149,7 @@ function defaults(yC, yT, K; seed=nothing)
   data = CDE.Model.Data(yC, yT)
   prior = CDE.Model.Prior(K, mu=CDE.Model.compute_prior_mu(data),
                           nu=LogNormal(1.6, 0.4), p=Beta(100, 100),
-                          psi=Normal(-2, 1), a_omega=2.5, tau=Gamma(.1, 1))
+                          psi=Normal(-2, 1), a_omega=2.5, tau=Gamma(.5, 1))
   state = CDE.Model.State(data, prior)
   tuners = CDE.Model.Tuners(K, 0.1)
   return (state=state, data=data, prior=prior, tuners=tuners)
