@@ -7,6 +7,7 @@ import Printf
 # For plotting.
 using StatsPlots, LaTeXStrings
 import StatsPlots.KernelDensity.kde
+import LinearAlgebra
 
 include("../Util/Util.jl")
 using .Util: SkewT

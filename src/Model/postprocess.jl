@@ -71,7 +71,7 @@ function printsummary(chain, summarystats; laststate=nothing, digits=3)
   sanitize(s) = round(mean(s), digits=digits)
   sanitizevec(v) = round.(mean(v), digits=digits)
 
-  println("mean p: ", sanitize(p))
+  p == nothing || println("mean p: ", sanitize(p))
   println("mean beta: ", sanitize(beta))
   println("mean gammaC: ", sanitize(gammaC))
   println("mean gammaT: ", sanitize(gammaT))
@@ -312,9 +312,15 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   end
 
   # Trace of p, beta.
-  trace_kernel_param(:p, chain, paramname="p")
-  plot!(size=plotsize)
-  savefig("$(imgdir)/p-trace.pdf"); closeall()
+  if haskey(chain[1][1], :p)
+    trace_kernel_param(:p, chain, paramname="p")
+    plot!(size=plotsize)
+    savefig("$(imgdir)/p-trace.pdf"); closeall()
+
+    trace_kernel_mean(:p, chain, paramname="p")
+    plot!(size=plotsize)
+    savefig("$(imgdir)/p-mean-trace.pdf"); closeall()
+  end
   trace_kernel_param(:beta, chain, paramname="β")
   plot!(size=plotsize)
   savefig("$(imgdir)/beta-trace.pdf"); closeall()
@@ -322,9 +328,6 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   plot!(size=plotsize)
   hline!([0.5], ls=:dot, labels=nothing)
   savefig("$(imgdir)/beta-mean-trace.pdf"); closeall()
-  trace_kernel_mean(:p, chain, paramname="p")
-  plot!(size=plotsize)
-  savefig("$(imgdir)/p-mean-trace.pdf"); closeall()
 
   # Proportion of gammas.
   plot_gamma(yC, yT, chain)

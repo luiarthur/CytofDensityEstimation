@@ -1,6 +1,6 @@
 struct PriorAM
   K::Int
-  p::Float64
+  beta::Bool
   gamma::Beta
   eta::Dirichlet
   mu::Normal
@@ -10,12 +10,12 @@ struct PriorAM
 end
 
 
-function PriorAM(K; p=0.5, gamma=Beta(1,1), eta=nothing,
+function PriorAM(K, beta; gamma=Beta(1,1), eta=nothing,
                  mu=Normal(0, 3), sigma=LogNormal(0, .5),
                  nu=LogNormal(1.6, 0.4), phi=Normal(-1, 10), data=nothing)
   eta == nothing && (eta = Dirichlet(K, 1/K))
   data == nothing || (mu = compute_prior_mu(data))
-  return PriorAM(K, p, gamma, eta, mu, sigma, nu, phi)
+  return PriorAM(K, beta, gamma, eta, mu, sigma, nu, phi)
 end
 
 

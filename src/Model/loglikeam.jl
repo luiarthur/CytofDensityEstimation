@@ -1,12 +1,12 @@
-function loglikeam(data::Data, s::Dict{Symbol, Any}, p::Float64)
+function loglikeam(data::Data, s::Dict{Symbol, Any}, beta::Bool)
   state = StateAM(s[:gammaC], s[:gammaT],
                   s[:etaC], s[:etaT], s[:mu], s[:sigma],
                   s[:nu], s[:phi])
-  return loglike(state, data, p)
+  return loglike(state, data, beta)
 end
 
-function loglike(s::StateAM, data::Data, p::Float64)
-  return loglike_C(s, data) + loglike_T(s, data, p)
+function loglike(s::StateAM, data::Data, beta::Bool)
+  return loglike_C(s, data) + loglike_T(s, data, beta)
 end
 
 function loglike_C(s::StateAM, data::Data)
@@ -15,11 +15,22 @@ function loglike_C(s::StateAM, data::Data)
   return data.ZC * log(s.gammaC) + data.NC_finite * log1p(-s.gammaC) + sum(f)
 end
 
-function loglike_T(s::StateAM, data::Data, p)
+function loglike_T(s::StateAM, data::Data, beta::Bool)
   f = Util.skewtlogpdf.(s.mu', s.sigma', s.nu', s.phi', data.yT_finite)
-  fC = sum(logsumexp(f .+ log.(s.etaC'), dims=2))
-  fT = sum(logsumexp(f .+ log.(s.etaT'), dims=2))
-  gT = data.ZT * log(s.gammaT) + data.NT_finite * log1p(-s.gammaT)
-  gC = data.ZT * log(s.gammaC) + data.NT_finite * log1p(-s.gammaC)
-  return logsumexp([fT + gT + log(p), fC + gC + log1p(-p)])
+
+  if beta
+    gammaTstar = s.gammaT
+    etaTstar = s.etaT
+  else
+    gammaTstar = s.gammaC
+    etaTstar = s.etaC
+  end
+
+  f = Util.mixskewtlogpdf(s.mu', s.sigma', s.nu', s.phi', etaTstar',
+                          data.yT_finite, dims=2)
+
+  ll_inf = data.ZT * log(gammaTstar)
+  ll_finite = data.NT_finite * log1p(-gammaTstar) + sum(f)
+
+  return ll_inf + ll_finite
 end
