@@ -28,8 +28,8 @@ function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners;
   isfixed(:lambdaT) || isfixed(:lambda) || update_lambdaT!(state, data, prior, flags)
 
   isfixed(:gammaC) || isfixed(:gamma) || update_gammaC!(state, data, prior)
-  isfixed(:etaC) || isfixed(:eta) ||  update_etaC!(state, data, prior)
   isfixed(:gammaT) || isfixed(:gamma) || update_gammaT!(state, data, prior)
+  isfixed(:etaC) || isfixed(:eta) ||  update_etaC!(state, data, prior)
   isfixed(:etaT) || isfixed(:eta) || update_etaT!(state, data, prior)
 
   isfixed(:vC) || isfixed(:v) || update_v!('C', state, data, prior)
