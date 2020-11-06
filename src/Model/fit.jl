@@ -2,7 +2,7 @@
 # - [ ] add documentation.
 
 default_monitors() = [[:p, :beta, :gammaC, :gammaT, :etaC, :etaT, :mu, :nu,
-                      :omega, :psi]]
+                      :omega, :psi, :tau]]
 
 complete_monitors() = [default_monitors()[1],
                       [:lambdaC, :lambdaT, :vC, :vT, :zetaC, :zetaT]]

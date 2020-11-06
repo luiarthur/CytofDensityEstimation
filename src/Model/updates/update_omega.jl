@@ -1,5 +1,5 @@
 function update_omega!(state::State, data::Data, prior::Prior)
-  a, b = params(prior.omega)
+  a, b = prior.a_omega, state.tau
   akernel = zero.(state.omega)
   bkernel = zero.(state.omega)
 

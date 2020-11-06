@@ -79,7 +79,7 @@ end
 
 function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
                      bw_postpred=0.2, density_legend_pos=:best,
-                     ygrid=collect(range(-8, 8, length=1000)))
+                     simdata=nothing, ygrid=collect(range(-8, 8, length=1000)))
   # Print summary statistics.
   CDE.Model.printsummary(chain, summarystats)
   flush(stdout)
@@ -92,7 +92,8 @@ function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
   # Plot results.
   @time CDE.Model.plotpostsummary(chain, summarystats, yC, yT, imgdir,
                                   bw_postpred=bw_postpred, ygrid=ygrid,
-                                  density_legend_pos=density_legend_pos)
+                                  density_legend_pos=density_legend_pos,
+                                  simdata=simdata)
   flush(stdout)
 end
 
@@ -129,8 +130,11 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
     # DIC
     dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
     println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")
-    flush(stdout)
 
+    dic_average = CDE.dic(chain0[1], chain1[1], pm1, data)
+    println("DIC average: $(round(dic_average, digits=3))")
+
+    flush(stdout)
   end
 
   # Send results
@@ -145,7 +149,14 @@ function defaults(yC, yT, K; seed=nothing)
   data = CDE.Model.Data(yC, yT)
   prior = CDE.Model.Prior(K, mu=CDE.Model.compute_prior_mu(data),
                           nu=LogNormal(1.6, 0.4), p=Beta(100, 100),
-                          omega=InverseGamma(.1, .1), psi=Normal(-1, 10))
+                          psi=Normal(-1, 1), a_omega=2.5, tau=Gamma(.1, 1))
+                          # NOTE: Better prior?
+                          # Look at the implied prior for (σ, ϕ)
+                          # omega=InverseGamma(2.5, 1), psi=Normal(0, 100))  # test
+                          # omega=InverseGamma(.1, 1e-8), psi=Normal(0, 1))  # bad
+                          # omega=InverseGamma(2, 1e-3), psi=Normal(0, 100))  # bad
+                          # omega=InverseGamma(2, 1e-3), psi=Normal(-1, 1))  # bad
+                          # omega=InverseGamma(.1, .1), psi=Normal(-1, 10))  # original
   state = CDE.Model.State(data, prior)
   tuners = CDE.Model.Tuners(K, 0.1)
   return (state=state, data=data, prior=prior, tuners=tuners)
@@ -210,7 +221,7 @@ function _run(config)
 
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
-              out[:data].yT, imgdir; bw_postpred=0.3,
+              out[:data].yT, imgdir, bw_postpred=0.3, # simdata=out[:simdata],
               ygrid=collect(range(-8, 8, length=1000)),
               density_legend_pos=:topleft)
 

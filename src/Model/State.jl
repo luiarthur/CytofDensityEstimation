@@ -15,6 +15,7 @@ mutable struct State{F <: AbstractFloat, V <: AbstractVector{<:Real}}
   vT::V  # NT
   zetaC::V  # NC
   zetaT::V  # NT
+  tau::F
 end
 
 
@@ -29,7 +30,9 @@ function State(data::Data, prior::Prior)
   lambdaT = rand(Categorical(etaT), data.NT_finite)
   mu = rand(prior.mu, prior.K)
   nu = rand(prior.nu, prior.K)
-  omega = rand(prior.omega, prior.K)
+  tau = rand(prior.tau)
+  prior_omega = InverseGamma(prior.a_omega, tau)
+  omega = rand(prior_omega, prior.K)
   psi = rand(prior.psi, prior.K)
   vC = [rand(Gamma(nu[k]/2, 2/nu[k])) for k in lambdaC]
   vT = [rand(Gamma(nu[k]/2, 2/nu[k])) for k in lambdaT]
@@ -37,7 +40,7 @@ function State(data::Data, prior::Prior)
   zetaT = [rand(truncated(Normal(0, sqrt(1/v)), 0, Inf)) for v in vT]
 
   return State(p, beta, gammaC, gammaT, etaC, etaT, lambdaC, lambdaT,
-               mu, nu, omega, psi, vC, vT, zetaC, zetaT)
+               mu, nu, omega, psi, vC, vT, zetaC, zetaT, tau)
 end
 
 
