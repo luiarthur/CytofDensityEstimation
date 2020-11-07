@@ -37,8 +37,8 @@ function scenarios(n::Int; seed=nothing, Ni=1000)
                                       skew = [0, -10, -10, -11.])
   elseif n == 5  # a test case
     return CDE.Model.generate_samples(NC=Ni, NT=Ni, gammaC=0.1, gammaT=0.1,
-                                      etaC=[0, 1., 0, 0], 
-                                      etaT=[0, 0, 1., 0], 
+                                      etaC=[0, 1., 0, 0],
+                                      etaT=[0, 0, 1., 0],
                                       loc = [-1.5, 3.5, 5.1, 4.3],
                                       scale = [1.6, 1.76, 1.76, 1.6],
                                       df = [12, 10, 10, 15.],
