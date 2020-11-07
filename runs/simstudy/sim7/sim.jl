@@ -19,7 +19,7 @@ if length(ARGS) > 1
   println("ARGS: ", ARGS)
   istest = false
   Ni = 10000
-  nburn = 3000
+  nburn = 6000
   nsamps = 3000
   thin=1
   Ks = [2,4,6]
