@@ -10,8 +10,8 @@ function marginal_loglike_beta(i::Char, state::State, data::Data)
   yfinite = ref_yfinite(data, 'T')
 
   loc = state.mu
-  scale = Util.scalefromaltskewt.(sqrt.(state.omega), state.psi)
-  skew = Util.skewfromaltskewt.(sqrt.(state.omega), state.psi)
+  scale = state.sigma
+  skew = state.phi
   df = state.nu
 
   eta = ref_eta(state, i)
@@ -100,8 +100,8 @@ end
 # TODO: Check.
 function marginal_loglike_C(data::Data, state::Dict{Symbol, Any})
   loc = state[:mu]
-  scale = Util.scalefromaltskewt.(sqrt.(state[:omega]), state[:psi])
-  skew = Util.skewfromaltskewt.(sqrt.(state[:omega]), state[:psi])
+  scale = state[:sigma]
+  skew = state[:phi]
   df = state[:nu]
 
   etaC = state[:etaC]
@@ -117,8 +117,8 @@ end
 # TODO: Check.
 function marginal_loglike_T(data::Data, state::Dict{Symbol, Any})
   loc = state[:mu]
-  scale = Util.scalefromaltskewt.(sqrt.(state[:omega]), state[:psi])
-  skew = Util.skewfromaltskewt.(sqrt.(state[:omega]), state[:psi])
+  scale = state[:sigma]
+  skew = state[:phi]
   df = state[:nu]
 
   etaT_star = state[:beta] ? state[:etaT] : state[:etaC]

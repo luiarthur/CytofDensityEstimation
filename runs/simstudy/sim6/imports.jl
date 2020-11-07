@@ -207,15 +207,15 @@ function _run(config)
   # Run analysis.
   println("Run Chain ..."); flush(stdout)
 
-  state.vC .= 1
-  state.vT .= 1
-  state.nu .= 1000.0
-  fix=[:p, :beta, :v, :nu]
+  # state.vC .= 1
+  # state.vT .= 1
+  # state.nu .= 1000.0
+  # fix=[:p, :beta, :v, :nu]
 
-  # fix=[:p, :beta]
+  fix=[:p, :beta]
   @time chain, laststate, summarystats = CDE.fit(
       state, data, prior, tuners, nsamps=[nsamps], fix=fix,
-      nburn=nburn, thin=thin, rep_aux=5)
+      nburn=nburn, thin=thin, rep_aux=0, flags=CDE.Model.Flag[])
   flush(stdout)
 
   # Save results
@@ -229,7 +229,7 @@ function _run(config)
 
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
-              out[:data].yT, imgdir, bw_postpred=0.3, # simdata=out[:simdata],
+              out[:data].yT, imgdir, bw_postpred=0.3, simdata=out[:simdata],
               ygrid=collect(range(-8, 8, length=200)),
               density_legend_pos=:topleft)
 

@@ -21,4 +21,7 @@ function update_omega!(state::State, data::Data, prior::Prior)
   for k in 1:prior.K
     state.omega[k] = rand(InverseGamma(anew[k], bnew[k]))
   end
+
+  update_sigma!(state)
+  update_phi!(state)
 end

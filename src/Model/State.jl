@@ -16,6 +16,8 @@ mutable struct State{F <: AbstractFloat, V <: AbstractVector{<:Real}}
   zetaC::V  # NC
   zetaT::V  # NT
   tau::F
+  sigma::V
+  phi::V
 end
 
 
@@ -38,9 +40,13 @@ function State(data::Data, prior::Prior)
   vT = [rand(Gamma(nu[k]/2, 2/nu[k])) for k in lambdaT]
   zetaC = [rand(truncated(Normal(0, sqrt(1/v)), 0, Inf)) for v in vC]
   zetaT = [rand(truncated(Normal(0, sqrt(1/v)), 0, Inf)) for v in vT]
+  sigma = Util.scalefromaltskewt.(sqrt.(omega), psi)
+  phi = Util.skewfromaltskewt.(sqrt.(omega), psi)
 
-  return State(p, beta, gammaC, gammaT, etaC, etaT, lambdaC, lambdaT,
-               mu, nu, omega, psi, vC, vT, zetaC, zetaT, tau)
+  state = State(p, beta, gammaC, gammaT, etaC, etaT, lambdaC, lambdaT,
+                mu, nu, omega, psi, vC, vT, zetaC, zetaT, tau, sigma, phi)
+
+  return state
 end
 
 

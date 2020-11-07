@@ -20,4 +20,7 @@ function update_psi!(state::State, data::Data, prior::Prior)
   mnew = vnew .* (m/s^2 .+ mkernel)
 
   state.psi .= randn(prior.K) .* sqrt.(vnew) + mnew
+
+  update_sigma!(state)
+  update_phi!(state)
 end

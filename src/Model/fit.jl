@@ -2,7 +2,7 @@
 # - [ ] add documentation.
 
 default_monitors() = [[:p, :beta, :gammaC, :gammaT, :etaC, :etaT, :mu, :nu,
-                       :omega, :psi, :tau]]
+                       :omega, :psi, :tau, :sigma, :phi]]
 
 complete_monitors() = [default_monitors()[1],
                       [:lambdaC, :lambdaT, :vC, :vT, :zetaC, :zetaT]]
@@ -43,7 +43,7 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
              fix::Vector{Symbol}=Symbol[],
              rep_beta_flipped::Int=0,
              rep_aux::Int=0, seed=nothing,
-             flags::Vector{Flag}=default_flags(), verbose::Int=1)
+             flags::Vector{Flag}=Flag[], verbose::Int=1)
 
   # Set random seed.
   seed == nothing || Random.seed!(seed)

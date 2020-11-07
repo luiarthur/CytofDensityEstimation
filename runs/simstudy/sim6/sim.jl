@@ -29,8 +29,8 @@ else
   awsbucket = nothing
   istest = true
   Ni = 5000
-  nburn = 2000
-  nsamps = 300
+  nburn = 300
+  nsamps = 50
   thin = 1
   Ks = [6]
   p = 0.5

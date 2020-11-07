@@ -19,6 +19,7 @@ function amfit(init::StateAM, data::Data, prior::PriorAM;
   # Print settings for sanity check.
   if verbose > 0
     println("seed: ", seed)
+    println("temper: ", temper)
     println("openblas_num_threads: ", openblas_num_threads)
   end
 
@@ -43,7 +44,7 @@ function amfit(init::StateAM, data::Data, prior::PriorAM;
 
   function _callback_fn(state::StateAM, iter::Int,
                         pbar::MCMC.ProgressBars.ProgressBar)
-    return default_callback_fn(state, data, prior, iter, pbar)
+    # return default_callback_fn(state, data, prior, iter, pbar)
   end
 
   chain, laststate, summarystats = MCMC.gibbs(

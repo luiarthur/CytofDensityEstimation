@@ -1,30 +1,11 @@
-default_ygrid(; lo=-6, hi=6, length=1000) = range(lo, hi, length=length)
+default_ygrid(; lo=-6, hi=6, length=200) = range(lo, hi, length=length)
 
-function group(sym::Symbol, chain; altskew_sym=:psi, altvar_sym=:omega)
-  if sym in (:sigma, :phi)
-    scale, skew = fetch_skewt_stats(chain; altskew_sym=altskew_sym,
-                                    altvar_sym=altvar_sym)
-    return sym == :sigma ? scale : skew
-  else
-    for monitor in chain
-      if sym in keys(monitor[1])
-        return [s[sym] for s in monitor]
-      end
+function group(sym::Symbol, chain)
+  for monitor in chain
+    if sym in keys(monitor[1])
+      return [s[sym] for s in monitor]
     end
   end
-end
-
-
-function fetch_skewt_stats(chain; altskew_sym=:psi, altvar_sym=:omega)
-  altskew = group(altskew_sym, chain)
-  altvar = group(altvar_sym, chain)
-
-  skew = [Util.skewfromaltskewt.(sqrt.(altvar[b]), altskew[b])
-          for b in eachindex(altskew)]
-  scale = [Util.scalefromaltskewt.(sqrt.(altvar[b]), altskew[b])
-           for b in eachindex(altskew)]
-
-  return (scale=scale, skew=skew)
 end
 
 
@@ -311,10 +292,12 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
     closeall()
   end
 
-  plot(group(:tau, chain), label=nothing, size=plotsize)
-  xlabel!("MCMC iteration", font=font(12))
-  ylabel!("τ", font=font(12))
-  savefig("$(imgdir)/tau-trace.pdf"); closeall()
+  if haskey(chain[1][1], :tau)
+    plot(group(:tau, chain), label=nothing, size=plotsize)
+    xlabel!("MCMC iteration", font=font(12))
+    ylabel!("τ", font=font(12))
+    savefig("$(imgdir)/tau-trace.pdf"); closeall()
+  end
 
   # Trace of p, beta.
   if haskey(chain[1][1], :p)
