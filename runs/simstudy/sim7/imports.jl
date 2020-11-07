@@ -194,10 +194,10 @@ function _run(config)
           fieldnames(CDE.Model.Prior))
 
   # Plot data.
-  plot_observed_hist(yC, yT, imgdir, bins=50, binsT=50*2,
+  plot_observed_hist(yC, yT, imgdir, bins=100, binsT=100,
                      alpha=0.3, digits=5, legendpos=:topleft)
   plot_true_data_density(simdata, imgdir, lw=1, legendpos=:topleft)
-  plot_simdata_with_hist(simdata, imgdir, bins=50, binsT=100)
+  plot_simdata_with_hist(simdata, imgdir, bins=100, binsT=100)
  
   # Run analysis.
   println("Run Chain ..."); flush(stdout)
