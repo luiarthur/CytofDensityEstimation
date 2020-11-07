@@ -141,8 +141,9 @@ imitate real data we will analyze.
 \section{Simulation Results}\label{sec:sim-results}
 The following priors were used in this analysis. First, we set $K=6$ and
 $p=0.5$. Then $\gamma_i\sim\Beta(1, 1)$, $\bm\eta_i\sim\Dirichlet_K(1/K)$,
-$\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$, $\omega_k\sim\InvGamma(0.1, 0.1)$,
-$\nu_k\sim\LogNormal(1.6, 0.4)$, $\psi_k\sim\Normal(-1, 1)$, where,
+$\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$, $\tau\sim\G(0.5,\text{rate}=1)$,
+$\omega_k\mid\tau\sim\InvGamma(2.5, \tau)$, $\nu_k\sim\LogNormal(3, 0.5)$,
+$\psi_k\sim\Normal(-1, 0.5)$, where,
 respectively, $\bar{\mu}$ and $s_\mu$ are the empirical mean and standard
 deviation of the data for which $y_{i,n} > 0$.
 %
