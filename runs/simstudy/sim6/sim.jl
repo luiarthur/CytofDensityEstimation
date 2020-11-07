@@ -19,9 +19,9 @@ if length(ARGS) > 1
   println("ARGS: ", ARGS)
   istest = false
   Ni = 10000
-  nburn = 10000
-  nsamps = 5000
-  thin=2
+  nburn = 3000
+  nsamps = 3000
+  thin=1
   Ks = [2,4,6]
   p=0.5
 else
@@ -29,8 +29,8 @@ else
   awsbucket = nothing
   istest = true
   Ni = 5000
-  nburn = 300
-  nsamps = 50
+  nburn = 1000
+  nsamps = 2000
   thin = 1
   Ks = [6]
   p = 0.5

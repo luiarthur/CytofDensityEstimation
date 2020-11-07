@@ -150,13 +150,11 @@ function defaults(yC, yT, K; seed=nothing)
   prior = CDE.Model.Prior(K, 
                           # mu=CDE.Model.compute_prior_mu(data),
                           mu=Normal(0, 3),
-                          # nu=LogNormal(1.6, 0.4),
                           nu=LogNormal(3, .5),
                           p=Beta(100, 100),
                           psi=Normal(-1, .5), 
                           a_omega=2.5,
                           tau=Gamma(.5, 1.),
-                          # tau=Gamma(.5, 1/200),
                           eta=Dirichlet(K, 1/K))
   state = CDE.Model.State(data, prior)
   tuners = CDE.Model.Tuners(K, 1.0)
@@ -215,7 +213,7 @@ function _run(config)
   fix=[:p, :beta]
   @time chain, laststate, summarystats = CDE.fit(
       state, data, prior, tuners, nsamps=[nsamps], fix=fix,
-      nburn=nburn, thin=thin, rep_aux=0, flags=CDE.Model.Flag[])
+      nburn=nburn, thin=thin, rep_aux=1, flags=CDE.Model.Flag[])
   flush(stdout)
 
   # Save results

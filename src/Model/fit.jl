@@ -42,7 +42,7 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
              callback_fn::Function=default_callback_fn,
              fix::Vector{Symbol}=Symbol[],
              rep_beta_flipped::Int=0,
-             rep_aux::Int=0, seed=nothing,
+             rep_aux::Int=1, seed=nothing,
              flags::Vector{Flag}=Flag[], verbose::Int=1)
 
   # Set random seed.
@@ -66,16 +66,9 @@ function fit(init::State, data::Data, prior::Prior, tuners::Tuners;
 
   function update!(state)
     prev_beta = state.beta
-
     update_state!(state, data, prior, tuners, fix=fix, flags=flags)
-
     if state.beta != prev_beta
       for _ in 1:rep_beta_flipped
-        # isfixed(:lambda) || isfixed(:lambdaT) || update_lambdaT!(state, data, prior, flags)
-        # isfixed(:eta) || isfixed(:etaT) || update_etaT!(state, data, prior)
-        # isfixed(:gamma) || isfixed(:gammaT) || update_gammaT!(state, data, prior)
-        # isfixed(:zeta) || isfixed(:zetaT) || update_zeta!('T', state, data, prior)
-        # isfixed(:v) || isfixed(:vT) || update_v!('T', state, data, prior)
         update_state!(state, data, prior, tuners, flags=flags,
                       fix=[fix; [:p, :beta]])
       end
