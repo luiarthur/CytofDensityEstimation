@@ -202,7 +202,6 @@ function _run(config)
  
   # Run analysis.
   println("Run Chain ..."); flush(stdout)
-  fix=[:p, :beta]
   @time chain, laststate, summarystats = CDE.fit(
       state, data, prior, tuners, nsamps=[nsamps], fix=[:p, :beta],
       nburn=nburn, thin=thin, rep_aux=1, flags=CDE.Model.Flag[])

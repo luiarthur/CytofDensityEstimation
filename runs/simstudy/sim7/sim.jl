@@ -28,12 +28,12 @@ else
   resultsdir = "results/test/"
   awsbucket = nothing
   istest = true
-  Ni = 10000
-  nburn = 300
-  nsamps = 300
-  thin=1
-  Ks = [2]
-  p=0.5
+  Ni = 5000
+  nburn = 1000
+  nsamps = 200
+  thin = 1
+  Ks = [6]
+  p = 0.5
 end
 flush(stdout)
 
@@ -42,6 +42,12 @@ println("Load libraries on workers ..."); flush(stdout)
 if !istest
   rmprocs(workers())
   addprocs(12)
+  @everywhere include("imports.jl")
+else
+  if nworkers() != 2
+    rmprocs(workers())
+    addprocs(2)
+  end
   @everywhere include("imports.jl")
 end
 println("Finished loading libraries on workers."); flush(stdout)
@@ -88,11 +94,11 @@ res = pmap(c -> let
   out0 = BSON.load("$(resd0)/results.bson")
   out1 = BSON.load("$(resd1)/results.bson")
   imgdir = "$(c[1][:imgdir])/../../img"; mkpath(imgdir)
-  bucket = "$(c[1][:awsbucket])/../img"
+  bucket = c[1][:awsbucket] == nothing ? nothing : "$(c[1][:awsbucket])/../img"
   postprocess(out0[:chain], out1[:chain], out0[:data], 
               imgdir, bucket, simdata=c[1][:simdata],
-              density_legend_pos=:topleft, bw_postpred=.2,
-              binsC=100, binsT=100, p=c[1][:p])
+              density_legend_pos=:topleft, bw_postpred=.3, binsC=50, binsT=100,
+              p=c[1][:p])
 end, istest ? [configs[1]] : configs, on_error=identity)
 
 println("Status of BF computation:"); flush(stdout)
