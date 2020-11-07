@@ -22,7 +22,7 @@ if length(ARGS) > 1
   istest = false
   Ni = 10000
   nburn = 6000
-  nsamps = 3000
+  nsamps = 5000
   thin=1
   Ks = [2,4,6]
   p=0.5
