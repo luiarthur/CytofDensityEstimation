@@ -28,11 +28,11 @@ else
   resultsdir = "results/test/"
   awsbucket = nothing
   istest = true
-  Ni = 2000
+  Ni = 5000
   nburn = 2000
   nsamps = 300
   thin = 1
-  Ks = [2]
+  Ks = [6]
   p = 0.5
 end
 flush(stdout)
@@ -73,7 +73,7 @@ configs = [[let
   imgdir = make_imgdir(K, snum, beta)
   (awsbucket=bucket, simdata=simdata, resultsdir=resdir, imgdir=imgdir,
    snum=snum, beta=beta, K=K, nsamps=nsamps, thin=thin, nburn=nburn, p=p)
-end for beta in 0:1] for K in Ks for snum in [5]]
+end for beta in 0:1] for K in Ks for snum in 1:4]
 
 
 # Parallel run.
@@ -106,3 +106,23 @@ foreach(z -> println(z[2], " => ", z[1]),
         zip(res, [c[1][:snum] for c in (istest ? [configs[1]] : configs)]))
 
 println("DONE WITH ALL!"); flush(stdout)
+
+
+# TEST:
+# function priorsample(y=range(-8, 4, length=200))
+#   tau = rand(Gamma(.5, 1))
+#   omega = rand(InverseGamma(2.5, tau))
+#   psi = rand(Normal(-1, .5))
+#   mu = rand(Normal(1, 1))
+#   sigma = CDE.Util.scalefromaltskewt(sqrt(omega), psi)
+#   phi = CDE.Util.skewfromaltskewt(sqrt(omega), psi)
+#   nu = rand(LogNormal(3, .5))
+#   println("(tau,omega,psi): $((tau,omega,psi))")
+#   println("(sigma,phi): $((sigma,phi))")
+#   return y, pdf.(CDE.Util.SkewT(mu, sigma, nu, phi), y)
+# end
+# doit() = let
+#   _y, ypdf = priorsample()
+#   plot(_y, ypdf, label=nothing); savefig("results/tmp.pdf"); closeall()
+# end
+# doit()

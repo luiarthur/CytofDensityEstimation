@@ -33,9 +33,9 @@ function update_state!(state::State, data::Data, prior::Prior, tuners::Tuners;
   isfixed(:etaT) || isfixed(:eta) || update_etaT!(state, data, prior)
 
   isfixed(:mu) || update_mu!(state, data, prior)
-  isfixed(:psi) || update_psi!(state, data, prior)
   isfixed(:tau) || update_tau!(state, data, prior)
   isfixed(:omega) || update_omega!(state, data, prior)
+  isfixed(:psi) || update_psi!(state, data, prior)
 
   isfixed(:nu) || update_nu!(state, data, prior, tuners)
   isfixed(:vC) || isfixed(:v) || update_v!('C', state, data, prior)
