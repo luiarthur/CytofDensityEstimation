@@ -19,9 +19,9 @@ if length(ARGS) > 1
   println("ARGS: ", ARGS)
   istest = false
   Ni = 10000
-  nburn = 10000
-  nsamps = 5000
-  thin=2
+  nburn = 3000
+  nsamps = 3000
+  thin=1
   Ks = [2,4,6]
   p=0.5
 else

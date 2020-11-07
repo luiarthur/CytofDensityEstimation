@@ -147,9 +147,7 @@ function defaults(yC, yT, K; seed=nothing)
   seed == nothing || Random.seed!(seed)
 
   data = CDE.Model.Data(yC, yT)
-  prior = CDE.Model.Prior(K, 
-                          # mu=CDE.Model.compute_prior_mu(data),
-                          mu=Normal(0, 3),
+  prior = CDE.Model.Prior(K, mu=Normal(0, 3),
                           nu=LogNormal(3, .5),
                           p=Beta(100, 100),
                           psi=Normal(-1, .5), 
@@ -204,15 +202,9 @@ function _run(config)
  
   # Run analysis.
   println("Run Chain ..."); flush(stdout)
-
-  # state.vC .= 1
-  # state.vT .= 1
-  # state.nu .= 1000.0
-  # fix=[:p, :beta, :v, :nu]
-
   fix=[:p, :beta]
   @time chain, laststate, summarystats = CDE.fit(
-      state, data, prior, tuners, nsamps=[nsamps], fix=fix,
+      state, data, prior, tuners, nsamps=[nsamps], fix=[:p, :beta],
       nburn=nburn, thin=thin, rep_aux=1, flags=CDE.Model.Flag[])
   flush(stdout)
 

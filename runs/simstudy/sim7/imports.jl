@@ -9,7 +9,6 @@ using StatsPlots
 import Random
 using RCall
 using BSON
-import CytofDensityEstimation.Model.default_ygrid
 using StatsFuns
 @rimport stats as rstats 
 VD = Vector{Dict{Symbol, Any}}
@@ -79,7 +78,7 @@ end
 
 function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
                      bw_postpred=0.2, density_legend_pos=:best,
-                     ygrid=collect(range(-8, 8, length=1000)))
+                     ygrid=ygrid)
   # Print summary statistics.
   CDE.Model.printsummary(chain, summarystats)
   flush(stdout)
@@ -99,7 +98,7 @@ end
 function postprocess(chain0, chain1, data, imgdir, awsbucket;
                      simdata=nothing, bw_postpred=0.20,
                      density_legend_pos=:best, binsC=nothing, binsT=nothing,
-                     ygrid=collect(range(-8, 8, length=1000)), p=nothing)
+                     ygrid=ygrid, p=nothing)
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
     println("Start merging results...")
@@ -146,9 +145,14 @@ function defaults(yC, yT, K; seed=nothing)
   seed == nothing || Random.seed!(seed)
 
   data = CDE.Model.Data(yC, yT)
-  prior = CDE.Model.Prior(K, mu=CDE.Model.compute_prior_mu(data),
-                          nu=LogNormal(1.6, 0.4), p=Beta(100, 100),
-                          omega=InverseGamma(.1, .1), psi=Normal(-1, 10))
+  prior = CDE.Model.Prior(K, mu=Normal(0, 3),
+                          # mu=CDE.Model.compute_prior_mu(data),
+                          nu=LogNormal(3, .5),
+                          p=Beta(100, 100),
+                          psi=Normal(-1, .5), 
+                          a_omega=2.5,
+                          tau=Gamma(.5, 1.),
+                          eta=Dirichlet(K, 1/K))
   state = CDE.Model.State(data, prior)
   tuners = CDE.Model.Tuners(K, 0.1)
   return (state=state, data=data, prior=prior, tuners=tuners)
@@ -198,10 +202,12 @@ function _run(config)
   # Run analysis.
   println("Run Chain ..."); flush(stdout)
   state.psi .= 0
+  state.zetaC .= 0
+  state.zetaT .= 0
   @time chain, laststate, summarystats = CDE.fit(
       state, data, prior, tuners, nsamps=[nsamps],
-      fix=[:p, :beta, :zeta, :psi],  # mixture of normals
-      nburn=nburn, thin=thin, rep_aux=10)
+      fix=[:p, :beta, :zeta, :psi],  # mixture of t
+      nburn=nburn, thin=thin, rep_aux=1, flags=CDE.Model.Flag[])
   flush(stdout)
 
   # Save results
@@ -215,8 +221,8 @@ function _run(config)
 
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
-              out[:data].yT, imgdir; bw_postpred=0.3,
-              ygrid=collect(range(-8, 8, length=1000)),
+              out[:data].yT, imgdir; bw_postpred=0.3, simdata=out[:simdata],
+              ygrid=ygrid,
               density_legend_pos=:topleft)
 
   # Send results
