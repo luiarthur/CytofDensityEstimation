@@ -1,10 +1,7 @@
+println("Compiling on main node ...")
 include(joinpath(@__DIR__, "imports.jl"))  # For precompile.
+println("Done compiling on main node.")
 markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7]
-
-using Distributed
-rmprocs(workers())
-addprocs(length(markers) * 2)
-@everywhere include(joinpath(@__DIR__, "imports.jl"))
 
 # Read command line args.
 if length(ARGS) > 1
@@ -22,18 +19,47 @@ else
   istest=true
 end
 
+using Distributed
+println("Load libraries on workers ..."); flush(stdout)
+if !istest
+  rmprocs(workers())
+  addprocs(length(markers)*2)
+else
+  if nworkers() != 2
+    rmprocs(workers())
+    addprocs(2)
+  end
+end
+@everywhere include(joinpath(@__DIR__, "imports.jl"))
+println("Finished loading libraries on workers."); flush(stdout)
+
+
+
 # Read data.
 donor = 1
 path_to_data = "../../../data/TGFBR2/cytof-data/donor$(donor).csv"
 subsample_size = 20000
 data = CDE.Util.subsample(DataFrame(CSV.File(path_to_data)), subsample_size,
                           seed=0)
+
+# Helpers.
+function make_bucket(marker, beta)
+  if awsbucket == nothing
+    return awsbucket
+  else
+    return "$(awsbucket)/donor$(donor)/$(marker)/m$(beta)"
+  end
+end
+make_resdir(marker, beta) = "$(resultsdir)/donor$(donor)/$(marker)/m$(beta)"
+make_imgdir(marker, beta) = "$(make_resdir(marker, beta))/img"
+
+# Make configs.
 configs = [[let
-  bucket = (awsbucket == nothing) ? awsbucket : "$(awsbucket)/donor$(donor)/$(marker)"
   yC, yT = CDE.Util.partition(data, marker, log_response=true)
   (yC=yC, yT=yT, K=6, nsamps=nsamps, nburn=nburn, marker=marker,
-   awsbucket=bucket, p=0.5, beta=beta, thin=1, 
-   resultsdir=joinpath(resultsdir, "donor$(donor)/$(marker)"))
+   awsbucket=make_bucket(marker, beta), p=0.5, beta=beta, thin=1,
+   imgdir=make_imgdir(marker, beta),
+   resultsdir=make_resdir(marker, beta))
 end for beta in 0:1] for marker in markers]
 
 # Parallel run.
@@ -55,8 +81,7 @@ res = pmap(c -> let
   out1 = BSON.load("$(resd1)/results.bson")
   imgdir = "$(c[1][:imgdir])/../../img"; mkpath(imgdir)
   bucket = c[1][:awsbucket] == nothing ? nothing : "$(c[1][:awsbucket])/../img"
-  postprocess(out0[:chain], out1[:chain], out0[:data], 
-              imgdir, bucket, simdata=c[1][:simdata],
+  postprocess(out0[:chain], out1[:chain], out0[:data], imgdir, bucket,
               density_legend_pos=:topleft, bw_postpred=.3, binsC=50, binsT=100,
               p=c[1][:p])
 end, istest ? [configs[1]] : configs, on_error=identity)

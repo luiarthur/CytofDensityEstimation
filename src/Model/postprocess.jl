@@ -48,6 +48,7 @@ function printsummary(chain, summarystats; laststate=nothing, digits=3)
   nu = group(:nu, chain)
   psi = group(:psi, chain)
   omega = group(:omega, chain)
+  tau = group(:tau, chain)
 
   sanitize(s) = round(mean(s), digits=digits)
   sanitizevec(v) = round.(mean(v), digits=digits)
@@ -66,6 +67,7 @@ function printsummary(chain, summarystats; laststate=nothing, digits=3)
   println("mean sigma: ", sanitizevec(sigma))
   println("mean nu: ", sanitizevec(nu))
   println("mean phi: ", sanitizevec(phi))
+  println("mean tau: ", sanitize(tau))
 
   if laststate != nothing
   end

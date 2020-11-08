@@ -3,6 +3,7 @@ ENV["GKSwstype"] = "nul"  # For StatsPlots
 import Pkg; Pkg.activate(joinpath(@__DIR__, "../../../"))
 using CytofDensityEstimation
 const CDE = CytofDensityEstimation
+using CSV, DataFrames
 using LaTeXStrings
 using Distributions
 using StatsPlots
