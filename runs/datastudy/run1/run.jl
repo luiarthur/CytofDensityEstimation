@@ -62,12 +62,12 @@ configs = [[let
 end for beta in 0:1] for marker in markers]
 
 # Parallel run.
-# println("Starting runs ..."); flush(stdout)
-# res = pmap(run, istest ? configs[1] : flatten(configs), on_error=identity)
-# 
-# println("Status of runs:"); flush(stdout)
-# foreach(z -> println(z[2], " => ", z[1]),
-#         zip(res, getfield.(istest ? configs[1] : flatten(configs), :resultsdir)))
+println("Starting runs ..."); flush(stdout)
+res = pmap(run, istest ? configs[1] : flatten(configs), on_error=identity)
+
+println("Status of runs:"); flush(stdout)
+foreach(z -> println(z[2], " => ", z[1]),
+        zip(res, getfield.(istest ? configs[1] : flatten(configs), :resultsdir)))
 
 # Bayes factor
 println("Compute BF:"); flush(stdout)
