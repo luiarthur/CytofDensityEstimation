@@ -40,7 +40,7 @@ end
 
 function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
                      bw_postpred=0.2, density_legend_pos=:best,
-                     simdata=nothing, ygrid=collect(range(-8, 8, length=1000)))
+                     simdata=nothing, ygrid=ygrid)
   # Print summary statistics.
   CDE.Model.printsummary(chain, summarystats)
   flush(stdout)
@@ -62,7 +62,7 @@ end
 function postprocess(chain0, chain1, data, imgdir, awsbucket;
                      simdata=nothing, bw_postpred=0.20,
                      density_legend_pos=:best, binsC=nothing, binsT=nothing,
-                     ygrid=collect(range(-8, 8, length=1000)), p=nothing)
+                     ygrid=ygrid, p=nothing)
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
     println("Start merging results...")
