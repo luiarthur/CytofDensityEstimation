@@ -69,29 +69,17 @@ Table~\ref{tab:data-counts}.
 \alert{Juhee: This data set was randomly subsampled such that only 20000
 cells total are used. That is $N_C + N_T = 20000$.}
 %
-We set $K=5$. Beyond that, the same procedure for determining the priors for
+We set $K=6$. Beyond that, the same procedure for determining the priors for
 this analysis was the same as that in the simulation studies. Posterior
-samples were obtained via MCMC as previously outlined. The initial 2000
-samples were discarded as burn, and the subsequent 10000 samples were kept
-for analysis. Figures~\ref{fig:data-post-pred}~and~\ref{fig:data-post-gamma}
-show the posterior density and posterior distribution for $\gamma_i$ for each
+samples were obtained via MCMC as previously outlined. The initial 6000
+samples were discarded as burn, and the subsequent 5000 samples were kept for
+analysis. Figures~\ref{fig:data-post-pred}~and~\ref{fig:data-post-gamma} show
+the posterior density and posterior distribution for $\gamma_i$ for each
 marker. Also included is the posterior mean for $\beta$, denoted by
-$\hat\beta$. Note that for marker Siglec7, $\hat\beta=0$; and $\hat\beta=1$
-for all other markers. Overall, when $\beta=1$ the model fit is excellent and
-the posterior densities contain the kernel density estimates and follow them
-closely.
-
-\alert{Juhee: It seems there's a problem when $\beta=0$. For Siglec7,
-$\hat\beta$ is estimated to be 0. This somewhat makes sense from
-Figure~\ref{fig:data-post-pred} as the two KDEs are very similar. But in
-Figure~\ref{fig:data-post-gamma}~(d), $\gamma_C$ is combining both samples,
-but neither $\gamma_C$ nor $\gamma_T^\star$ (which in this case are the same)
-match the data well. I think part of the issue is that when $\beta=0$,
-$\gamma_T$ and $\eta_T$ are simply samples from the prior $\Beta(1,1)$. The
-chance of drawing good $\gamma_T$ and $\eta_T$ from the priors is small, so
-$\beta$ gets stuck for a long time. In essence, even though $Z_i/N_i$ is
-small for $i\in\bc{C,T}$ I think $\hat\beta$ should be non-zero, and the MCMC
-is simply stuck. What are your thoughts?}
+$\hat\beta$. Note that for all four markers, $\hat\beta\approx 1$. Overall,
+the model fit is good and the posterior densities contain the kernel density
+estimates and follow them closely. \alert{I have not yet found a case where 
+$\hat\beta \ll 1$ when $N_i=10000$.}
 
 \begin{table}[!t]
   \centering
@@ -117,12 +105,12 @@ is simply stuck. What are your thoughts?}
   \begin{tabular}{cc}
     \includegraphics[scale=0.5]{results/donor1/CD3z/img/postpred-data-hist.pdf} &
     \includegraphics[scale=0.5]{results/donor1/EOMES/img/postpred-data-hist.pdf} \\
-    (a) CD3z ($\hat\beta=1$) & (b) EOMES ($\hat\beta=1$) \\
+    (a) CD3z ($\hat\beta\approx 1$) & (b) EOMES ($\hat\beta\approx 1$) \\
     %
     \includegraphics[scale=0.5]{results/donor1/Perforin/img/postpred-data-hist.pdf} &
     \includegraphics[scale=0.5]{results/donor1/Siglec7/img/postpred-data-hist.pdf} \\
     % \includegraphics[scale=0.5]{results/donor1/Granzyme_A/img/postpred.pdf} \\
-    (c) Perforin ($\hat\beta=1$) & (d) Siglec7 ($\hat\beta=0$) \\
+    (c) Perforin ($\hat\beta\approx 1$) & (d) Siglec7 ($\hat\beta\approx 1$) \\
   \end{tabular}
   \caption{The dashed blue and red lines are, respectively, the kernel
   density estimates of $\bm{\tilde{y}}_C$ and $\bm{\tilde{y}}_T$. Likewise,
@@ -149,6 +137,23 @@ is simply stuck. What are your thoughts?}
   \label{fig:data-post-gamma}
 \end{figure}
 
+\begin{table}
+  \centering
+  \begin{tabular}{|c|rccc|}
+    \hline 
+    Data & Bayes Factor & $\Pr(\beta=1)$ &
+    $\Pr(\beta=1\mid \bm y)$ & KS p-value \\
+    \hline 
+    CD3z     & 2856 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    EOMES    & 2512 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    Perforin & 2742 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    Siglec7  &  117 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    \hline
+  \end{tabular}
+  \caption{Bayes factor in favor of $\beta=1$, prior for $\beta$, posterior
+  for $\beta$, and p-value under the two-sample Kolmogorov-Smirnov test.}
+  \label{tab:data-results}
+\end{table}
 
 % Uncomment if using bibliography:
 % \bibliography{bib}
