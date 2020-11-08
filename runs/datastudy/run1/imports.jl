@@ -85,7 +85,7 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
                                         density_legend_pos=density_legend_pos,
                                         simdata=simdata, lw=.5, ls=:solid, 
                                         binsC=binsC, binsT=binsT,
-                                        xlims_=(-6, 6), digits=5, fontsize=7)
+                                        digits=5, fontsize=7)
 
     CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir)
 
