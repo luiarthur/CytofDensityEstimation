@@ -117,15 +117,15 @@ imitate real data we will analyze.
     Scenario & $\beta^\true$ & Bayes Factor & $\Pr(\beta=1)$ &
     $\Pr(\beta=1\mid \bm y)$ & KS p-value \\
     \hline 
-    I   & 1 & 437.0691 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
-    II  & 1 &  14.8797 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
-    III & 1 &  23.3303 & 0.5 & $\approx 1$ & $0.06919 $ \\
-    IV  & 0 &   0.1007 & 0.5 &      0.5252 & $0.57265 $ \\
+    I   & 1 & 4133.2312 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    II  & 1 &  194.5787 & 0.5 & $\approx 1$ & $<10^{-6}$ \\
+    III & 1 &   87.1239 & 0.5 & $\approx 1$ & $0.06919 $ \\
+    IV  & 0 &    0.2211 & 0.5 &      0.5551 & $0.57265 $ \\
     \hline
-    IV  & 0 &   0.1007 & 0.4 &      0.4242 & $0.57265 $ \\
-    IV  & 0 &   0.1007 & 0.3 &      0.3216 & $0.57265 $ \\
-    IV  & 0 &   0.1007 & 0.2 &      0.2166 & $0.57265 $ \\
-    IV  & 0 &   0.1007 & 0.1 &      0.1094 & $0.57265 $ \\
+    IV  & 0 &    0.2211 & 0.4 &      0.4540 & $0.57265 $ \\
+    IV  & 0 &    0.2211 & 0.3 &      0.3483 & $0.57265 $ \\
+    IV  & 0 &    0.2211 & 0.2 &      0.2377 & $0.57265 $ \\
+    IV  & 0 &    0.2211 & 0.1 &      0.1217 & $0.57265 $ \\
     \hline
   \end{tabular}
   \caption{Simulation truth of $\beta$ under various scenarios in second
@@ -143,20 +143,20 @@ The following priors were used in this analysis. First, we set $K=6$ and
 $p=0.5$. Then $\gamma_i\sim\Beta(1, 1)$, $\bm\eta_i\sim\Dirichlet_K(1/K)$,
 $\mu_k\sim\Normal(\bar{\mu}, s_\mu^2)$, $\tau\sim\G(0.5,\text{rate}=1)$,
 $\omega_k\mid\tau\sim\InvGamma(2.5, \tau)$, $\nu_k\sim\LogNormal(3, 0.5)$,
-$\psi_k\sim\Normal(-1, 0.5)$, where,
-respectively, $\bar{\mu}$ and $s_\mu$ are the empirical mean and standard
-deviation of the data for which $y_{i,n} > 0$.
+$\psi_k\sim\Normal(-1, 0.5)$, where, respectively, $\bar{\mu}$ and $s_\mu$
+are the empirical mean and standard deviation of the data for which $y_{i,n}
+> 0$.
 %
 We fit two models -- $\mathcal{M}_0$, with $\beta$ fixed at 0; and
 $\mathcal{M}_1$, with $\beta$ fixed at 1. For each model, posterior inference
-was made via Gibbs sampling. The initial 10000 MCMC samples were discarded as
-burn-in, and every other subsequent sample in the next MCMC 10000 iterations
-was kept for posterior inference. For each model, the inference speed was
-approximately 32 iterations per second. We recovered the posterior odds
-of $\mathcal{M}_1$ by computing the product of the Bayes factor and prior
-odds in favor of $\mathcal{M}_1$. That is $\text{Odds}(\beta=1 \mid \bm y) =
-\text{BF}_{1,0} \cdot p/(1-p)$. Thus, $\Pr(\beta=1\mid\bm y) =
-\frac{\text{Odds}(\beta=1 \mid \bm y)}{1 + \text{Odds}(\beta=1 \mid \bm y)}$.
+was made via Gibbs sampling. The initial 6000 MCMC samples were discarded as
+burn-in, and the subsequent 5000 samples were kept for posterior inference.
+For each model, the inference speed was approximately 10 iterations per
+second. We recovered the posterior odds of $\mathcal{M}_1$ by computing the
+product of the Bayes factor and prior odds in favor of $\mathcal{M}_1$. That
+is $\text{Odds}(\beta=1 \mid \bm y) = \text{BF}_{1,0} \cdot p/(1-p)$. Thus,
+$\Pr(\beta=1\mid\bm y) = \frac{\text{Odds}(\beta=1 \mid \bm y)}{1 +
+\text{Odds}(\beta=1 \mid \bm y)}$.
 %
 % In addition, updating the parameters $\bm\zeta, \bm v, \bm\mu, \bm\omega,
 % \bm\nu$, and $\bm\psi$ multiple times for each update of the other parameters
