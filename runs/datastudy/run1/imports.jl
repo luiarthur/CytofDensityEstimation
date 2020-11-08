@@ -83,6 +83,7 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
     CDE.Model.plot_posterior_predictive(data.yC, data.yT, chain0, chain1, pm1,
                                         imgdir, bw_postpred=bw_postpred,
                                         density_legend_pos=density_legend_pos,
+                                        ygrid=ygrid,
                                         simdata=simdata, lw=.5, ls=:solid, 
                                         binsC=binsC, binsT=binsT,
                                         digits=5, fontsize=7)
