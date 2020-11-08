@@ -1,6 +1,6 @@
-println("Compiling on main node ...")
+println("Compiling on main node ..."); flush(stdout)
 include(joinpath(@__DIR__, "imports.jl"))  # For precompile.
-println("Done compiling on main node.")
+println("Done compiling on main node."); flush(stdout)
 markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7]
 
 # Read command line args.
@@ -32,7 +32,6 @@ else
 end
 @everywhere include(joinpath(@__DIR__, "imports.jl"))
 println("Finished loading libraries on workers."); flush(stdout)
-
 
 
 # Read data.
