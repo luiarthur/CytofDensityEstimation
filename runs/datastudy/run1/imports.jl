@@ -14,7 +14,7 @@ using StatsFuns
 @rimport stats as rstats 
 VD = Vector{Dict{Symbol, Any}}
 
-ygrid = collect(range(-10, 8, length=200))
+ygrid = collect(range(-10, 10, length=200))
 default_plotsize = (400, 400)
 flatten = Iterators.flatten
 
@@ -178,7 +178,7 @@ function _run(config)
   # Post process
   postprocess(out[:chain], out[:laststate], out[:summarystats], out[:data].yC,
               out[:data].yT, imgdir, bw_postpred=0.3, 
-              ygrid=collect(range(-8, 8, length=200)),
+              ygrid=ygrid,
               density_legend_pos=:topleft)
 
   # Send results
