@@ -1,7 +1,8 @@
 println("Compiling on main node ..."); flush(stdout)
 include(joinpath(@__DIR__, "imports.jl"))  # For precompile.
 println("Done compiling on main node."); flush(stdout)
-markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7]
+# markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7]
+markers = [:LAG3, :CD56, :CD57]
 
 # Read command line args.
 if length(ARGS) > 1
