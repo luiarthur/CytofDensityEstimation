@@ -68,11 +68,10 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
     println("Start merging results...")
 
     # Compute Bayes factor in favor of M1.
-    _p = CDE.Model.group(:p, chain0)[1]
-    p == nothing || (_p = p)
+    p == nothing && (p = CDE.Model.group(:p, chain0)[1])
     @time lbf = CDE.Model.log_bayes_factor(data, VD(chain0[1]), VD(chain1[1]))
-    pm1 = CDE.Model.posterior_prob1(lbf, logpriorodds=logit(_p))
-    println("Log Bayes Factor: $(lbf) | P(M1|y): $(pm1)")
+    pm1 = CDE.Model.posterior_prob1(lbf, logpriorodds=logit(p))
+    println("Log Bayes Factor: $(lbf) | P(M1|y): $(pm1)"); flush(stdout)
 
     # Print KS Statistic.
     ks_fit = rstats.ks_test(data.yC, data.yT)
@@ -80,21 +79,23 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
     flush(stdout)
 
     # Plot marginal posterior density
-    CDE.Model.plot_posterior_predictive(data.yC, data.yT, chain0, chain1, pm1,
-                                        imgdir, bw_postpred=bw_postpred,
-                                        density_legend_pos=density_legend_pos,
-                                        ygrid=ygrid,
-                                        simdata=simdata, lw=.5, ls=:solid, 
-                                        binsC=binsC, binsT=binsT,
-                                        digits=5, fontsize=7)
+    println("Plot average posterior predictive....")
+    @time CDE.Model.plot_posterior_predictive(data.yC, data.yT, chain0, chain1, pm1,
+                                              imgdir, bw_postpred=bw_postpred,
+                                              density_legend_pos=density_legend_pos,
+                                              ygrid=ygrid,
+                                              simdata=simdata, lw=.5, ls=:solid, 
+                                              binsC=binsC, binsT=binsT,
+                                              digits=5, fontsize=7)
+    flush(stdout)
 
     CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir)
 
     # DIC
-    dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
+    @time dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
     println("(DIC0, DIC1): ($(round(dic0, digits=3)), $(round(dic1, digits=3)))")
 
-    dic_average = CDE.dic(chain0[1], chain1[1], pm1, data)
+    @time dic_average = CDE.dic(chain0[1], chain1[1], pm1, data)
     println("DIC average: $(round(dic_average, digits=3))")
 
     flush(stdout)
