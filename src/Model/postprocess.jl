@@ -75,8 +75,8 @@ end
 
 
 function plot_posterior_predictive_only(chain; ygrid=default_ygrid(), lw=0,
-                                        ls=:solid, labelCppd="post. pred. (C)",
-                                        labelTppd="post. pred. (T)", alpha=0.3,
+                                        ls=:solid, labelCppd="C",
+                                        labelTppd="T", alpha=0.3,
                                         density_legend_pos=:best,
                                         legendfont=font(12))
   pdfC, pdfT = posterior_density(chain, ygrid)
@@ -146,7 +146,7 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"y_C",
   # end
 end
 
-function plot_gamma(yC, yT, chain)
+function plot_gamma(yC, yT, chain; hist=true)
   gammaC = group(:gammaC, chain)
   gammaT = group(:gammaT, chain)
   beta = group(:beta, chain)
@@ -154,12 +154,20 @@ function plot_gamma(yC, yT, chain)
   # gammaT = any(beta) ? gammaT[beta] : gammaC
   gammaT_star = [beta[b] ? gammaT[b] : gammaC[b] for b in eachindex(beta)]
 
-  boxplot(gammaC, outliers=false, color=:blue, label="", alpha=.5)
-  boxplot!(gammaT_star, outliers=false, color=:red, label="", alpha=.5)
-  xticks!([1,2], [L"\gamma_C", L"\gamma_T^\star"],
-          xtickfont=font(20), ytickfont=font(16))
-  scatter!([1, 2], [mean(isinf.(yC)), mean(isinf.(yT))], markersize=[10, 10], 
-           color=[:blue, :red], label=nothing)
+  if hist
+    histogram(gammaC, color=:blue, normalize=true, alpha=0.3, linealpha=0, label=nothing)
+    histogram!(gammaT, color=:red, normalize=true, alpha=0.3, linealpha=0, label=nothing)
+    vline!([mean(isinf.(yC)), mean(isinf.(yT))], color=[:blue, :red], alpha=.6, label=nothing)
+    xlabel!(L"\gamma_i")
+    ylabel!("density")
+  else
+    boxplot(gammaC, outliers=false, color=:blue, label="", alpha=.5)
+    boxplot!(gammaT_star, outliers=false, color=:red, label="", alpha=.5)
+    xticks!([1,2], [L"\gamma_C", L"\gamma_T"],
+            xtickfont=font(20), ytickfont=font(16))
+    scatter!([1, 2], [mean(isinf.(yC)), mean(isinf.(yT))], markersize=[10, 10], 
+             color=[:blue, :red], label=nothing)
+  end
 end
 
 
@@ -198,8 +206,8 @@ function plot_gamma(yC, yT, chain0, chain1, pm1, imgdir; plotsize=(400, 400))
   @assert length(chain0[1]) == length(chain1[1])
   B = length(chain0[1])
   chain = [[pm1 > rand() ? chain1[1][b] : chain0[1][b] for b in 1:B]]
-  plot_gamma(yC, yT, chain)
 
+  plot_gamma(yC, yT, chain)
   plot!(size=plotsize)
   savefig("$(imgdir)/gammas.pdf")
   closeall()
@@ -210,9 +218,9 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
                                    bw_postpred=0.3, simdata=nothing,
                                    ygrid=default_ygrid(), xlims_=nothing,
                                    plotsize=(400,400), lw=.5, ls=:solid,
-                                   density_legend_pos=:best, showpm1=true,
+                                   density_legend_pos=:best, showpm1=false,
                                    digits=3, fontsize=12,
-                                   binsC=nothing, binsT=nothing)
+                                   binsC=:auto, binsT=:auto)
   @assert length(chain0[1]) == length(chain1[1])
   B = length(chain0[1])
   chain = [[pm1 > rand() ? chain1[1][b] : chain0[1][b] for b in 1:B]]
@@ -232,20 +240,10 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
   plot_posterior_predictive_only(chain, ygrid=ygrid, lw=.5,
                                  density_legend_pos=density_legend_pos)
   plot!(size=plotsize)
-  if binsC == nothing
-    histogram!(yC, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
-               color=:blue)
-  else
-    histogram!(yC, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
-               color=:blue, bins=binsC)
-  end
-  if binsT == nothing
-    histogram!(yT, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
-               color=:red)
-  else
-    histogram!(yT, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
-               color=:red, bins=binsT)
-  end
+  histogram!(yC, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
+             color=:grey, bins=binsC)
+  histogram!(yT, alpha=0.3, linealpha=0, normalize=true, labels=nothing,
+             color=:grey, bins=binsT)
   savefig("$(imgdir)/postpred-data-hist.pdf")
   closeall()
 

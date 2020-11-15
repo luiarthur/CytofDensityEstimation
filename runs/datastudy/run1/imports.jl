@@ -20,7 +20,7 @@ flatten = Iterators.flatten
 
 
 # Plot observed data histogram.
-function plot_observed_hist(yC, yT, imgdir; bins, binsT=nothing,
+function plot_observed_hist(yC, yT, imgdir; bins=:auto, binsT=:auto,
                             alpha=0.3, digits=5, plotsize=default_plotsize,
                             legendpos=:topleft)
   binsC = bins
@@ -61,7 +61,7 @@ end
 
 function postprocess(chain0, chain1, data, imgdir, awsbucket;
                      simdata=nothing, bw_postpred=0.20,
-                     density_legend_pos=:best, binsC=nothing, binsT=nothing,
+                     density_legend_pos=:best, binsC=:auto, binsT=:auto,
                      ygrid=ygrid, p=nothing)
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
@@ -83,7 +83,7 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
     @time CDE.Model.plot_posterior_predictive(data.yC, data.yT, chain0, chain1, pm1,
                                               imgdir, bw_postpred=bw_postpred,
                                               density_legend_pos=density_legend_pos,
-                                              ygrid=ygrid,
+                                              ygrid=ygrid, plotsize=(300, 300),
                                               simdata=simdata, lw=.5, ls=:solid, 
                                               binsC=binsC, binsT=binsT,
                                               digits=5, fontsize=7)
@@ -158,7 +158,7 @@ function _run(config)
           fieldnames(CDE.Model.Prior))
 
   # Plot data.
-  plot_observed_hist(yC, yT, imgdir, bins=50, binsT=50*2,
+  plot_observed_hist(yC, yT, imgdir, 
                      alpha=0.3, digits=5, legendpos=:topleft)
  
   # Run analysis.
