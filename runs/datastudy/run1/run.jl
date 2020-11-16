@@ -84,7 +84,7 @@ res = pmap(c -> let
   bucket = c[1][:awsbucket] == nothing ? nothing : "$(c[1][:awsbucket])/../img"
   postprocess(out0[:chain], out1[:chain], out0[:data], imgdir, bucket,
               density_legend_pos=:topleft, bw_postpred=.3,
-              binsC=100, binsT=100, p=c[1][:p])
+              binsC=:auto, binsT=:auto, p=c[1][:p])
 end, istest ? [configs[1]] : configs, on_error=identity)
 
 println("Status of BF computation:"); flush(stdout)

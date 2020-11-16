@@ -156,7 +156,7 @@ function plot_gamma(yC, yT, chain; hist=true)
 
   if hist
     histogram(gammaC, color=:blue, normalize=true, alpha=0.3, linealpha=0, label=nothing)
-    histogram!(gammaT, color=:red, normalize=true, alpha=0.3, linealpha=0, label=nothing)
+    histogram!(gammaT_star, color=:red, normalize=true, alpha=0.3, linealpha=0, label=nothing)
     vline!([mean(isinf.(yC)), mean(isinf.(yT))], color=[:blue, :red], alpha=.6, label=nothing)
     xlabel!(L"\gamma_i")
     ylabel!("density")
