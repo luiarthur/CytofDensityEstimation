@@ -202,12 +202,13 @@ function trace_kernel_param(sym, chain; paramname="", simdata=nothing,
   return
 end
 
-function plot_gamma(yC, yT, chain0, chain1, pm1, imgdir; plotsize=(400, 400))
+function plot_gamma(yC, yT, chain0, chain1, pm1, imgdir; plotsize=(400, 400),
+                    hist=true)
   @assert length(chain0[1]) == length(chain1[1])
   B = length(chain0[1])
   chain = [[pm1 > rand() ? chain1[1][b] : chain0[1][b] for b in 1:B]]
 
-  plot_gamma(yC, yT, chain)
+  plot_gamma(yC, yT, chain, hist=hist)
   plot!(size=plotsize)
   savefig("$(imgdir)/gammas.pdf")
   closeall()
@@ -263,7 +264,7 @@ end
 
 function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
                          laststate=nothing, bw_postpred=0.3, simdata=nothing,
-                         ygrid=default_ygrid(), xlims_=nothing,
+                         ygrid=default_ygrid(), xlims_=nothing, gamma_hist=true,
                          plotsize=(400,400), density_legend_pos=:best)
   # Loglikelihood trace
   ll = [s[:loglike] for s in summarystats]
@@ -318,7 +319,7 @@ function plotpostsummary(chain, summarystats, yC, yT, imgdir; digits=3,
   savefig("$(imgdir)/beta-mean-trace.pdf"); closeall()
 
   # Proportion of gammas.
-  plot_gamma(yC, yT, chain)
+  plot_gamma(yC, yT, chain, hist=gamma_hist)
   plot!(size=plotsize)
   savefig("$(imgdir)/gammas.pdf")
   closeall()

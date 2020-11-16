@@ -79,7 +79,7 @@ end
 
 function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
                      bw_postpred=0.2, density_legend_pos=:best,
-                     simdata=nothing, ygrid=collect(range(-8, 8, length=1000)))
+                     simdata=nothing, ygrid=collect(range(-8, 8, length=200)))
   # Print summary statistics.
   CDE.Model.printsummary(chain, summarystats)
   flush(stdout)
@@ -99,8 +99,8 @@ end
 
 function postprocess(chain0, chain1, data, imgdir, awsbucket;
                      simdata=nothing, bw_postpred=0.20,
-                     density_legend_pos=:best, binsC=nothing, binsT=nothing,
-                     ygrid=collect(range(-8, 8, length=1000)), p=nothing)
+                     density_legend_pos=:best, binsC=:auto, binsT=:auto,
+                     ygrid=collect(range(-8, 8, length=200)), p=nothing)
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
     println("Start merging results...")
@@ -122,10 +122,12 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
                                         imgdir, bw_postpred=bw_postpred,
                                         density_legend_pos=density_legend_pos,
                                         simdata=simdata, lw=.5, ls=:solid, 
-                                        binsC=binsC, binsT=binsT,
+                                        binsC=binsC, binsT=binsT, showpm1=false,
+                                        plotsize=(300, 300),
                                         xlims_=(-6, 6), digits=5, fontsize=7)
 
-    CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir)
+    CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir,
+                         plotsize=(300, 300))
 
     # DIC
     dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
