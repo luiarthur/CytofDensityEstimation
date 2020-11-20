@@ -18,10 +18,10 @@ covtrue = let
 end
 
 m = DensityModel(x -> logpdf(MvNormal(meantrue, covtrue), x))
-# p = RWMH(MvNormal(K, 1))
+# p = RWMH(MvNormal(K, .1))
 p = RWAM(K)
 c = sample(m, p, Int(1e5), chain_type=Chains);
-c = c[50000:end];
+c = c[50000:10:end];
 
 plot(vec(get(c, :lp)[1].data), label=nothing)
 mean(c).nt[:mean]
