@@ -1,6 +1,10 @@
 # Adaptive Metropolis Random Walk
 # https://github.com/TuringLang/AdvancedMH.jl/blob/master/src/mh-core.jl
 
+# NOTE:
+# - Is there a more computationally efficient way?
+# - Can we use bijectors to transform continuous parameters to unconstrained space?
+
 import Pkg; Pkg.activate(".")
 include("amh.jl")
 using StatsPlots
@@ -29,4 +33,3 @@ scatter(covtrue, cov(X), label=nothing, color=:blue, alpha=.3)
 corrplot(X[:, 1:3], grid=false)
 
 # boxplot(X, label=nothing)
-
