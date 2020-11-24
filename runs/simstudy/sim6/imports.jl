@@ -22,9 +22,9 @@ function plot_true_data_density(simdata, imgdir; lw=3,
                                 plotsize=default_plotsize,
                                 ygrid=ygrid, legendpos=:topleft)
   plot(ygrid, pdf.(simdata[:mmC], ygrid), lw=lw,
-       label=L"y_C", color=:blue)
+       label=L"\tilde y_C", color=:blue)
   plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=lw,
-        label=L"y_T", color=:red)
+        label=L"\tilde y_T", color=:red)
   plot!(size=plotsize, legend=:topleft)
   p0C, p0T = simdata[:gammaC], simdata[:gammaT]
   title!("prop. -∞ in C: $(p0C) | prop. -∞ in T: $(p0T)", titlefont=font(10))
@@ -38,13 +38,13 @@ function plot_observed_hist(yC, yT, imgdir; bins, binsT=nothing,
                             legendpos=:topleft)
   binsC = bins
   binsT == nothing && (binsT = bins)
-  histogram(yC[isfinite.(yC)], bins=binsC, label=L"y_C", alpha=alpha,
+  histogram(yC[isfinite.(yC)], bins=binsC, label=L"\tilde y_C", alpha=alpha,
             color=:blue, linealpha=0, normalize=true)
-  histogram!(yT[isfinite.(yT)], bins=binsT, label=L"y_T", alpha=alpha,
+  histogram!(yT[isfinite.(yT)], bins=binsT, label=L"\tilde y_T", alpha=alpha,
              color=:red, linealpha=0, normalize=true)
   p0C = round(mean(isinf.(yC)), digits=digits)
   p0T = round(mean(isinf.(yT)), digits=digits)
-  title!("prop. -∞ in C: $(p0C) | prop. -∞ in T: $(p0T)", titlefont=font(10))
+  title!("prop. 0 in C: $(p0C) | prop. 0 in T: $(p0T)", titlefont=font(10))
   plot!(size=plotsize, legend=:topleft)
   savefig(joinpath(imgdir, "data-hist.pdf"))
   closeall()
@@ -80,6 +80,18 @@ end
 function postprocess(chain, laststate, summarystats, yC, yT, imgdir;
                      bw_postpred=0.2, density_legend_pos=:best,
                      simdata=nothing, ygrid=collect(range(-8, 8, length=200)))
+  # Print number of cells in each sample.
+  println("NC: ", length(yC))
+  println("NT: ", length(yT))
+
+  # Print number of zeros in each sample.
+  println("ZC: ", sum(isinf.(yC)))
+  println("ZT: ", sum(isinf.(yT)))
+
+  # Print proportion of zeros in each sample.
+  println("prop0C: ", mean(isinf.(yC)))
+  println("prop0T: ", mean(isinf.(yT)))
+
   # Print summary statistics.
   CDE.Model.printsummary(chain, summarystats)
   flush(stdout)

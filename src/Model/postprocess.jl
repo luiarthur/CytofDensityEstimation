@@ -100,9 +100,9 @@ function plot_posterior_predictive_only(chain; ygrid=default_ygrid(), lw=0,
   end
 end
 
-function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"y_C",
+function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"\tilde y_C",
                                    ygrid=default_ygrid(), ls=:solid,
-                                   labelyT=L"y_T", legendfontsize=12,
+                                   labelyT=L"\tilde{y}_T", legendfontsize=12,
                                    alpha=0.3, 
                                    labelCppd="post. density",
                                    labelTppd="post. density", 
