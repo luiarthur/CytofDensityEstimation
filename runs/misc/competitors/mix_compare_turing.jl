@@ -1,8 +1,10 @@
 include("mixst_model.jl")
 using DrWatson
 using Serialization
-resultsdir = "results"
-awsbucket = "s3://cytof-density-estimation/compare-models"
+
+scratchdir = ENV["SCRATCH_DIR"]
+resultsdir = joinpath(scratchdir, "cde", "misc", "competitors")
+awsbucket = "s3://cytof-density-estimation/misc/competitors"
 
 ## Generate data.
 Random.seed!(0);
@@ -12,7 +14,7 @@ y = rand(cde.Util.SkewT(2, 1, 10, -10), 1000);
 # histogram(y, bins=100, label=nothing, la=0)
 
 # Setup
-sims = dict_list(Dict(:K=>[5], :skew=>[true, false], :tdist=>[true, false]))
+sims = dict_list(Dict(:K=>collect(1:5), :skew=>[true, false], :tdist=>[true, false]))
 getsavedir(sim) = joinpath(resultsdir, savename(sim))
 getsavepath(sim) = joinpath(getsavedir(sim), "results.jls")
 
