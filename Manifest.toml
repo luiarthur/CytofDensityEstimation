@@ -285,6 +285,12 @@ git-tree-sha1 = "50ddf44c53698f5e784bbebb3f4b21c5807401b1"
 uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 version = "0.8.3"
 
+[[DrWatson]]
+deps = ["Dates", "FileIO", "LibGit2", "Pkg", "Random", "Requires", "UnPack"]
+git-tree-sha1 = "026cfaa2341860e7436256b8272d73d4f91a5c18"
+uuid = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+version = "1.16.6"
+
 [[DynamicPPL]]
 deps = ["AbstractMCMC", "Bijectors", "ChainRulesCore", "Distributions", "MacroTools", "NaturalSort", "Random"]
 git-tree-sha1 = "c0e31cd66fbb6a20057639fd6d2240964d9fb27e"
@@ -331,6 +337,12 @@ deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "f10c3009373a2d5c4349b8a2932d8accb892892d"
 uuid = "f5851436-0d7a-5f13-b9de-f02708fd171a"
 version = "3.3.9+6"
+
+[[FileIO]]
+deps = ["Pkg"]
+git-tree-sha1 = "cad2e71389ecb2f4480e0de74faab04af13d7929"
+uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+version = "1.4.4"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
