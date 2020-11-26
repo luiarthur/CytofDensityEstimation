@@ -178,7 +178,9 @@ function make_cond(y, K, v, zeta; priors=make_priors(K), skew=true, tdist=true)
           omega=cond_omega, psi=cond_psi, update_vzeta=update_vzeta!)
 end
 
-function make_sampler(cond)
+function make_sampler(y, K, v, zeta; skew=true, tdist=true)
+  cond = make_cond(y, K, v, zeta, skew=skew, tdist=tdist)
+  nu_sampler = MH(LinearAlgebra.I(K) * 1e-2, :nu)
   Gibbs(GibbsConditional(:lambda, function(c)
                          out = cond[:lambda](c); cond[:update_vzeta](c); out; end),
         GibbsConditional(:eta, cond[:eta]),
