@@ -2,6 +2,7 @@ include("mixst_model.jl")
 using DrWatson
 using Serialization
 resultsdir = "results"
+awsbucket = "s3://cytof-density-estimation/compare-models"
 
 ## Generate data.
 Random.seed!(0);
@@ -35,3 +36,6 @@ for sim in sims
   # NOTE: Load via
   # deserialize(getsavepath(sim))
 end
+
+# Send results to aws.
+cde.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
