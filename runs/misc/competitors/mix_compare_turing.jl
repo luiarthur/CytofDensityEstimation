@@ -41,3 +41,19 @@ end
 
 # Send results to aws.
 cde.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
+
+# Postprocess
+sim = sims[1]
+chain = deserialize(getsavepath(sim));
+grid = collect(range(-2.5, 2.5, length=100))
+
+# TODO:
+# - plot data (observed and truth).
+# - plot psterior estimate and point-wise ci.
+# - get posterior distributions and trace of each parameter.
+# - compute dic for all models.
+# - see how many componenets are needed for best fit for each model
+# - see which model is best overall
+
+# Send all results to aws.
+cde.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
