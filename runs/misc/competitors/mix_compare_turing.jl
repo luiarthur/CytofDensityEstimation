@@ -69,8 +69,8 @@ cde.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
 # - [X] plot psterior estimate and point-wise ci.
 # - [ ] get posterior distributions and trace of each parameter.
 # - [X] compute dic for all models.
-# - [ ] see how many componenets are needed for best fit for each model
-# - [ ] see which model is best overall
+# - [X] see how many componenets are needed for best fit for each model
+# - [X] see which model is best overall
 
 function postprocess(sim)
   savepath = getsavepath(sim)
