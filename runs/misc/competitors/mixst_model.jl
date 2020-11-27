@@ -1,7 +1,9 @@
 import Pkg; Pkg.activate("../../../")
+ENV["GKSwstype"] = "nul"  # For StatsPlots to plot in background only.
 
 using CytofDensityEstimation; const cde = CytofDensityEstimation
-import CytofDensityEstimation: Util.SkewT
+import CytofDensityEstimation: Util.SkewT, Util.skewtpdf, Util.skewtlogpdf
+import CytofDensityEstimation: Util.mixskewtlogpdf
 
 using Turing
 using Distributions
@@ -10,6 +12,11 @@ using StatsPlots
 using StatsFuns
 import Random
 import LinearAlgebra
+
+function dic(ll::AbstractArray{<:Real})
+  D = -2 * ll
+  return mean(D) + 0.5 * var(D)
+end
 
 nunique(x) = length(unique(x))
 
@@ -197,3 +204,66 @@ function make_sampler(y, K, v, zeta; skew=true, tdist=true)
 end
 
 nclusters(chain) = nunique.(eachrow(group(chain, :lambda).value.data[:,:,1]))
+getparam(chain, sym) = group(chain, sym).value.data[:, :, 1]
+
+function plot_posterior(chain, savedir, y, grid, true_dat_dist; alpha=0.3,
+                        color=:blue)
+  imgdir = joinpath(savedir, "img")
+  mkpath(imgdir)
+
+  # Get parameters
+  eta = getparam(chain, :eta)
+  mu = getparam(chain, :mu)
+  tau = vec(group(chain, :tau).value.data)
+  omega = getparam(chain, :omega)
+  psi = getparam(chain, :psi)
+  nu = getparam(chain, :nu)
+  sigma = cde.Util.scalefromaltskewt.(sqrt.(omega), psi)
+  phi = cde.Util.skewfromaltskewt.(sqrt.(omega), psi)
+  B, K = size(eta)  # number of posterior samples, number of mixture components.
+
+  # Plot log prob
+  joint_log_prob = vec(get(chain, :lp)[1].data)
+  plot(joint_log_prob, label=nothing)
+  xlabel!("MCMC iteration")
+  ylabel!("joint log unnormalized density")
+  savefig(joinpath(imgdir, "lp.pdf"))
+  closeall()
+
+  # True density
+  ypdf_true = pdf.(true_dat_dist, grid)
+
+  # Posterior density
+  ypdf_post = let
+    raw = [let mix = MixtureModel(SkewT.(mu[b, :], sigma[b,:],
+                                         nu[b, :], phi[b, :]), eta[b, :])
+             pdf.(mix, grid)
+           end for b in 1:B]
+    hcat(raw...)  # K x B
+  end
+
+  # Density plot with truth
+  ypdf_lower = vec(cde.MCMC.quantiles(ypdf_post, .025, dims=2))
+  ypdf_upper = vec(cde.MCMC.quantiles(ypdf_post, .975, dims=2))
+  plot(grid, ypdf_true, color=color, label=nothing)
+  plot!(grid, ypdf_lower, fillrange=ypdf_upper, alpha=alpha, color=color,
+        label=nothing)
+  savefig(joinpath(imgdir, "post-density.pdf"))
+  closeall()
+
+  # Compute DIC
+  num_obs = length(y)
+  ll = let
+    mix = mixskewtlogpdf(mu[:,:,:], sigma[:,:,:], nu[:,:,:], phi[:,:,:],
+                         eta[:,:,:], reshape(y, (1, 1, num_obs)), dims=2)
+    vec(sum(mix, dims=3))
+  end
+
+  # NOTE: same as this, but the above is 3x faster.
+  # ll = [let mix = MixtureModel(SkewT.(mu[b, :], sigma[b,:],
+  #                                     nu[b, :], phi[b, :]), eta[b, :])
+  #         sum(logpdf.(mix, y))
+  #    end for b in 1:B]
+
+  write(joinpath(imgdir, "dic.txt"), string(dic(ll)))
+end
