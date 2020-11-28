@@ -13,7 +13,7 @@ awsbucket = "s3://cytof-density-estimation/misc/competitors"
 
 ## Generate data.
 Random.seed!(0);
-true_data_dist = cde.Util.SkewT(2, 1, 10, -10)
+true_data_dist = cde.Util.SkewT(2, 1, 7, -10)
 y = rand(true_data_dist, 1000);
 
 # Plot data.
@@ -27,7 +27,7 @@ savefig(joinpath(imgdir, "data-hist.pdf"))
 closeall()
 
 # True data density.
-grid = collect(range(-3, 2.5, length=100))
+grid = collect(range(-4.5, 2.5, length=100))
 ypdf = pdf.(true_data_dist, grid)
 plot(grid, ypdf, label=nothing);
 plot!(size=plotsize); ylabel!("density")
