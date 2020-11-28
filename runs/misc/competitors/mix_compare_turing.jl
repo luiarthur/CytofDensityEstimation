@@ -2,6 +2,7 @@ include("mixst_model.jl")
 using DrWatson
 using Serialization
 using ProgressBars
+using ColorSchemes
 
 plotsize = (400, 400)
 Plots.scalefontsizes()
@@ -84,17 +85,20 @@ for sim in ProgressBar(sims)  # TODO: remove index
 end
 
 # Plot DIC for all models.
-function plot_dic(sims)
+function plot_dic(sims, colors=palette(:tab10), marker=[:rect, :circle, :utriangle, :pentagon])
   unique_K = unique(getindex.(sims, :K))
   plot(size=plotsize)
 
+  plotidx = 0
   for tdist in [false, true]
     for skew in [false, true]
+      plotidx +=1
       sim_subset = filter(s -> s[:tdist]==tdist && s[:skew]==skew, sims)
       dicpaths = [joinpath(getsavedir(s), "img/dic.txt") for s in sim_subset]
       dics = parse.(Float64, [open(f->read(f, String), dicpath)
                               for dicpath in dicpaths])
-      plot!(unique_K, dics, label="tdist: $(tdist), skew: $(skew)", lw=3)
+      plot!(unique_K, dics, label="tdist: $(tdist), skew: $(skew)",
+            marker=marker[plotidx], color=:grey, ms=6)
     end
   end
   ylabel!("DIC")

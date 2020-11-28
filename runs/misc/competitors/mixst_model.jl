@@ -222,6 +222,20 @@ function plot_posterior(chain, savedir, y, grid, true_dat_dist; alpha=0.3,
   phi = cde.Util.skewfromaltskewt.(sqrt.(omega), psi)
   B, K = size(eta)  # number of posterior samples, number of mixture components.
 
+  # Boxplots
+  boxplot(eta, label=nothing); savefig(joinpath(imgdir, "eta.pdf")); closeall()
+  boxplot(mu, label=nothing); savefig(joinpath(imgdir, "mu.pdf")); closeall()
+  boxplot(sigma, label=nothing); savefig(joinpath(imgdir, "sigma.pdf")); closeall()
+  boxplot(nu, label=nothing); savefig(joinpath(imgdir, "nu.pdf")); closeall()
+  boxplot(phi, label=nothing); savefig(joinpath(imgdir, "phi.pdf")); closeall()
+
+  # Trace plots
+  plot(eta, label=nothing); savefig(joinpath(imgdir, "eta-trace.pdf")); closeall()
+  plot(mu, label=nothing); savefig(joinpath(imgdir, "mu-trace.pdf")); closeall()
+  plot(sigma, label=nothing); savefig(joinpath(imgdir, "sigma-trace.pdf")); closeall()
+  plot(nu, label=nothing); savefig(joinpath(imgdir, "nu-trace.pdf")); closeall()
+  plot(phi, label=nothing); savefig(joinpath(imgdir, "phi-trace.pdf")); closeall()
+
   # Plot log prob
   joint_log_prob = vec(get(chain, :lp)[1].data)
   plot(joint_log_prob, label=nothing)
