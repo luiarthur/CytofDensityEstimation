@@ -13,6 +13,18 @@ using StatsFuns
 import Random
 import LinearAlgebra
 
+using DrWatson
+using Serialization
+using ProgressBars
+
+plotsize = (400, 400)
+Plots.scalefontsizes()
+Plots.scalefontsizes(1.5)
+
+scratchdir = ENV["SCRATCH_DIR"]
+resultsdir = joinpath(scratchdir, "cde", "misc", "competitors")
+awsbucket = "s3://cytof-density-estimation/misc/competitors"
+
 deviance(ll::AbstractArray{<:Real}) = -2 * ll
 mean_deviance(ll::AbstractArray{<:Real}) = mean(deviance(ll))
 function dic(ll::AbstractArray{<:Real})

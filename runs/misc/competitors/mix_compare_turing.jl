@@ -1,20 +1,16 @@
+println("Compile on main node...")
 include("mixst_model.jl")
-using DrWatson
-using Serialization
-using ProgressBars
 
-plotsize = (400, 400)
-Plots.scalefontsizes()
-Plots.scalefontsizes(1.5)
-
-scratchdir = ENV["SCRATCH_DIR"]
-resultsdir = joinpath(scratchdir, "cde", "misc", "competitors")
-awsbucket = "s3://cytof-density-estimation/misc/competitors"
+using Distributed
+rmprocs(workers())
+addprocs(20)
+println("Compile on workers...")
+@everywhere include("mixst_model.jl")
 
 ## Generate data.
 Random.seed!(0);
-true_data_dist = cde.Util.SkewT(2, 1, 7, -10)
-y = rand(true_data_dist, 1000);
+@everywhere true_data_dist = cde.Util.SkewT(2, 1, 7, -10)
+@everywhere y = rand(true_data_dist, 1000);
 
 # Plot data.
 imgdir = joinpath(resultsdir, "img") 
@@ -35,12 +31,15 @@ savefig(joinpath(imgdir, "data-density.pdf"))
 closeall()
 
 # Setup
-sims = dict_list(Dict(:K=>collect(1:5), :skew=>[true, false], :tdist=>[true, false]))
-getsavedir(sim) = joinpath(resultsdir, savename(sim))
-getsavepath(sim) = joinpath(getsavedir(sim), "results.jls")
+@everywhere begin
+  sims = dict_list(Dict(:K=>collect(1:5),
+                        :skew=>[true, false], :tdist=>[true, false]))
+  getsavedir(sim) = joinpath(resultsdir, savename(sim))
+  getsavepath(sim) = joinpath(getsavedir(sim), "results.jls")
+end
 
-Random.seed!(1);
-for sim in sims
+@everywhere function run(sim)
+  Random.seed!(1);
   savedir = getsavedir(sim)
   mkpath(savedir)
   savepath = getsavepath(sim)
@@ -53,13 +52,18 @@ for sim in sims
   m = MixST(y, K, v, zeta)
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
   burn, nsamps = 6000, 3000
-  chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):end];
+
+  cde.Util.redirect_stdout_to_file(joinpath(savedir, "log.txt")) do
+    chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):end];
+  end
 
   serialize(savepath, chain)
-
-  # NOTE: Load via
-  # deserialize(getsavepath(sim))
 end
+println("Fit in parallel ...") 
+res = pmap(run, sims, on_error=identity)
+
+println("Status of runs:")
+foreach(z -> println(z[1], " => ", z[2]), zip(res, savename.(sims)))
 
 # Send results to aws.
 cde.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
