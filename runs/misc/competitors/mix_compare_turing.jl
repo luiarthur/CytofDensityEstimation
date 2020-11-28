@@ -53,10 +53,7 @@ end
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
   burn, nsamps = 6000, 3000
 
-  cde.Util.redirect_stdout_to_file(joinpath(savedir, "log.txt")) do
-    chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):end];
-  end
-
+  chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):end];
   serialize(savepath, chain)
 end
 println("Fit in parallel ...") 
