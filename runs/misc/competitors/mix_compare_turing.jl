@@ -40,6 +40,7 @@ sims = dict_list(Dict(:K=>collect(1:5), :skew=>[true, false], :tdist=>[true, fal
 getsavedir(sim) = joinpath(resultsdir, savename(sim))
 getsavepath(sim) = joinpath(getsavedir(sim), "results.jls")
 
+Random.seed!(1);
 for sim in sims
   savedir = getsavedir(sim)
   mkpath(savedir)
@@ -85,28 +86,33 @@ for sim in ProgressBar(sims)  # TODO: remove index
 end
 
 # Plot DIC for all models.
-function plot_dic(sims, colors=palette(:tab10), marker=[:rect, :circle, :utriangle, :pentagon])
+function plot_metrics(sims, colors=palette(:tab10),
+                      marker=[:rect, :circle, :utriangle, :pentagon])
   unique_K = unique(getindex.(sims, :K))
-  plot(size=plotsize)
 
-  plotidx = 0
-  for tdist in [false, true]
-    for skew in [false, true]
-      plotidx +=1
-      sim_subset = filter(s -> s[:tdist]==tdist && s[:skew]==skew, sims)
-      dicpaths = [joinpath(getsavedir(s), "img/dic.txt") for s in sim_subset]
-      dics = parse.(Float64, [open(f->read(f, String), dicpath)
-                              for dicpath in dicpaths])
-      plot!(unique_K, dics, label="tdist: $(tdist), skew: $(skew)",
-            marker=marker[plotidx], color=:grey, ms=6)
+  for metric in ["dic", "mean_deviance"]
+    plot(size=plotsize)
+    plotidx = 0
+    for tdist in [false, true]
+      for skew in [false, true]
+        plotidx +=1
+        sim_subset = filter(s -> s[:tdist]==tdist && s[:skew]==skew, sims)
+
+        metric_paths = [joinpath(getsavedir(s), "img/$(metric).txt")
+                        for s in sim_subset]
+        metrics = parse.(Float64, [open(f->read(f, String), metric_path)
+                                   for metric_path in metric_paths])
+        plot!(unique_K, metrics, label="tdist: $(tdist), skew: $(skew)",
+              marker=marker[plotidx], color=:grey, ms=6)
+      end
     end
+    ylabel!(replace(metric, "_" => " "))
+    xlabel!("K")
+    savefig(joinpath(imgdir, "$(metric).pdf"))
+    closeall()
   end
-  ylabel!("DIC")
-  xlabel!("K")
-  savefig(joinpath(imgdir, "dic.pdf"))
-  closeall()
 end
-plot_dic(sims)
+plot_metrics(sims)
 
 
 # Send all results to aws.

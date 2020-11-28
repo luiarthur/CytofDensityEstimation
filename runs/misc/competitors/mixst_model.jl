@@ -13,8 +13,10 @@ using StatsFuns
 import Random
 import LinearAlgebra
 
+deviance(ll::AbstractArray{<:Real}) = -2 * ll
+mean_deviance(ll::AbstractArray{<:Real}) = mean(deviance(ll))
 function dic(ll::AbstractArray{<:Real})
-  D = -2 * ll
+  D = deviance(ll)
   return mean(D) + 0.5 * var(D)
 end
 
@@ -220,7 +222,8 @@ function plot_posterior(chain, savedir, y, grid, true_dat_dist; alpha=0.3,
   tau = vec(group(chain, :tau).value.data)
   omega = getparam(chain, :omega)
   psi = getparam(chain, :psi)
-  nu = istdist ? getparam(chain, :nu) : 1e4
+  nu = getparam(chain, :nu)
+  istdist || (nu .= 1e4)
   sigma = cde.Util.scalefromaltskewt.(sqrt.(omega), psi)
   phi = cde.Util.skewfromaltskewt.(sqrt.(omega), psi)
   B, K = size(eta)  # number of posterior samples, number of mixture components.
@@ -283,4 +286,5 @@ function plot_posterior(chain, savedir, y, grid, true_dat_dist; alpha=0.3,
   #    end for b in 1:B]
 
   write(joinpath(imgdir, "dic.txt"), string(dic(ll)))
+  write(joinpath(imgdir, "mean_deviance.txt"), string(mean_deviance(ll)))
 end
