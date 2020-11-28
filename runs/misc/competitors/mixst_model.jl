@@ -211,13 +211,16 @@ function plot_posterior(chain, savedir, y, grid, true_dat_dist; alpha=0.3,
   imgdir = joinpath(savedir, "img")
   mkpath(imgdir)
 
+  istdist = occursin("tdist=true", savedir)
+  isskew = occursin("skew=true", savedir)
+
   # Get parameters
   eta = getparam(chain, :eta)
   mu = getparam(chain, :mu)
   tau = vec(group(chain, :tau).value.data)
   omega = getparam(chain, :omega)
   psi = getparam(chain, :psi)
-  nu = getparam(chain, :nu)
+  nu = istdist ? getparam(chain, :nu) : 1e4
   sigma = cde.Util.scalefromaltskewt.(sqrt.(omega), psi)
   phi = cde.Util.skewfromaltskewt.(sqrt.(omega), psi)
   B, K = size(eta)  # number of posterior samples, number of mixture components.
