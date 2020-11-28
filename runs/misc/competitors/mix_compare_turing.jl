@@ -52,7 +52,7 @@ for sim in sims
   v, zeta = make_aux(y)
   m = MixST(y, K, v, zeta)
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
-  burn, nsamps = 5000, 3000
+  burn, nsamps = 6000, 3000
   chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):end];
 
   serialize(savepath, chain)
