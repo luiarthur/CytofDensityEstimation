@@ -2,7 +2,6 @@ include("mixst_model.jl")
 using DrWatson
 using Serialization
 using ProgressBars
-using ColorSchemes
 
 plotsize = (400, 400)
 Plots.scalefontsizes()
