@@ -51,7 +51,7 @@ end
   v, zeta = make_aux(y)
   m = MixST(y, K, v, zeta)
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
-  burn, nsamps, thin = 8000, 3000, thin
+  burn, nsamps, thin = 8000, 3000, 2
 
   chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):thin:end];
   serialize(savepath, chain)
