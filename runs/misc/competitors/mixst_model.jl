@@ -279,6 +279,7 @@ function plot_posterior(chain, savedir, y, grid, true_dat_dist; alpha=0.3,
   plot(grid, ypdf_true, color=color, label=nothing, size=plotsize)
   plot!(grid, ypdf_lower, fillrange=ypdf_upper, alpha=alpha, color=color,
         label=nothing)
+  ylabel!("density")
   savefig(joinpath(imgdir, "post-density.pdf"))
   closeall()
 
