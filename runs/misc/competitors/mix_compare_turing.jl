@@ -23,7 +23,7 @@ savefig(joinpath(imgdir, "data-hist.pdf"))
 closeall()
 
 # True data density.
-grid = collect(range(-4.5, 2.5, length=100))
+@everywhere grid = collect(range(-4.5, 2.5, length=100))
 ypdf = pdf.(true_data_dist, grid)
 plot(grid, ypdf, label=nothing);
 plot!(size=plotsize); ylabel!("density")
@@ -75,16 +75,15 @@ cde.Util.s3sync(from=resultsdir, to=awsbucket, tags=`--exclude '*.nfs'`)
 # - [X] see how many componenets are needed for best fit for each model
 # - [X] see which model is best overall
 
-function postprocess(sim)
+@everywhere function postprocess(sim)
   savepath = getsavepath(sim)
   savedir = getsavedir(sim)
   chain = deserialize(savepath);
   plot_posterior(chain, savedir, y, grid, true_data_dist)
 end
 
-for sim in ProgressBar(sims)  # TODO: remove index
-  postprocess(sim)
-end
+# foreach(postprocess, ProgressBar(sims))
+ppres = pmap(postprocess, sims, on_error=identity)
 
 # Plot DIC for all models.
 function plot_metrics(sims, colors=palette(:tab10),

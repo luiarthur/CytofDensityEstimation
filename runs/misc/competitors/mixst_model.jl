@@ -276,7 +276,7 @@ function plot_posterior(chain, savedir, y, grid, true_dat_dist; alpha=0.3,
   # Density plot with truth
   ypdf_lower = vec(cde.MCMC.quantiles(ypdf_post, .025, dims=2))
   ypdf_upper = vec(cde.MCMC.quantiles(ypdf_post, .975, dims=2))
-  plot(grid, ypdf_true, color=color, label=nothing)
+  plot(grid, ypdf_true, color=color, label=nothing, size=plotsize)
   plot!(grid, ypdf_lower, fillrange=ypdf_upper, alpha=alpha, color=color,
         label=nothing)
   savefig(joinpath(imgdir, "post-density.pdf"))
