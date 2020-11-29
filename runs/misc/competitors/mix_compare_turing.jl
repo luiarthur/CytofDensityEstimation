@@ -51,9 +51,9 @@ end
   v, zeta = make_aux(y)
   m = MixST(y, K, v, zeta)
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
-  burn, nsamps = 6000, 3000
+  burn, nsamps, thin = 8000, 3000, thin
 
-  chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):end];
+  chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):thin:end];
   serialize(savepath, chain)
 end
 println("Fit in parallel ...") 
@@ -106,6 +106,8 @@ function plot_metrics(sims, colors=palette(:tab10),
               marker=marker[plotidx], color=:grey, ms=6)
       end
     end
+    metric == "dic" && ylims!(2000, 3000)
+
     ylabel!(replace(metric, "_" => " "))
     xlabel!("K")
     savefig(joinpath(imgdir, "$(metric).pdf"))
