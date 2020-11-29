@@ -51,9 +51,10 @@ end
   v, zeta = make_aux(y)
   m = MixST(y, K, v, zeta)
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
-  burn, nsamps, thin = 8000, 3000, 2
+  nsamps, thin = 3000, 2
 
-  chain = sample(m, spl, burn + thin * nsamps, save_state=true)[(burn+1):thin:end];
+  chain = sample(m, spl, thin * nsamps, discard_initial=8000,
+                 save_state=true)[1:thin:end];
   serialize(savepath, chain)
 end
 println("Fit in parallel ...") 
@@ -102,11 +103,13 @@ function plot_metrics(sims, colors=palette(:tab10),
                         for s in sim_subset]
         metrics = parse.(Float64, [open(f->read(f, String), metric_path)
                                    for metric_path in metric_paths])
-        plot!(unique_K, metrics, label="tdist: $(tdist), skew: $(skew)",
-              marker=marker[plotidx], color=:grey, ms=6)
+        label = (skew ? "skew-" : "") * (tdist ? "t" : "Normal") * " mixture"
+        plot!(unique_K, metrics, label=label,
+              # marker=marker[plotidx], color=:grey, ms=6)
+              marker=marker[plotidx], ms=4, lw=3, color=colors[plotidx])
       end
     end
-    metric == "dic" && ylims!(2000, 3000)
+    metric == "dic" && ylims!(1900, 3000)
 
     ylabel!(replace(metric, "_" => " "))
     xlabel!("K")
