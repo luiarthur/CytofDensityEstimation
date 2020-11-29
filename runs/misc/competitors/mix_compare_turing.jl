@@ -53,7 +53,7 @@ end
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
   burn, nsamps, thin = 8000, 3000, 2
 
-  chain = sample(m, spl, burn + nsamps, save_state=true)[(burn+1):thin:end];
+  chain = sample(m, spl, burn + thin * nsamps, save_state=true)[(burn+1):thin:end];
   serialize(savepath, chain)
 end
 println("Fit in parallel ...") 
