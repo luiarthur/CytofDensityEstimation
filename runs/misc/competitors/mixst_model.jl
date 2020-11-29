@@ -52,7 +52,7 @@ end
   mu ~ filldist(Normal(priors[:m_mu], priors[:s_mu]), K)
   psi ~ filldist(Normal(priors[:m_psi], priors[:s_psi]), K)
 
-  tau ~ Gamma(priors[:a_tau], priors[:b_tau])
+  tau ~ Gamma(priors[:a_tau], 1/priors[:b_tau])
   omega ~ arraydist(InverseGamma.(fill(priors[:a_omega], K), tau))
 
   nu ~ filldist(LogNormal(priors[:m_nu], priors[:s_nu]), K)
@@ -124,7 +124,6 @@ function make_cond(y, K, v, zeta; priors=make_priors(K), skew=true, tdist=true)
     lambda_prob = [let
                      loc = c.mu + c.psi * zeta[n]
                      scale = sqrt.(c.omega) / sqrt(v[n])
-
                      logmix = normlogpdf.(loc, scale, y[n]) + logeta
                      tdist && (logmix .+= gammalogpdf.(c.nu / 2, 2 ./ c.nu, v[n]))
                      logmix .-= logsumexp(logmix)
