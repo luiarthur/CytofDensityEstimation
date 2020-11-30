@@ -72,7 +72,7 @@ function plot_simdata_with_hist(simdata, imgdir; bins, binsT=nothing,
 
   p0C = round(mean(isinf.(yC)), digits=digits)
   p0T = round(mean(isinf.(yT)), digits=digits)
-  title!("prop. -∞ in C: $(p0C) | prop. -∞ in T: $(p0T)", titlefont=font(10))
+  title!("prop. 0 in C: $(p0C) | prop. 0 in T: $(p0T)", titlefont=font(10))
   plot!(size=plotsize, legend=:topleft)
 
   savefig(joinpath(imgdir, "simdata.pdf"))
