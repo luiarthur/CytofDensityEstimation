@@ -65,9 +65,9 @@ function plot_simdata_with_hist(simdata, imgdir; bins, binsT=nothing,
   binsT == nothing && (binsT = bins)
   yC = simdata[:yC]
   yT = simdata[:yT]
-  histogram!(yC[isfinite.(yC)], bins=binsC, label=L"y_C", alpha=alpha,
+  histogram!(yC[isfinite.(yC)], bins=binsC, label=L"\tilde y_C", alpha=alpha,
              color=:blue, linealpha=0, normalize=true)
-  histogram!(yT[isfinite.(yT)], bins=binsT, label=L"y_T", alpha=alpha,
+  histogram!(yT[isfinite.(yT)], bins=binsT, label=L"\tilde y_T", alpha=alpha,
              color=:red, linealpha=0, normalize=true)
 
   p0C = round(mean(isinf.(yC)), digits=digits)
