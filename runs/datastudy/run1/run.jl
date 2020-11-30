@@ -1,15 +1,22 @@
 println("Compiling on main node ..."); flush(stdout)
 include(joinpath(@__DIR__, "imports.jl"))  # For precompile.
 println("Done compiling on main node."); flush(stdout)
-# markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7, :LAG3, :CD56, :CD57]
+markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7, :LAG3, :CD56, :CD57]
 # markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7]
-markers = [:LAG3, :CD56, :CD57]
+# markers = [:LAG3, :CD56, :CD57]
+postprocessing = true
 
 # Read command line args.
-if length(ARGS) > 1
-  resultsdir = ARGS[1]
-  awsbucket = ARGS[2]
-  println("ARGS: ", ARGS); flush(stdout)
+if length(ARGS) > 1 || postprocessing
+  if postprocessing
+    scratchdir = ENV["SCRATCH_DIR"]
+    resultsdir = "$(scratchdir)/cde/datastudy/run1"
+    awsbucket = "s3://cytof-density-estimation/datastudy/run1"
+  else
+    resultsdir = ARGS[1]
+    awsbucket = ARGS[2]
+    println("ARGS: ", ARGS); flush(stdout)
+  end
   nsamps = 5000
   nburn = 6000
   istest=false
@@ -64,12 +71,14 @@ configs = [[let
 end for beta in 0:1] for marker in markers]
 
 # Parallel run.
-println("Starting runs ..."); flush(stdout)
-res = pmap(run, istest ? configs[1] : flatten(configs), on_error=identity)
+if !postprocessing
+  println("Starting runs ..."); flush(stdout)
+  res = pmap(run, istest ? configs[1] : flatten(configs), on_error=identity)
 
-println("Status of runs:"); flush(stdout)
-foreach(z -> println(z[2], " => ", z[1]),
-        zip(res, getfield.(istest ? configs[1] : flatten(configs), :resultsdir)))
+  println("Status of runs:"); flush(stdout)
+  foreach(z -> println(z[2], " => ", z[1]),
+          zip(res, getfield.(istest ? configs[1] : flatten(configs), :resultsdir)))
+end
 
 # Bayes factor
 println("Compute BF:"); flush(stdout)

@@ -104,8 +104,8 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"\tilde y_
                                    ygrid=default_ygrid(), ls=:solid,
                                    labelyT=L"\tilde{y}_T", legendfontsize=12,
                                    alpha=0.3, 
-                                   labelCppd="post. density",
-                                   labelTppd="post. density", 
+                                   labelCppd=nothing,
+                                   labelTppd=nothing, 
                                    simdata=nothing, density_legend_pos=:best)
   pdfC, pdfT = posterior_density(chain, ygrid)
   beta = group(:beta, chain)
@@ -146,7 +146,7 @@ function plot_posterior_predictive(yC, yT, chain, bw; lw=.5, labelyC=L"\tilde y_
   # end
 end
 
-function plot_gamma(yC, yT, chain; hist=true)
+function plot_gamma(yC, yT, chain; hist=true, simdata=nothing, xrotation=nothing)
   gammaC = group(:gammaC, chain)
   gammaT = group(:gammaT, chain)
   beta = group(:beta, chain)
@@ -155,15 +155,34 @@ function plot_gamma(yC, yT, chain; hist=true)
   gammaT_star = [beta[b] ? gammaT[b] : gammaC[b] for b in eachindex(beta)]
 
   if hist
-    histogram(gammaC, color=:blue, normalize=true, alpha=0.3, linealpha=0, label=nothing)
-    histogram!(gammaT_star, color=:red, normalize=true, alpha=0.3, linealpha=0, label=nothing)
-    vline!([mean(isinf.(yC)), mean(isinf.(yT))], color=[:blue, :red], alpha=.6, label=nothing)
+    histogram(gammaC, color=:blue, normalize=true, alpha=0.3, linealpha=0,
+              label=nothing, grid=false)
+    histogram!(gammaT_star, color=:red, normalize=true, alpha=0.3, linealpha=0,
+               label=nothing)
+    xrotation == nothing || plot!(xrotation=xrotation)
+    if simdata == nothing
+      # Plot empirical mean
+      vline!([mean(isinf.(yC)), mean(isinf.(yT))], color=[:blue, :red],
+             label=nothing, ls=:dash)
+    else
+      vline!([simdata[:gammaC], simdata[:gammaT]], color=[:blue, :red],
+             label=nothing, ls=:dash)
+    end
+    # Posterior mean.
+    vline!([mean(gammaC), mean(gammaT_star)], color=[:blue, :red], alpha=.6,
+           label=nothing)
+    # 95% CI
+    vline!([quantile(gammaC, .025), quantile(gammaC, .975)], 
+           color=:blue, label=nothing, ls=:dot, lw=2)
+    vline!([quantile(gammaT_star, .025), quantile(gammaT_star, .975)], 
+           color=:red, label=nothing, ls=:dot, lw=2)
+
     xlabel!(L"\gamma_i")
     ylabel!("density")
   else
     boxplot(gammaC, outliers=false, color=:blue, label="", alpha=.5)
     boxplot!(gammaT_star, outliers=false, color=:red, label="", alpha=.5)
-    xticks!([1,2], [L"\gamma_C", L"\gamma_T"],
+    xticks!([1, 2], [L"\gamma_C", L"\gamma_T"],
             xtickfont=font(20), ytickfont=font(16))
     scatter!([1, 2], [mean(isinf.(yC)), mean(isinf.(yT))], markersize=[10, 10], 
              color=[:blue, :red], label=nothing)
@@ -203,13 +222,14 @@ function trace_kernel_param(sym, chain; paramname="", simdata=nothing,
 end
 
 function plot_gamma(yC, yT, chain0, chain1, pm1, imgdir; plotsize=(400, 400),
-                    hist=true)
+                    hist=true, simdata=nothing, xrotation=nothing)
   @assert length(chain0[1]) == length(chain1[1])
   B = length(chain0[1])
   chain = [[pm1 > rand() ? chain1[1][b] : chain0[1][b] for b in 1:B]]
 
-  plot_gamma(yC, yT, chain, hist=hist)
+  plot_gamma(yC, yT, chain, hist=hist, simdata=simdata)
   plot!(size=plotsize)
+  xrotation == nothing || plot!(xrotation=xrotation)
   savefig("$(imgdir)/gammas.pdf")
   closeall()
 end
@@ -247,6 +267,21 @@ function plot_posterior_predictive(yC, yT, chain0, chain1, pm1, imgdir;
              color=:grey, bins=binsT)
   savefig("$(imgdir)/postpred-data-hist.pdf")
   closeall()
+
+  # Posterior predictive density, mean, and sim-truth.
+  # TODO: check
+  if simdata != nothing
+    plot_posterior_predictive_only(chain, ygrid=ygrid, lw=.5,
+                                   density_legend_pos=density_legend_pos)
+    plot!(ygrid, pdf.(simdata[:mmC], ygrid), lw=1, label=nothing,
+         color=:blue, ls=:dot)
+    plot!(ygrid, pdf.(simdata[:mmT], ygrid), lw=1, label=nothing,
+          color=:red, ls=:dot)
+    plot!(size=plotsize)
+    savefig("$(imgdir)/postpred-mean-simtruth.pdf")
+    closeall()
+  end
+
 
   # Posterior predictive density with true data density
   if simdata != nothing

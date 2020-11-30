@@ -27,7 +27,7 @@ function plot_true_data_density(simdata, imgdir; lw=3,
         label=L"\tilde y_T", color=:red)
   plot!(size=plotsize, legend=:topleft)
   p0C, p0T = simdata[:gammaC], simdata[:gammaT]
-  title!("prop. -∞ in C: $(p0C) | prop. -∞ in T: $(p0T)", titlefont=font(10))
+  title!("prop. 0 in C: $(p0C) | prop. 0 in T: $(p0T)", titlefont=font(10))
   savefig(joinpath(imgdir, "data-true-density.pdf"))
   closeall()
 end
@@ -45,6 +45,8 @@ function plot_observed_hist(yC, yT, imgdir; bins, binsT=nothing,
   p0C = round(mean(isinf.(yC)), digits=digits)
   p0T = round(mean(isinf.(yT)), digits=digits)
   title!("prop. 0 in C: $(p0C) | prop. 0 in T: $(p0T)", titlefont=font(10))
+  println("p0C: ", p0C)
+  println("p0T: ", p0T)
   plot!(size=plotsize, legend=:topleft)
   savefig(joinpath(imgdir, "data-hist.pdf"))
   closeall()
@@ -116,7 +118,12 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
   mkpath(imgdir)
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
     println("Start merging results...")
-
+    # Plot data.
+    plot_observed_hist(data.yC, data.yT, imgdir, bins=50, binsT=50*2,
+                       alpha=0.3, digits=5, legendpos=:topleft)
+    plot_true_data_density(simdata, imgdir, lw=1, legendpos=:topleft)
+    plot_simdata_with_hist(simdata, imgdir, bins=50, binsT=100)
+ 
     # Compute Bayes factor in favor of M1.
     _p = CDE.Model.group(:p, chain0)[1]
     p == nothing || (_p = p)
@@ -139,7 +146,7 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
                                         xlims_=(-6, 6), digits=5, fontsize=7)
 
     CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir,
-                         plotsize=(300, 300))
+                         plotsize=(300, 300), simdata=simdata)
 
     # DIC
     dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)

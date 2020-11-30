@@ -14,10 +14,13 @@ using StatsFuns
 @rimport stats as rstats 
 VD = Vector{Dict{Symbol, Any}}
 
-ygrid = collect(range(-10, 10, length=200))
+ygrid = collect(range(-10, 10, length=200))  # TODO: length=200
 default_plotsize = (400, 400)
 flatten = Iterators.flatten
 
+# plotsize = (400, 400)
+# Plots.scalefontsizes()
+# Plots.scalefontsizes(1.5)
 
 # Plot observed data histogram.
 function plot_observed_hist(yC, yT, imgdir; bins=:auto, binsT=:auto,
@@ -25,13 +28,15 @@ function plot_observed_hist(yC, yT, imgdir; bins=:auto, binsT=:auto,
                             legendpos=:topleft)
   binsC = bins
   binsT == nothing && (binsT = bins)
-  histogram(yC[isfinite.(yC)], bins=binsC, label=L"y_C", alpha=alpha,
+  histogram(yC[isfinite.(yC)], bins=binsC, label=L"\tilde y_C", alpha=alpha,
             color=:blue, linealpha=0, normalize=true)
-  histogram!(yT[isfinite.(yT)], bins=binsT, label=L"y_T", alpha=alpha,
+  histogram!(yT[isfinite.(yT)], bins=binsT, label=L"\tilde y_T", alpha=alpha,
              color=:red, linealpha=0, normalize=true)
   p0C = round(mean(isinf.(yC)), digits=digits)
   p0T = round(mean(isinf.(yT)), digits=digits)
-  title!("prop. -∞ in C: $(p0C) | prop. -∞ in T: $(p0T)", titlefont=font(10))
+  # title!("prop. 0 in C: $(p0C) | prop. -∞ in T: $(p0T)", titlefont=font(10))
+  # xlabel!(L"\tilde y_i")
+  ylabel!("density")
   plot!(size=plotsize, legend=:topleft)
   savefig(joinpath(imgdir, "data-hist.pdf"))
   closeall()
@@ -67,6 +72,10 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
   CDE.Util.redirect_stdout_to_file(joinpath(imgdir, "bf.txt")) do
     println("Start merging results...")
 
+    # Plot observed data.
+    plot_observed_hist(data.yC, data.yT, imgdir, 
+                       alpha=0.3, digits=5, legendpos=:topleft)
+ 
     # Compute Bayes factor in favor of M1.
     p == nothing && (p = CDE.Model.group(:p, chain0)[1])
     @time lbf = CDE.Model.log_bayes_factor(data, VD(chain0[1]), VD(chain1[1]))
@@ -89,7 +98,7 @@ function postprocess(chain0, chain1, data, imgdir, awsbucket;
                                               digits=5, fontsize=7)
     flush(stdout)
 
-    CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir)
+    CDE.Model.plot_gamma(data.yC, data.yT, chain0, chain1, pm1, imgdir, xrotation=nothing)
 
     # DIC
     @time dic0, dic1 = CDE.dic(chain0[1], data), CDE.dic(chain1[1], data)
