@@ -51,10 +51,8 @@ end
   v, zeta = make_aux(y)
   m = MixST(y, K, v, zeta)
   spl = make_sampler(y, K, v, zeta, skew=skew, tdist=tdist)
-  nsamps, thin = 3000, 2
 
-  chain = sample(m, spl, thin * nsamps, discard_initial=8000,
-                 save_state=true)[1:thin:end];
+  chain = sample(m, spl, 3000, discard_initial=8000, thinning=2, save_state=true);
   serialize(savepath, chain)
 end
 println("Fit in parallel ...") 
