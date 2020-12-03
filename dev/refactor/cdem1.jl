@@ -15,8 +15,8 @@ end
   NC = length(yC)
   NT = length(yT)
 
-  etaC ~ Dirichlet(K, 1/K)
-  etaT ~ Dirichlet(K, 1/K)
+  etaC ~ Dirichlet(priors[:a_eta])
+  etaT ~ Dirichlet(priors[:a_eta])
   lambdaC ~ filldist(Categorical(etaC), NC)
   lambdaT ~ filldist(Categorical(etaT), NT)
 
@@ -25,16 +25,22 @@ end
   tau ~ Gamma(priors[:a_tau], 1/priors[:b_tau])
   omega ~ arraydist(InverseGamma.(fill(priors[:a_omega], K), tau))
   nu ~ filldist(LogNormal(priors[:m_nu], priors[:s_nu]), K)
+  dummy ~ Uniform()
 
-  for n in 1:NC
-    k = lambdaC[n]
-    yC[n] ~ Normal(mu[k] + psi[k] * zetaC[n], sqrt(omega[k] ./ vC[n]))
-  end
+  # for n in 1:NC
+  #   k = lambdaC[n]
+  #   yC[n] ~ Normal(mu[k] + psi[k] * zetaC[n], sqrt(omega[k] / vC[n]))
+  # end
 
-  for n in 1:NT
-    k = lambdaT[n]
-    yT[n] ~ Normal(mu[k] + psi[k] * zetaT[n], sqrt(omega[k] ./ vT[n]))
-  end
+  # for n in 1:NT
+  #   k = lambdaT[n]
+  #   yT[n] ~ Normal(mu[k] + psi[k] * zetaT[n], sqrt(omega[k] / vT[n]))
+  # end
+
+  yC .~ Normal.(mu[lambdaC[1:end]] + psi[lambdaC[1:end]] .* zetaC[lambdaC[1:end]],
+                sqrt.(omega[lambdaC[1:end]] ./ vC[lambdaC[1:end]]))
+  yT .~ Normal.(mu[lambdaT[1:end]] + psi[lambdaT[1:end]] .* zetaT[lambdaT[1:end]],
+                sqrt.(omega[lambdaT[1:end]] ./ vT[lambdaT[1:end]]))
 end
 
 function update_v!(c, y, lambda, v, zeta)
@@ -77,6 +83,14 @@ function cond_lambda(c, y, eta, v, zeta, tdist)
   return arraydist(Categorical.(lambda_prob))
 end
 
+function cond_eta(c, lambda, priors)
+  anew = priors[:a_eta] .+ 0
+  for n in eachindex(lambda)
+    anew[lambda[n]] += 1
+  end
+  return Dirichlet(anew)
+end
+
 function make_cond(yC, yT, vC, zetaC, vT, zetaT, K; priors=make_priors(K), skew=true, tdist=true)
   NC = length(yC)
   NT = length(yT)
@@ -84,6 +98,8 @@ function make_cond(yC, yT, vC, zetaC, vT, zetaT, K; priors=make_priors(K), skew=
   # TODO: Change behavior with skewt and tist
   cond_lambdaC(c) = cond_lambda(c, yC, c.etaC, vC, zetaC, tdist)
   cond_lambdaT(c) = cond_lambda(c, yT, c.etaT, vT, zetaT, tdist)
+  cond_etaC(c) = cond_eta(c, c.lambdaC, priors)
+  cond_etaT(c) = cond_eta(c, c.lambdaT, priors)
   update_zetaC!(c) = update_zeta!(c, yC, c.lambdaC, vC, zetaC)
   update_zetaT!(c) = update_zeta!(c, yT, c.lambdaT, vT, zetaT)
   update_vC!(c) = update_v!(c, yC, c.lambdaC, vC, zetaC)
@@ -96,10 +112,15 @@ function make_cond(yC, yT, vC, zetaC, vT, zetaT, K; priors=make_priors(K), skew=
     update_vT!(c)
   end
 
-  return (lambdaC=cond_lambdaC, lambdaT=cond_lambdaT, vzeta=update_vzeta!)
+  function cond_dummy(c)
+    return Uniform()
+  end
+
+  return (lambdaC=cond_lambdaC, lambdaT=cond_lambdaT, vzeta=update_vzeta!,
+          dummy=cond_dummy, etaC=cond_etaC, etaT=cond_etaT)
 end
 
-make_hmc_sampler(eps, L) = HMC(eps, L, :mu, :omega, :nu, :psi, :etaC, :etaT, :tau)
+make_hmc_sampler(eps, L) = HMC(eps, L, :mu, :omega, :nu, :psi, :tau)
 
 function generate_model_and_sampler(yC, yT, K; priors=make_priors(K), sampler_other=nothing,
                                     eps=0.01, L=100)
@@ -109,14 +130,17 @@ function generate_model_and_sampler(yC, yT, K; priors=make_priors(K), sampler_ot
   m = CDEM1(yC, yT, vC, zetaC, vT, zetaT, K, priors=priors)
   cond = make_cond(yC, yT, vC, zetaC, vT, zetaT, K, priors=priors)
 
-  function cond_lambdaC(c)
+  function cond_dummy(c)
     cond[:vzeta](c)
-    return cond[:lambdaC](c)
+    return cond[:dummy](c)
   end
 
   sampler_other == nothing && (sampler_other = make_hmc_sampler(eps, L))
 
-  return m, Gibbs(GibbsConditional(:lambdaC, cond_lambdaC),
+  return m, Gibbs(GibbsConditional(:lambdaC, cond[:lambdaC]),
                   GibbsConditional(:lambdaT, cond[:lambdaT]),
+                  GibbsConditional(:dummy, cond_dummy),
+                  GibbsConditional(:etaC, cond[:etaC]),
+                  GibbsConditional(:etaT, cond[:etaT]),
                   sampler_other)
 end
