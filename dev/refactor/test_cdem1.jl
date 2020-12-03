@@ -9,12 +9,12 @@ include("cdem1.jl")
 Random.seed!(1234);
 yC = rand(SkewT(2, .7, 7, -10), 1000)
 yT = rand(SkewT(-1, .7, 7, -3), 1000)
-histogram(yC)
-histogram(yT)
+histogram(yC, label=nothing)
+histogram(yT, label=nothing)
 K = 2
 
 Random.seed!(1234);
-m, spl = generate_model_and_sampler(yC, yT, K, eps=0.01, L=10);
+m, spl = generate_model_and_sampler(yC, yT, K, eps=0.01, L=20);
 @time chain = sample(m, spl, 1000, discard_initial=1000);
 
 lp = vec(get(chain, :lp)[1].data);

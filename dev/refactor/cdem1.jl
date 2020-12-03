@@ -1,6 +1,7 @@
 using Turing
 using Distributions
 using StatsFuns
+import CytofDensityEstimation: MCMC
 
 make_priors(K) = (a_tau=0.5, b_tau=1, a_omega=2.5, m_mu=0, s_mu=3,
                   m_psi=-1, s_psi=0.5, m_nu=2, s_nu=0.5, a_eta=fill(1/K, K))
@@ -27,15 +28,10 @@ end
   nu ~ filldist(LogNormal(priors[:m_nu], priors[:s_nu]), K)
   dummy ~ Uniform()
 
-  # for n in 1:NC
-  #   k = lambdaC[n]
-  #   yC[n] ~ Normal(mu[k] + psi[k] * zetaC[n], sqrt(omega[k] / vC[n]))
-  # end
-
-  # for n in 1:NT
-  #   k = lambdaT[n]
-  #   yT[n] ~ Normal(mu[k] + psi[k] * zetaT[n], sqrt(omega[k] / vT[n]))
-  # end
+  vC .~ arraydist(Gamma.(nu[lambdaC[1:end]] / 2, 2 ./ nu[lambdaC[1:end]]))
+  zetaC .~ arraydist(truncated.(Normal.(0, sqrt.(1 ./ vC)), 0, Inf))
+  vT .~ arraydist(Gamma.(nu[lambdaT[1:end]] / 2, 2 ./ nu[lambdaT[1:end]]))
+  zetaT .~ arraydist(truncated.(Normal.(0, sqrt.(1 ./ vT)), 0, Inf))
 
   yC .~ Normal.(mu[lambdaC[1:end]] + psi[lambdaC[1:end]] .* zetaC[lambdaC[1:end]],
                 sqrt.(omega[lambdaC[1:end]] ./ vC[lambdaC[1:end]]))
@@ -89,6 +85,10 @@ function cond_eta(c, lambda, priors)
     anew[lambda[n]] += 1
   end
   return Dirichlet(anew)
+end
+
+function cond_nu(c, yC, yT, vC, vT, lambdaC, lambdaT)
+  # TODO: HOW???
 end
 
 function make_cond(yC, yT, vC, zetaC, vT, zetaT, K; priors=make_priors(K), skew=true, tdist=true)
