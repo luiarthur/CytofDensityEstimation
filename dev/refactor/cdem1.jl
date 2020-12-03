@@ -1,5 +1,6 @@
 using Turing
 using Distributions
+using StatsFuns
 
 make_priors(K) = (a_tau=0.5, b_tau=1, a_omega=2.5, m_mu=0, s_mu=3,
                   m_psi=-1, s_psi=0.5, m_nu=2, s_nu=0.5, a_eta=fill(1/K, K))
@@ -27,12 +28,12 @@ end
 
   for n in 1:NC
     k = lambdaC[n]
-    yC[n] ~ Normal(mu[k] + psi[k] * zeta[n], sqrt(omega[k] ./ vC[n]))
+    yC[n] ~ Normal(mu[k] + psi[k] * zetaC[n], sqrt(omega[k] ./ vC[n]))
   end
 
   for n in 1:NT
     k = lambdaT[n]
-    yT[n] ~ Normal(mu[k] + psi[k] * zeta[n], sqrt(omega[k] ./ vT[n]))
+    yT[n] ~ Normal(mu[k] + psi[k] * zetaT[n], sqrt(omega[k] ./ vT[n]))
   end
 end
 
@@ -76,12 +77,13 @@ function cond_lambda(c, y, eta, v, zeta, tdist)
   return arraydist(Categorical.(lambda_prob))
 end
 
-function make_cond(yC, yT, vC, vT, zetaC, zetaT, K; priors=make_priors(K), skew=true, tdist=true)
+function make_cond(yC, yT, vC, zetaC, vT, zetaT, K; priors=make_priors(K), skew=true, tdist=true)
   NC = length(yC)
   NT = length(yT)
 
-  cond_lambdaC(c) = cond_lambda(c, c.etaC, yC, vC, zetaC, tdist)
-  cond_lambdaT(c) = cond_lambda(c, c.etaT, yT, vT, zetaT, tdist)
+  # TODO: Change behavior with skewt and tist
+  cond_lambdaC(c) = cond_lambda(c, yC, c.etaC, vC, zetaC, tdist)
+  cond_lambdaT(c) = cond_lambda(c, yT, c.etaT, vT, zetaT, tdist)
   update_zetaC!(c) = update_zeta!(c, yC, c.lambdaC, vC, zetaC)
   update_zetaT!(c) = update_zeta!(c, yT, c.lambdaT, vT, zetaT)
   update_vC!(c) = update_v!(c, yC, c.lambdaC, vC, zetaC)
@@ -97,20 +99,24 @@ function make_cond(yC, yT, vC, vT, zetaC, zetaT, K; priors=make_priors(K), skew=
   return (lambdaC=cond_lambdaC, lambdaT=cond_lambdaT, vzeta=update_vzeta!)
 end
 
-function generate_model_and_sampler(yC, yT, K; priors=make_priors(K))
+make_hmc_sampler(eps, L) = HMC(eps, L, :mu, :omega, :nu, :psi, :etaC, :etaT, :tau)
+
+function generate_model_and_sampler(yC, yT, K; priors=make_priors(K), sampler_other=nothing,
+                                    eps=0.01, L=100)
   vC, zetaC = make_aux(yC)
   vT, zetaT = make_aux(yT)
 
   m = CDEM1(yC, yT, vC, zetaC, vT, zetaT, K, priors=priors)
-  spl = let
-    cond = make_cond(yC, yT, vC, vT, zetaC, zetaT, K, priors=priors)
-  end
+  cond = make_cond(yC, yT, vC, zetaC, vT, zetaT, K, priors=priors)
 
   function cond_lambdaC(c)
-    cond[:update_vzeta](c)
-    return cond[:lambdaC]
+    cond[:vzeta](c)
+    return cond[:lambdaC](c)
   end
 
+  sampler_other == nothing && (sampler_other = make_hmc_sampler(eps, L))
+
   return m, Gibbs(GibbsConditional(:lambdaC, cond_lambdaC),
-                  GibbsConditional(:lambdaT, cond[:lambdaT]))
+                  GibbsConditional(:lambdaT, cond[:lambdaT]),
+                  sampler_other)
 end
