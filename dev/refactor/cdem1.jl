@@ -2,17 +2,13 @@ using Turing
 using Distributions
 using StatsFuns
 import CytofDensityEstimation: MCMC
+using ProgressBars
+include("litesample.jl")
 
 make_priors(K) = (a_tau=0.5, b_tau=1, a_omega=2.5, m_mu=0, s_mu=3,
                   m_psi=-1, s_psi=0.5, m_nu=2, s_nu=0.5, a_eta=fill(1/K, K))
 
-function make_aux(y)
-  v = one.(y)
-  zeta = rand.(truncated.(Normal.(0, 1 ./ sqrt.(v)), 0, Inf))
-  return (v=v, zeta=zeta)
-end
-
-@model function CDEM1(yC, yT, vC, zetaC, vT, zetaT, K; priors=make_priors(K))
+@model function CDEM1(yC, yT, K; priors=make_priors(K))
   NC = length(yC)
   NT = length(yT)
 
@@ -26,12 +22,11 @@ end
   tau ~ Gamma(priors[:a_tau], 1/priors[:b_tau])
   omega ~ arraydist(InverseGamma.(fill(priors[:a_omega], K), tau))
   nu ~ filldist(LogNormal(priors[:m_nu], priors[:s_nu]), K)
-  dummy ~ Uniform()
 
-  vC .~ arraydist(Gamma.(nu[lambdaC[1:end]] / 2, 2 ./ nu[lambdaC[1:end]]))
-  zetaC .~ arraydist(truncated.(Normal.(0, sqrt.(1 ./ vC)), 0, Inf))
-  vT .~ arraydist(Gamma.(nu[lambdaT[1:end]] / 2, 2 ./ nu[lambdaT[1:end]]))
-  zetaT .~ arraydist(truncated.(Normal.(0, sqrt.(1 ./ vT)), 0, Inf))
+  vC ~ arraydist(Gamma.(nu[lambdaC[1:end]] / 2, 2 ./ nu[lambdaC[1:end]]))
+  vT ~ arraydist(Gamma.(nu[lambdaT[1:end]] / 2, 2 ./ nu[lambdaT[1:end]]))
+  zetaC ~ arraydist(truncated.(Normal.(0, sqrt.(1 ./ vC)), 0, Inf))
+  zetaT ~ arraydist(truncated.(Normal.(0, sqrt.(1 ./ vT)), 0, Inf))
 
   yC .~ Normal.(mu[lambdaC[1:end]] + psi[lambdaC[1:end]] .* zetaC[lambdaC[1:end]],
                 sqrt.(omega[lambdaC[1:end]] ./ vC[lambdaC[1:end]]))
@@ -39,7 +34,7 @@ end
                 sqrt.(omega[lambdaT[1:end]] ./ vT[lambdaT[1:end]]))
 end
 
-function update_v!(c, y, lambda, v, zeta)
+function cond_v(c, y, lambda, zeta)
   nu = c.nu[lambda]
   omega = c.omega[lambda]
   psi = c.psi[lambda]
@@ -48,12 +43,10 @@ function update_v!(c, y, lambda, v, zeta)
   shape = nu/2 .+ 1
   rate = (nu + zeta .^ 2 + ((y - mu - psi .* zeta) .^ 2) ./ omega) / 2
 
-  for n in eachindex(v)
-    v[n] = rand(Gamma(shape[n], 1/rate[n]))
-  end
+  return arraydist(Gamma.(shape, 1 ./ rate))
 end
 
-function update_zeta!(c, y, lambda, v, zeta)
+function cond_zeta(c, y, lambda, v)
   psi = c.psi[lambda]
   omega = c.omega[lambda]
   mu = c.mu[lambda]
@@ -61,9 +54,7 @@ function update_zeta!(c, y, lambda, v, zeta)
   vnew = 1 ./ (v + (psi .^ 2) .* v ./ omega)
   mnew = vnew .* v .* psi .* (y - mu) ./ omega
 
-  for n in eachindex(zeta)
-    zeta[n] = rand(truncated(Normal(mnew[n], sqrt(vnew[n])), 0, Inf))
-  end
+  return arraydist(truncated.(Normal.(mnew, sqrt.(vnew)), 0, Inf))
 end
 
 function cond_lambda(c, y, eta, v, zeta, tdist)
@@ -87,60 +78,46 @@ function cond_eta(c, lambda, priors)
   return Dirichlet(anew)
 end
 
-function cond_nu(c, yC, yT, vC, vT, lambdaC, lambdaT)
-  # TODO: HOW???
-end
-
-function make_cond(yC, yT, vC, zetaC, vT, zetaT, K; priors=make_priors(K), skew=true, tdist=true)
+function make_cond(yC, yT, K; priors=make_priors(K), skew=true, tdist=true)
   NC = length(yC)
   NT = length(yT)
 
   # TODO: Change behavior with skewt and tist
-  cond_lambdaC(c) = cond_lambda(c, yC, c.etaC, vC, zetaC, tdist)
-  cond_lambdaT(c) = cond_lambda(c, yT, c.etaT, vT, zetaT, tdist)
+  cond_lambdaC(c) = cond_lambda(c, yC, c.etaC, c.vC, c.zetaC, tdist)
+  cond_lambdaT(c) = cond_lambda(c, yT, c.etaT, c.vT, c.zetaT, tdist)
   cond_etaC(c) = cond_eta(c, c.lambdaC, priors)
   cond_etaT(c) = cond_eta(c, c.lambdaT, priors)
-  update_zetaC!(c) = update_zeta!(c, yC, c.lambdaC, vC, zetaC)
-  update_zetaT!(c) = update_zeta!(c, yT, c.lambdaT, vT, zetaT)
-  update_vC!(c) = update_v!(c, yC, c.lambdaC, vC, zetaC)
-  update_vT!(c) = update_v!(c, yT, c.lambdaT, vT, zetaT)
+  cond_vC(c) = cond_v(c, yC, c.lambdaC, c.zetaC)
+  cond_vT(c) = cond_v(c, yT, c.lambdaT, c.zetaT)
+  cond_zetaC(c) = cond_zeta(c, yC, c.lambdaC, c.vC)
+  cond_zetaT(c) = cond_zeta(c, yT, c.lambdaT, c.vT)
 
-  function update_vzeta!(c)
-    update_zetaC!(c)
-    update_zetaT!(c)
-    update_vC!(c)
-    update_vT!(c)
-  end
-
-  function cond_dummy(c)
-    return Uniform()
-  end
-
-  return (lambdaC=cond_lambdaC, lambdaT=cond_lambdaT, vzeta=update_vzeta!,
-          dummy=cond_dummy, etaC=cond_etaC, etaT=cond_etaT)
+  return (lambdaC=cond_lambdaC, lambdaT=cond_lambdaT, 
+          zetaC=cond_zetaC, zetaT=cond_zetaT,
+          vC=cond_vC, vT=cond_vT,
+          etaC=cond_etaC, etaT=cond_etaT)
 end
 
 make_hmc_sampler(eps, L) = HMC(eps, L, :mu, :omega, :nu, :psi, :tau)
 
 function generate_model_and_sampler(yC, yT, K; priors=make_priors(K), sampler_other=nothing,
                                     eps=0.01, L=100)
-  vC, zetaC = make_aux(yC)
-  vT, zetaT = make_aux(yT)
-
-  m = CDEM1(yC, yT, vC, zetaC, vT, zetaT, K, priors=priors)
-  cond = make_cond(yC, yT, vC, zetaC, vT, zetaT, K, priors=priors)
-
-  function cond_dummy(c)
-    cond[:vzeta](c)
-    return cond[:dummy](c)
-  end
+  m = CDEM1(yC, yT, K, priors=priors)
+  cond = make_cond(yC, yT, K, priors=priors)
 
   sampler_other == nothing && (sampler_other = make_hmc_sampler(eps, L))
 
-  return m, Gibbs(GibbsConditional(:lambdaC, cond[:lambdaC]),
-                  GibbsConditional(:lambdaT, cond[:lambdaT]),
-                  GibbsConditional(:dummy, cond_dummy),
-                  GibbsConditional(:etaC, cond[:etaC]),
+  return m, Gibbs(GibbsConditional(:etaC, cond[:etaC]),
                   GibbsConditional(:etaT, cond[:etaT]),
+                  GibbsConditional(:lambdaC, cond[:lambdaC]),
+                  GibbsConditional(:lambdaT, cond[:lambdaT]),
+                  GibbsConditional(:vC, cond[:vC]),
+                  GibbsConditional(:vT, cond[:vT]),
+                  GibbsConditional(:zetaC, cond[:zetaC]),
+                  GibbsConditional(:zetaT, cond[:zetaT]),
+                  GibbsConditional(:vC, cond[:vC]),
+                  GibbsConditional(:vT, cond[:vT]),
+                  GibbsConditional(:zetaC, cond[:zetaC]),
+                  GibbsConditional(:zetaT, cond[:zetaT]),
                   sampler_other)
 end
