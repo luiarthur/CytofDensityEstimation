@@ -9,12 +9,12 @@ function litesample(m, spl, N; discard_initial=0, thinning=1, buffersize=50, exc
                     chain.name_map[:internals]]
 
   # Vector to store chains.
-  cs = []
+  cs = [chain[tracked_params]]
 
   # Sample in chunks. Every `buffersize` samples, discard the excluded parameters.
-  remainder = mod(N, buffersize)
+  remainder = mod(N - 1, buffersize)
   num_chunks = let
-    nc = div(N, buffersize)
+    nc = div(N - 1, buffersize)
     remainder == 0 ? nc : nc + 1
   end
   for i in ProgressBar(1:num_chunks)
