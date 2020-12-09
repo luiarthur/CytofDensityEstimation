@@ -128,3 +128,37 @@ println("DONE WITH ALL!"); flush(stdout)
 #   savefig(joinpath(imd, "../../img/mu-density.pdf"))
 #   closeall()
 # end
+
+# Density with only comp4,5 in M0 and comp4,5,6 in M1.
+# for marker in [:CD56]
+#   ps = []
+#   xmin = 2.5; xmax = 8
+#   ygrid = range(xmin, xmax, length=100)
+#   for beta in (0, 1)
+#     resd = make_resdir(marker, beta)
+#     imd = make_imgdir(marker, beta)
+#     buck = make_resdir(marker, beta)
+#     out = BSON.load("$(resd)/results.bson")
+#     mu = getindex.(out[:chain][1], :mu)
+#     sigma = getindex.(out[:chain][1], :sigma)
+#     phi = getindex.(out[:chain][1], :phi)
+#     nu = getindex.(out[:chain][1], :nu)
+# 
+#     rows = Bool(beta) ? (4,5,6) : (4,5)
+#     p = plot()
+#     for k in rows
+#       dens = [pdf.(CDE.Util.SkewT.(mu[b][k], sigma[b][k], nu[b][k], phi[b][k]), ygrid)
+#               for b in 1:length(mu)]
+#       mean_dens = mean(dens)
+#       lower_dens = CDE.MCMC.quantiles(hcat(dens...), .025, dims=2)
+#       upper_dens = CDE.MCMC.quantiles(hcat(dens...), .975, dims=2)
+#       plot!(ygrid, mean_dens, label=nothing, legend=:topleft, color=:black)
+#       plot!(ygrid, lower_dens, fillrange=upper_dens, alpha=.6, label="k=$k, β=$beta")
+#     end
+#     append!(ps, [p])
+#   end
+#   plot(ps[1], ps[2], size=(400, 300), layout=(2, 1))
+#   xlims!(xmin, xmax)
+#   savefig(joinpath(imd, "../../img/post-density-short.pdf"))
+#   closeall()
+# end
