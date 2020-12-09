@@ -101,3 +101,30 @@ foreach(z -> println(z[2], " => ", z[1]),
         zip(res, [c[1][:marker] for c in (istest ? [configs[1]] : configs)]))
 
 println("DONE WITH ALL!"); flush(stdout)
+
+# TMP: Histogram of interesting mu's 
+# for marker in (:CD56, :Granzyme_A)
+#   ps = []
+#   xmin = Inf; xmax = -Inf
+#   for beta in (0, 1)
+#     resd = make_resdir(marker, beta)
+#     imd = make_imgdir(marker, beta)
+#     buck = make_resdir(marker, beta)
+#     out = BSON.load("$(resd)/results.bson")
+#     mu = hcat(getindex.(out[:chain][1], :mu)...)
+# 
+#     rows = Bool(beta) ? (4,5,6) : (4,5,6)
+#     p = plot()
+#     for k in rows
+#       histogram!(mu[k, :], normalize=true, la=0, palette=:tab10,
+#                  label="β=$beta, k=$k", legend=:top)
+#       xmin = min(xmin, minimum(mu[k, :]))
+#       xmax = max(xmax, maximum(mu[k, :]))
+#     end
+#     append!(ps, [p])
+#   end
+#   plot(ps[1], ps[2], size=(400, 300), layout=(2, 1))
+#   xlims!(xmin, xmax)
+#   savefig(joinpath(imd, "../../img/mu-density.pdf"))
+#   closeall()
+# end
