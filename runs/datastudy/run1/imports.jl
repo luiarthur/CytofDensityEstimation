@@ -120,7 +120,7 @@ function defaults(yC, yT, K; seed=nothing)
   seed == nothing || Random.seed!(seed)
 
   data = CDE.Model.Data(yC, yT)
-  y = [yC; yT]
+  y = [data.yC_finite; data.yT_finite]
   prior = CDE.Model.Prior(K, 
                           mu=Normal(mean(y), (maximum(y) - minimum(y))/2),
                           nu=LogNormal(3, .5),
