@@ -4,7 +4,7 @@ println("Done compiling on main node."); flush(stdout)
 markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7, :LAG3, :CD56, :CD57]
 # markers = [:CD3z, :EOMES, :Perforin, :Granzyme_A, :Siglec7]
 # markers = [:LAG3, :CD56, :CD57]
-postprocessing = true
+postprocessing = false
 
 # Read command line args.
 if length(ARGS) > 1 || postprocessing
